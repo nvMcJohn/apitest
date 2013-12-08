@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClInclude Include="console.h" />
     <ClInclude Include="cubes_gl_buffer_range.h" />
+    <ClInclude Include="cubes_gl_buffer_storage.h" />
     <ClInclude Include="cubes_gl_dynamic_buffer.h" />
     <ClInclude Include="cubes_gl_multi_draw.h" />
     <ClInclude Include="cubes_gl_tex_coord.h" />
@@ -40,6 +41,7 @@
     <ClCompile Include="api_speed_test.cpp" />
     <ClCompile Include="console.cpp" />
     <ClCompile Include="cubes_gl_buffer_range.cpp" />
+    <ClCompile Include="cubes_gl_buffer_storage.cpp" />
     <ClCompile Include="cubes_gl_dynamic_buffer.cpp" />
     <ClCompile Include="cubes_gl_multi_draw.cpp" />
     <ClCompile Include="cubes_gl_tex_coord.cpp" />
@@ -54,6 +56,8 @@
   <ItemGroup>
     <None Include="cubes_gl_buffer_range_fs.glsl" />
     <None Include="cubes_gl_buffer_range_vs.glsl" />
+    <None Include="cubes_gl_buffer_storage_fs.glsl" />
+    <None Include="cubes_gl_buffer_storage_vs.glsl" />
     <None Include="cubes_gl_dynamic_buffer_fs.glsl" />
     <None Include="cubes_gl_dynamic_buffer_vs.glsl" />
     <None Include="cubes_gl_multi_draw_fs.glsl" />

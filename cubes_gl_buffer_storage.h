@@ -3,11 +3,11 @@
 #include "gfx_gl.h"
 #include <vector>
 
-class Cubes_GL_MultiDraw : public Cubes
+class Cubes_GL_BufferStorage : public Cubes
 {
 public:
-    Cubes_GL_MultiDraw();
-    virtual ~Cubes_GL_MultiDraw();
+    Cubes_GL_BufferStorage();
+    virtual ~Cubes_GL_BufferStorage();
 
     virtual bool init() override;
 
@@ -30,6 +30,9 @@ private:
     GLuint m_prog;
 
     GLuint m_transform_buffer;
+    void *m_transform_ptr;
 
     std::vector<DrawElementsIndirectCommand> m_commands;
+    GLuint m_cmd_buffer;
+    void *m_cmd_ptr;
 };

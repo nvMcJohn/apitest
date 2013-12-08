@@ -18,7 +18,8 @@ enum class TestId
     CubesDynamicBuffer,
     CubesBufferRange,
     CubesTexCoord,
-    CubesMultiDraw
+    CubesMultiDraw,
+    CubesBufferStorage
 };
 
 class TestCase

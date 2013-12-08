@@ -129,6 +129,22 @@ inline Matrix matrix_identity()
     return m;
 }
 
+inline Matrix matrix_rotation_z(float angle)
+{
+    float s = sinf(angle);
+    float c = cosf(angle);
+
+    Matrix r =
+    {
+        c,   -s,    0.0f, 0.0f,
+        s,    c,    0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f,
+    };
+
+    return r;
+}
+
 inline Matrix matrix_look_at(Vec3 eye, Vec3 at, Vec3 up)
 {
     Vec3 z_axis = normalize(eye - at);

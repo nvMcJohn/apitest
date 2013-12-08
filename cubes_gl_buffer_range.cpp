@@ -88,10 +88,12 @@ bool Cubes_GL_BufferRange::begin(void* window, GfxSwapChain* swap_chain, GfxFram
     glClearBufferfv(GL_DEPTH, 0, &d);
 
     // Program
-    Vec3 eye = { -50, -120, 100 };
+     Vec3 dir = { -0.5f, -1, 1 };
     Vec3 at = { 0, 0, 0 };
     Vec3 up = { 0, 0, 1 };
-    Matrix view = matrix_look_at(eye, at, up);
+    dir = normalize(dir);
+    Vec3 eye = at - 250 * dir;
+   Matrix view = matrix_look_at(eye, at, up);
     Matrix proj = matrix_perspective_rh_gl(radians(45.0f), (float)width / (float)height, 0.1f, 10000.0f);
     Matrix view_proj = proj * view;
 

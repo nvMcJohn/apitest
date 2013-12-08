@@ -1,34 +1,52 @@
-#include "cubes_gl_multi_draw.h"
+#include "cubes_gl_buffer_storage.h"
 #include "mathlib.h"
 #include <assert.h>
 #include <stdint.h>
 
-Cubes_GL_MultiDraw::Cubes_GL_MultiDraw()
+#define USE_BUFFER_STORAGE 1
+
+Cubes_GL_BufferStorage::Cubes_GL_BufferStorage()
     : m_ib()
     , m_vb()
     , m_vs()
     , m_fs()
     , m_prog()
     , m_transform_buffer()
+    , m_transform_ptr()
+    , m_cmd_buffer()
+    , m_cmd_ptr()
 {}
 
-Cubes_GL_MultiDraw::~Cubes_GL_MultiDraw()
+Cubes_GL_BufferStorage::~Cubes_GL_BufferStorage()
 {
+    if (m_transform_ptr)
+    {
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_transform_buffer);
+        glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+    }
+
+    if (m_cmd_ptr)
+    {
+        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_cmd_buffer);
+        glUnmapBuffer(GL_DRAW_INDIRECT_BUFFER);
+    }
+
     glDeleteBuffers(1, &m_ib);
     glDeleteBuffers(1, &m_vb);
     glDeleteBuffers(1, &m_transform_buffer);
+    glDeleteBuffers(1, &m_cmd_buffer);
     glDeleteShader(m_vs);
     glDeleteShader(m_fs);
     glDeleteProgram(m_prog);
 }
 
-bool Cubes_GL_MultiDraw::init()
+bool Cubes_GL_BufferStorage::init()
 {
     // Shaders
-    if (!create_shader(GL_VERTEX_SHADER, "cubes_gl_multi_draw_vs.glsl", &m_vs))
+    if (!create_shader(GL_VERTEX_SHADER, "cubes_gl_buffer_storage_vs.glsl", &m_vs))
         return false;
 
-    if (!create_shader(GL_FRAGMENT_SHADER, "cubes_gl_multi_draw_fs.glsl", &m_fs))
+    if (!create_shader(GL_FRAGMENT_SHADER, "cubes_gl_buffer_storage_fs.glsl", &m_fs))
         return false;
 
     if (!compile_program(&m_prog, m_vs, m_fs, 0))
@@ -67,11 +85,18 @@ bool Cubes_GL_MultiDraw::init()
 
     glGenBuffers(1, &m_transform_buffer);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, m_transform_buffer);
+    glBufferStorage(GL_SHADER_STORAGE_BUFFER, 64 * 64 * 64 * 64, nullptr, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_DYNAMIC_STORAGE_BIT);
+    m_transform_ptr = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, 64 * 64 * 64 * 64, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT);
+
+    glGenBuffers(1, &m_cmd_buffer);
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_cmd_buffer);
+    glBufferStorage(GL_DRAW_INDIRECT_BUFFER, 64 * 64 * 64 * sizeof(DrawElementsIndirectCommand), nullptr, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_DYNAMIC_STORAGE_BIT);
+    m_cmd_ptr = glMapBufferRange(GL_DRAW_INDIRECT_BUFFER, 0, 64 * 64 * 64 * sizeof(DrawElementsIndirectCommand), GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT);
 
     return glGetError() == GL_NO_ERROR;
 }
 
-bool Cubes_GL_MultiDraw::begin(void* window, GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buffer)
+bool Cubes_GL_BufferStorage::begin(void* window, GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buffer)
 {
     HWND hWnd = reinterpret_cast<HWND>(window);
 
@@ -127,7 +152,7 @@ bool Cubes_GL_MultiDraw::begin(void* window, GfxSwapChain* swap_chain, GfxFrameB
     return true;
 }
 
-void Cubes_GL_MultiDraw::end(GfxSwapChain* swap_chain)
+void Cubes_GL_BufferStorage::end(GfxSwapChain* swap_chain)
 {
     SwapBuffers(swap_chain->hdc);
 #if defined(_DEBUG)
@@ -136,7 +161,7 @@ void Cubes_GL_MultiDraw::end(GfxSwapChain* swap_chain)
 #endif
 }
 
-void Cubes_GL_MultiDraw::draw(Matrix* transforms, int count)
+void Cubes_GL_BufferStorage::draw(Matrix* transforms, int count)
 {
     m_commands.resize(count);
 
@@ -150,8 +175,9 @@ void Cubes_GL_MultiDraw::draw(Matrix* transforms, int count)
         cmd->baseInstance = 0;
     }
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_transform_buffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Matrix) * count, transforms, GL_DYNAMIC_DRAW);
+    memcpy(m_transform_ptr, transforms, sizeof(Matrix) * count);
+    memcpy(m_cmd_ptr, m_commands.data(), sizeof(DrawElementsIndirectCommand) * count);
+    glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
 
-    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_SHORT, m_commands.data(), (GLsizei)m_commands.size(), 0);
+    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_SHORT, nullptr, (GLsizei)m_commands.size(), 0);
 }
