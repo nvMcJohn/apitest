@@ -9,6 +9,7 @@
 #include "cubes_gl_tex_coord.h"
 #include "cubes_gl_multi_draw.h"
 #include "cubes_gl_buffer_storage.h"
+#include "cubes_gl_bindless.h"
 
 #include "streaming_vb_gl.h"
 
@@ -141,6 +142,7 @@ TestCase* GfxApi_GL::create_test(TestId id)
     case TestId::CubesTexCoord:         return new Cubes_GL_TexCoord;
     case TestId::CubesMultiDraw:        return new Cubes_GL_MultiDraw;
     case TestId::CubesBufferStorage:    return new Cubes_GL_BufferStorage;
+    case TestId::CubesBindless:         return new Cubes_GL_Bindless;
     }
 
     return nullptr;

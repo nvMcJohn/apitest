@@ -2,11 +2,11 @@
 
 #include "gfx_gl.h"
 
-class Cubes_GL_BufferStorage : public Cubes
+class Cubes_GL_Bindless : public Cubes
 {
 public:
-    Cubes_GL_BufferStorage();
-    virtual ~Cubes_GL_BufferStorage();
+    Cubes_GL_Bindless();
+    virtual ~Cubes_GL_Bindless();
 
     virtual bool init() override;
 
@@ -22,16 +22,13 @@ private:
         Vec3 color;
     };
 
-    GLuint m_ib;
-    GLuint m_vb;
+    GLuint m_ibs[CUBES_COUNT];
+    GLuint64 m_ib_addrs[CUBES_COUNT];
+    GLsizeiptr m_ib_sizes[CUBES_COUNT];
+    GLuint m_vbs[CUBES_COUNT];
+    GLuint64 m_vbo_addrs[CUBES_COUNT];
+    GLsizeiptr m_vbo_sizes[CUBES_COUNT];
     GLuint m_vs;
     GLuint m_fs;
     GLuint m_prog;
-
-    GLuint m_transform_buffer;
-    void *m_transform_ptr;
-
-    DrawElementsIndirectCommand m_commands[CUBES_COUNT];
-    GLuint m_cmd_buffer;
-    void *m_cmd_ptr;
 };

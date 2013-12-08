@@ -75,6 +75,9 @@ GLAPI void APIENTRY glBindTexture (GLenum, GLuint);
 GLAPI void APIENTRY glDeleteTextures (GLsizei, const GLuint *);
 GLAPI void APIENTRY glGenTextures (GLsizei, GLuint *);
 GLAPI GLboolean APIENTRY glIsTexture (GLuint);
+
+// Needed for nVidia bindless
+GLAPI void APIENTRY glEnableClientState (GLenum);
 };
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -719,6 +722,66 @@ extern PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
 // --------------------------------------------------------------------------------------------------------------------
 // ARB extensions
 
+
+// --------------------------------------------------------------------------------------------------------------------
+// nVidia extensions
+
+// GL_NV_shader_buffer_load
+#define GL_BUFFER_GPU_ADDRESS_NV          0x8F1D
+#define GL_GPU_ADDRESS_NV                 0x8F34
+#define GL_MAX_SHADER_BUFFER_ADDRESS_NV   0x8F35
+
+typedef void (APIENTRYP PFNGLMAKEBUFFERRESIDENTNVPROC) (GLenum target, GLenum access);
+typedef void (APIENTRYP PFNGLMAKEBUFFERNONRESIDENTNVPROC) (GLenum target);
+typedef GLboolean (APIENTRYP PFNGLISBUFFERRESIDENTNVPROC) (GLenum target);
+typedef void (APIENTRYP PFNGLMAKENAMEDBUFFERRESIDENTNVPROC) (GLuint buffer, GLenum access);
+typedef void (APIENTRYP PFNGLMAKENAMEDBUFFERNONRESIDENTNVPROC) (GLuint buffer);
+typedef GLboolean (APIENTRYP PFNGLISNAMEDBUFFERRESIDENTNVPROC) (GLuint buffer);
+typedef void (APIENTRYP PFNGLGETBUFFERPARAMETERUI64VNVPROC) (GLenum target, GLenum pname, GLuint64EXT *params);
+typedef void (APIENTRYP PFNGLGETNAMEDBUFFERPARAMETERUI64VNVPROC) (GLuint buffer, GLenum pname, GLuint64EXT *params);
+typedef void (APIENTRYP PFNGLGETINTEGERUI64VNVPROC) (GLenum value, GLuint64EXT *result);
+typedef void (APIENTRYP PFNGLUNIFORMUI64NVPROC) (GLint location, GLuint64EXT value);
+typedef void (APIENTRYP PFNGLUNIFORMUI64VNVPROC) (GLint location, GLsizei count, const GLuint64EXT *value);
+typedef void (APIENTRYP PFNGLGETUNIFORMUI64VNVPROC) (GLuint program, GLint location, GLuint64EXT *params);
+typedef void (APIENTRYP PFNGLPROGRAMUNIFORMUI64NVPROC) (GLuint program, GLint location, GLuint64EXT value);
+typedef void (APIENTRYP PFNGLPROGRAMUNIFORMUI64VNVPROC) (GLuint program, GLint location, GLsizei count, const GLuint64EXT *value);
+
+extern PFNGLMAKEBUFFERRESIDENTNVPROC glMakeBufferResidentNV;
+extern PFNGLMAKEBUFFERNONRESIDENTNVPROC glMakeBufferNonResidentNV;
+extern PFNGLISBUFFERRESIDENTNVPROC glIsBufferResidentNV;
+extern PFNGLMAKENAMEDBUFFERRESIDENTNVPROC glMakeNamedBufferResidentNV;
+extern PFNGLMAKENAMEDBUFFERNONRESIDENTNVPROC glMakeNamedBufferNonResidentNV;
+extern PFNGLISNAMEDBUFFERRESIDENTNVPROC glIsNamedBufferResidentNV;
+extern PFNGLGETBUFFERPARAMETERUI64VNVPROC glGetBufferParameterui64vNV;
+extern PFNGLGETNAMEDBUFFERPARAMETERUI64VNVPROC glGetNamedBufferParameterui64vNV;
+extern PFNGLGETINTEGERUI64VNVPROC glGetIntegerui64vNV;
+extern PFNGLUNIFORMUI64NVPROC glUniformui64NV;
+extern PFNGLUNIFORMUI64VNVPROC glUniformui64vNV;
+extern PFNGLGETUNIFORMUI64VNVPROC glGetUniformui64vNV;
+extern PFNGLPROGRAMUNIFORMUI64NVPROC glProgramUniformui64NV;
+extern PFNGLPROGRAMUNIFORMUI64VNVPROC glProgramUniformui64vNV;
+
+// GL_NV_vertex_buffer_unified_memory
+#define GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV 0x8F1E
+#define GL_ELEMENT_ARRAY_UNIFIED_NV       0x8F1F
+#define GL_VERTEX_ATTRIB_ARRAY_ADDRESS_NV 0x8F20
+#define GL_ELEMENT_ARRAY_ADDRESS_NV       0x8F29
+#define GL_VERTEX_ATTRIB_ARRAY_LENGTH_NV  0x8F2A
+#define GL_ELEMENT_ARRAY_LENGTH_NV        0x8F33
+#define GL_DRAW_INDIRECT_UNIFIED_NV       0x8F40
+#define GL_DRAW_INDIRECT_ADDRESS_NV       0x8F41
+#define GL_DRAW_INDIRECT_LENGTH_NV        0x8F42
+
+typedef void (APIENTRYP PFNGLBUFFERADDRESSRANGENVPROC) (GLenum pname, GLuint index, GLuint64EXT address, GLsizeiptr length);
+typedef void (APIENTRYP PFNGLVERTEXFORMATNVPROC) (GLint size, GLenum type, GLsizei stride);
+typedef void (APIENTRYP PFNGLVERTEXATTRIBFORMATNVPROC) (GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride);
+typedef void (APIENTRYP PFNGLVERTEXATTRIBIFORMATNVPROC) (GLuint index, GLint size, GLenum type, GLsizei stride);
+typedef void (APIENTRYP PFNGLGETINTEGERUI64I_VNVPROC) (GLenum value, GLuint index, GLuint64EXT *result);
+
+extern PFNGLBUFFERADDRESSRANGENVPROC glBufferAddressRangeNV;
+extern PFNGLVERTEXATTRIBFORMATNVPROC glVertexAttribFormatNV;
+extern PFNGLVERTEXATTRIBIFORMATNVPROC glVertexAttribIFormatNV;
+extern PFNGLGETINTEGERUI64I_VNVPROC glGetIntegerui64i_vNV;
 
 // --------------------------------------------------------------------------------------------------------------------
 // Common extensions

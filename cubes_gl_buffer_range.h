@@ -1,7 +1,6 @@
 #pragma once
 
 #include "gfx_gl.h"
-#include "mathlib.h"
 #include <vector>
 
 class Cubes_GL_BufferRange : public Cubes

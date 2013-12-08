@@ -67,6 +67,9 @@
     <ClInclude Include="cubes_gl_buffer_storage.h">
       <Filter>Cubes</Filter>
     </ClInclude>
+    <ClInclude Include="cubes_gl_bindless.h">
+      <Filter>Cubes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="api_speed_test.cpp">
@@ -111,6 +114,9 @@
     <ClCompile Include="cubes_gl_buffer_storage.cpp">
       <Filter>Cubes</Filter>
     </ClCompile>
+    <ClCompile Include="cubes_gl_bindless.cpp">
+      <Filter>Cubes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="streaming_vb_gl_fs.glsl">
@@ -153,6 +159,12 @@
       <Filter>Cubes</Filter>
     </None>
     <None Include="cubes_gl_buffer_storage_vs.glsl">
+      <Filter>Cubes</Filter>
+    </None>
+    <None Include="cubes_gl_bindless_vs.glsl">
+      <Filter>Cubes</Filter>
+    </None>
+    <None Include="cubes_gl_bindless_fs.glsl">
       <Filter>Cubes</Filter>
     </None>
   </ItemGroup>

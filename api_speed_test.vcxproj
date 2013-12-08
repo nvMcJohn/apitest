@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="console.h" />
+    <ClInclude Include="cubes_gl_bindless.h" />
     <ClInclude Include="cubes_gl_buffer_range.h" />
     <ClInclude Include="cubes_gl_buffer_storage.h" />
     <ClInclude Include="cubes_gl_dynamic_buffer.h" />
@@ -40,6 +41,7 @@
   <ItemGroup>
     <ClCompile Include="api_speed_test.cpp" />
     <ClCompile Include="console.cpp" />
+    <ClCompile Include="cubes_gl_bindless.cpp" />
     <ClCompile Include="cubes_gl_buffer_range.cpp" />
     <ClCompile Include="cubes_gl_buffer_storage.cpp" />
     <ClCompile Include="cubes_gl_dynamic_buffer.cpp" />
@@ -54,6 +56,8 @@
     <ClCompile Include="wgl.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="cubes_gl_bindless_fs.glsl" />
+    <None Include="cubes_gl_bindless_vs.glsl" />
     <None Include="cubes_gl_buffer_range_fs.glsl" />
     <None Include="cubes_gl_buffer_range_vs.glsl" />
     <None Include="cubes_gl_buffer_storage_fs.glsl" />
@@ -138,6 +142,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4531</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -153,6 +158,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4351</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -170,6 +176,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4531</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -189,6 +196,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4351</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

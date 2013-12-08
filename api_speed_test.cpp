@@ -13,7 +13,7 @@ static GfxApi* s_api;
 static GfxSwapChain* s_swap_chain;
 static GfxFrameBuffer* s_frame_buffer;
 
-static TestId s_test_id = TestId::CubesBufferStorage;
+static TestId s_test_id = TestId::CubesBindless;
 static TestCase* s_test_case;
 
 // ------------------------------------------------------------------------------------------------
@@ -117,6 +117,10 @@ LRESULT CALLBACK wnd_proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         case VK_F7:
             set_test(TestId::CubesBufferStorage);
+            break;
+
+        case VK_F8:
+            set_test(TestId::CubesBindless);
             break;
         }
         break;
@@ -240,25 +244,25 @@ static void render()
         static float angle;
         static Matrix* transforms;
         if (!transforms)
-            transforms = new Matrix[64 * 64 * 64];
+            transforms = new Matrix[CUBES_COUNT];
 
         Matrix *m = transforms;
-        for (int x = 0; x < 64; ++x)
+        for (int x = 0; x < CUBES_X; ++x)
         {
-            for (int y = 0; y < 64; ++y)
+            for (int y = 0; y < CUBES_Y; ++y)
             {
-                for (int z = 0; z < 64; ++z)
+                for (int z = 0; z < CUBES_Z; ++z)
                 {
                     *m = matrix_rotation_z(angle);
-                    m->w.x = 2.0f * x - 64;
-                    m->w.y = 2.0f * y - 64;
-                    m->w.z = 2.0f * z - 64;
+                    m->w.x = 2.0f * x - CUBES_X;
+                    m->w.y = 2.0f * y - CUBES_Y;
+                    m->w.z = 2.0f * z - CUBES_Z;
                     ++m;
                 }
             }
         }
 
-        cubes->draw(transforms, 64 * 64 * 64);
+        cubes->draw(transforms, CUBES_COUNT);
         angle += 0.01f;
     }
 

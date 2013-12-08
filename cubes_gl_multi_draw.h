@@ -1,7 +1,6 @@
 #pragma once
 
 #include "gfx_gl.h"
-#include <vector>
 
 class Cubes_GL_MultiDraw : public Cubes
 {
@@ -31,5 +30,5 @@ private:
 
     GLuint m_transform_buffer;
 
-    std::vector<DrawElementsIndirectCommand> m_commands;
+    DrawElementsIndirectCommand m_commands[CUBES_COUNT];
 };

@@ -19,7 +19,8 @@ enum class TestId
     CubesBufferRange,
     CubesTexCoord,
     CubesMultiDraw,
-    CubesBufferStorage
+    CubesBufferStorage,
+    CubesBindless
 };
 
 class TestCase
@@ -52,6 +53,11 @@ public:
 
 // --------------------------------------------------------------------------------------------------------------------
 // Cubes test
+
+#define CUBES_X 64
+#define CUBES_Y 64
+#define CUBES_Z 64
+#define CUBES_COUNT (CUBES_X * CUBES_Y * CUBES_Z)
 
 class Cubes : public TestCase
 {

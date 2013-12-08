@@ -1,34 +1,32 @@
-#include "cubes_gl_multi_draw.h"
+#include "cubes_gl_bindless.h"
 #include "mathlib.h"
 #include <assert.h>
 #include <stdint.h>
 
-Cubes_GL_MultiDraw::Cubes_GL_MultiDraw()
-    : m_ib()
-    , m_vb()
+Cubes_GL_Bindless::Cubes_GL_Bindless()
+    : m_ibs()
+    , m_vbs()
     , m_vs()
     , m_fs()
     , m_prog()
-    , m_transform_buffer()
 {}
 
-Cubes_GL_MultiDraw::~Cubes_GL_MultiDraw()
+Cubes_GL_Bindless::~Cubes_GL_Bindless()
 {
-    glDeleteBuffers(1, &m_ib);
-    glDeleteBuffers(1, &m_vb);
-    glDeleteBuffers(1, &m_transform_buffer);
+    glDeleteBuffers(CUBES_COUNT, m_ibs);
+    glDeleteBuffers(CUBES_COUNT, m_vbs);
     glDeleteShader(m_vs);
     glDeleteShader(m_fs);
     glDeleteProgram(m_prog);
 }
 
-bool Cubes_GL_MultiDraw::init()
+bool Cubes_GL_Bindless::init()
 {
     // Shaders
-    if (!create_shader(GL_VERTEX_SHADER, "cubes_gl_multi_draw_vs.glsl", &m_vs))
+    if (!create_shader(GL_VERTEX_SHADER, "cubes_gl_bindless_vs.glsl", &m_vs))
         return false;
 
-    if (!create_shader(GL_FRAGMENT_SHADER, "cubes_gl_multi_draw_fs.glsl", &m_fs))
+    if (!create_shader(GL_FRAGMENT_SHADER, "cubes_gl_bindless_fs.glsl", &m_fs))
         return false;
 
     if (!compile_program(&m_prog, m_vs, m_fs, 0))
@@ -57,21 +55,28 @@ bool Cubes_GL_MultiDraw::init()
         0, 3, 4, 0, 4, 7
     };
 
-    glGenBuffers(1, &m_vb);
-    glBindBuffer(GL_ARRAY_BUFFER, m_vb);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glGenBuffers(CUBES_COUNT, m_ibs);
+    glGenBuffers(CUBES_COUNT, m_vbs);
+    for (int i = 0; i < CUBES_COUNT; ++i)
+    {
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibs[i]);
+        glBufferStorage(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, 0);
+        glGetBufferParameterui64vNV(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_GPU_ADDRESS_NV, &m_ib_addrs[i]);
+        glMakeBufferResidentNV(GL_ELEMENT_ARRAY_BUFFER, GL_READ_ONLY);
+        m_ib_sizes[i] = sizeof(indices);
 
-    glGenBuffers(1, &m_ib);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ib);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, m_vbs[i]);
+        glBufferStorage(GL_ARRAY_BUFFER, sizeof(vertices), vertices, 0);
+        glGetBufferParameterui64vNV(GL_ARRAY_BUFFER, GL_BUFFER_GPU_ADDRESS_NV, &m_vbo_addrs[i]);
+        glMakeBufferResidentNV(GL_ARRAY_BUFFER, GL_READ_ONLY);
+        m_vbo_sizes[i] = sizeof(vertices);
+    }
 
-    glGenBuffers(1, &m_transform_buffer);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, m_transform_buffer);
 
     return glGetError() == GL_NO_ERROR;
 }
 
-bool Cubes_GL_MultiDraw::begin(void* window, GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buffer)
+bool Cubes_GL_Bindless::begin(void* window, GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buffer)
 {
     HWND hWnd = reinterpret_cast<HWND>(window);
 
@@ -102,13 +107,13 @@ bool Cubes_GL_MultiDraw::begin(void* window, GfxSwapChain* swap_chain, GfxFrameB
     glUniformMatrix4fv(0, 1, GL_TRUE, &view_proj.x.x);
 
     // Input Layout
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ib);
-    glBindBuffer(GL_ARRAY_BUFFER, m_vb);
-    glVertexAttribPointer(0, 3, GL_FLOAT, FALSE, sizeof(Vertex), (void*)offsetof(Vertex, pos));
-    glVertexAttribPointer(1, 3, GL_FLOAT, FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
+    glEnableClientState(GL_ELEMENT_ARRAY_UNIFIED_NV);
+    glEnableClientState(GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV);
 
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
+    glVertexAttribFormatNV(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex));
+    glVertexAttribFormatNV(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex));
 
     // Rasterizer State
     glEnable(GL_CULL_FACE);
@@ -127,7 +132,7 @@ bool Cubes_GL_MultiDraw::begin(void* window, GfxSwapChain* swap_chain, GfxFrameB
     return true;
 }
 
-void Cubes_GL_MultiDraw::end(GfxSwapChain* swap_chain)
+void Cubes_GL_Bindless::end(GfxSwapChain* swap_chain)
 {
     SwapBuffers(swap_chain->hdc);
 #if defined(_DEBUG)
@@ -136,22 +141,15 @@ void Cubes_GL_MultiDraw::end(GfxSwapChain* swap_chain)
 #endif
 }
 
-void Cubes_GL_MultiDraw::draw(Matrix* transforms, int count)
+void Cubes_GL_Bindless::draw(Matrix* transforms, int count)
 {
-    assert(count <= CUBES_COUNT);
-
     for (int i = 0; i < count; ++i)
     {
-        DrawElementsIndirectCommand *cmd = &m_commands[i];
-        cmd->count = 36;
-        cmd->instanceCount = 1;
-        cmd->firstIndex = 0;
-        cmd->baseVertex = 0;
-        cmd->baseInstance = 0;
+        glBufferAddressRangeNV(GL_ELEMENT_ARRAY_ADDRESS_NV, 0, m_ib_addrs[i], m_ib_sizes[i]);
+        glBufferAddressRangeNV(GL_VERTEX_ATTRIB_ARRAY_ADDRESS_NV, 0, m_vbo_addrs[i] + offsetof(Vertex, pos), m_vbo_sizes[i] - offsetof(Vertex, pos));
+        glBufferAddressRangeNV(GL_VERTEX_ATTRIB_ARRAY_ADDRESS_NV, 1, m_vbo_addrs[i] + offsetof(Vertex, color), m_vbo_sizes[i] - offsetof(Vertex, color));
+
+        glUniformMatrix4fv(1, 1, GL_FALSE, &transforms[i].x.x);
+        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, nullptr);
     }
-
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_transform_buffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Matrix) * count, transforms, GL_DYNAMIC_DRAW);
-
-    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_SHORT, m_commands, count, 0);
 }

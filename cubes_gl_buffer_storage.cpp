@@ -3,8 +3,6 @@
 #include <assert.h>
 #include <stdint.h>
 
-#define USE_BUFFER_STORAGE 1
-
 Cubes_GL_BufferStorage::Cubes_GL_BufferStorage()
     : m_ib()
     , m_vb()
@@ -85,13 +83,13 @@ bool Cubes_GL_BufferStorage::init()
 
     glGenBuffers(1, &m_transform_buffer);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, m_transform_buffer);
-    glBufferStorage(GL_SHADER_STORAGE_BUFFER, 64 * 64 * 64 * 64, nullptr, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_DYNAMIC_STORAGE_BIT);
+    glBufferStorage(GL_SHADER_STORAGE_BUFFER, CUBES_COUNT * 64, nullptr, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_DYNAMIC_STORAGE_BIT);
     m_transform_ptr = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, 64 * 64 * 64 * 64, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT);
 
     glGenBuffers(1, &m_cmd_buffer);
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_cmd_buffer);
-    glBufferStorage(GL_DRAW_INDIRECT_BUFFER, 64 * 64 * 64 * sizeof(DrawElementsIndirectCommand), nullptr, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_DYNAMIC_STORAGE_BIT);
-    m_cmd_ptr = glMapBufferRange(GL_DRAW_INDIRECT_BUFFER, 0, 64 * 64 * 64 * sizeof(DrawElementsIndirectCommand), GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT);
+    glBufferStorage(GL_DRAW_INDIRECT_BUFFER, CUBES_COUNT * sizeof(DrawElementsIndirectCommand), nullptr, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_DYNAMIC_STORAGE_BIT);
+    m_cmd_ptr = glMapBufferRange(GL_DRAW_INDIRECT_BUFFER, 0, CUBES_COUNT * sizeof(DrawElementsIndirectCommand), GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT);
 
     return glGetError() == GL_NO_ERROR;
 }
@@ -163,7 +161,7 @@ void Cubes_GL_BufferStorage::end(GfxSwapChain* swap_chain)
 
 void Cubes_GL_BufferStorage::draw(Matrix* transforms, int count)
 {
-    m_commands.resize(count);
+    assert(count <= CUBES_COUNT);
 
     for (int i = 0; i < count; ++i)
     {
@@ -176,8 +174,8 @@ void Cubes_GL_BufferStorage::draw(Matrix* transforms, int count)
     }
 
     memcpy(m_transform_ptr, transforms, sizeof(Matrix) * count);
-    memcpy(m_cmd_ptr, m_commands.data(), sizeof(DrawElementsIndirectCommand) * count);
+    memcpy(m_cmd_ptr, m_commands, sizeof(DrawElementsIndirectCommand) * count);
     glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
 
-    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_SHORT, nullptr, (GLsizei)m_commands.size(), 0);
+    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_SHORT, nullptr, count, 0);
 }

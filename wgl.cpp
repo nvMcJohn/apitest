@@ -647,6 +647,31 @@ PFNWGLGETSWAPINTERVALEXTPROC wglGetSwapIntervalEXT;
 PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
 
 // --------------------------------------------------------------------------------------------------------------------
+// nVidia extensions
+
+// GL_NV_shader_buffer_load
+PFNGLMAKEBUFFERRESIDENTNVPROC glMakeBufferResidentNV;
+PFNGLMAKEBUFFERNONRESIDENTNVPROC glMakeBufferNonResidentNV;
+PFNGLISBUFFERRESIDENTNVPROC glIsBufferResidentNV;
+PFNGLMAKENAMEDBUFFERRESIDENTNVPROC glMakeNamedBufferResidentNV;
+PFNGLMAKENAMEDBUFFERNONRESIDENTNVPROC glMakeNamedBufferNonResidentNV;
+PFNGLISNAMEDBUFFERRESIDENTNVPROC glIsNamedBufferResidentNV;
+PFNGLGETBUFFERPARAMETERUI64VNVPROC glGetBufferParameterui64vNV;
+PFNGLGETNAMEDBUFFERPARAMETERUI64VNVPROC glGetNamedBufferParameterui64vNV;
+PFNGLGETINTEGERUI64VNVPROC glGetIntegerui64vNV;
+PFNGLUNIFORMUI64NVPROC glUniformui64NV;
+PFNGLUNIFORMUI64VNVPROC glUniformui64vNV;
+PFNGLGETUNIFORMUI64VNVPROC glGetUniformui64vNV;
+PFNGLPROGRAMUNIFORMUI64NVPROC glProgramUniformui64NV;
+PFNGLPROGRAMUNIFORMUI64VNVPROC glProgramUniformui64vNV;
+
+// GL_NV_vertex_buffer_unified_memory
+PFNGLBUFFERADDRESSRANGENVPROC glBufferAddressRangeNV;
+PFNGLVERTEXATTRIBFORMATNVPROC glVertexAttribFormatNV;
+PFNGLVERTEXATTRIBIFORMATNVPROC glVertexAttribIFormatNV;
+PFNGLGETINTEGERUI64I_VNVPROC glGetIntegerui64i_vNV;
+
+// --------------------------------------------------------------------------------------------------------------------
 template<class T>
 void bind(T& x, const char* name)
 {
@@ -1293,4 +1318,30 @@ void wgl::bind_gl()
     bind(glBindSamplers, "glBindSamplers");
     bind(glBindImageTextures, "glBindImageTextures");
     bind(glBindVertexBuffers, "glBindVertexBuffers");
+
+    // ------------------------------------------------------------------------------------------------
+    // nVidia extensions
+
+    // GL_NV_shader_buffer_load
+    bind(glMakeBufferResidentNV, "glMakeBufferResidentNV");
+    bind(glMakeBufferNonResidentNV, "glMakeBufferNonResidentNV");
+    bind(glIsBufferResidentNV, "glIsBufferResidentNV");
+    bind(glMakeNamedBufferResidentNV, "glMakeNamedBufferResidentNV");
+    bind(glMakeNamedBufferNonResidentNV, "glMakeNamedBufferNonResidentNV");
+    bind(glIsNamedBufferResidentNV, "glIsNamedBufferResidentNV");
+    bind(glGetBufferParameterui64vNV, "glGetBufferParameterui64vNV");
+    bind(glGetNamedBufferParameterui64vNV, "glGetNamedBufferParameterui64vNV");
+    bind(glGetIntegerui64vNV, "glGetIntegerui64vNV");
+    bind(glUniformui64NV, "glUniformui64NV");
+    bind(glUniformui64vNV, "glUniformui64vNV");
+    bind(glGetUniformui64vNV, "glGetUniformui64vNV");
+    bind(glProgramUniformui64NV, "glProgramUniformui64NV");
+    bind(glProgramUniformui64vNV, "glProgramUniformui64vNV");
+
+    // GL_NV_vertex_buffer_unified_memory
+    bind(glBufferAddressRangeNV, "glBufferAddressRangeNV");
+    bind(glVertexAttribFormatNV, "glVertexAttribFormatNV");
+    bind(glVertexAttribIFormatNV, "glVertexAttribIFormatNV");
+    bind(glGetIntegerui64i_vNV, "glGetIntegerui64i_vNV");
+
 }
