@@ -91,10 +91,8 @@ bool Cubes_GL_Uniform::begin(void* window, GfxSwapChain* swap_chain, GfxFrameBuf
     Matrix proj = matrix_perspective_rh_gl(radians(45.0f), (float)width / (float)height, 0.1f, 10000.0f);
     Matrix view_proj = proj * view;
 
-    GLint loc;
     glUseProgram(m_prog);
-    loc = glGetUniformLocation(m_prog, "ViewProjection");
-    glUniformMatrix4fv(loc, 1, GL_TRUE, &view_proj.x.x);
+    glUniformMatrix4fv(0, 1, GL_TRUE, &view_proj.x.x);
 
     // Input Layout
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ib);
@@ -133,10 +131,9 @@ void Cubes_GL_Uniform::end(GfxSwapChain* swap_chain)
 
 void Cubes_GL_Uniform::draw(Matrix* transforms, int count)
 {
-    GLint loc = glGetUniformLocation(m_prog, "World");
     for (int i = 0; i < count; ++i)
     {
-        glUniformMatrix4fv(loc, 1, GL_FALSE, &transforms[i].x.x);
+        glUniformMatrix4fv(1, 1, GL_FALSE, &transforms[i].x.x);
         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, nullptr);
     }
 }

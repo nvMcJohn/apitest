@@ -91,10 +91,8 @@ bool Cubes_GL_TexCoord::begin(void* window, GfxSwapChain* swap_chain, GfxFrameBu
     Matrix proj = matrix_perspective_rh_gl(radians(45.0f), (float)width / (float)height, 0.1f, 10000.0f);
     Matrix view_proj = proj * view;
 
-    GLint loc;
     glUseProgram(m_prog);
-    loc = glGetUniformLocation(m_prog, "ViewProjection");
-    glUniformMatrix4fv(loc, 1, GL_TRUE, &view_proj.x.x);
+    glUniformMatrix4fv(0, 1, GL_TRUE, &view_proj.x.x);
 
     // Input Layout
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ib);

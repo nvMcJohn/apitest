@@ -95,10 +95,8 @@ bool Cubes_GL_DynamicBuffer::begin(void* window, GfxSwapChain* swap_chain, GfxFr
     Matrix proj = matrix_perspective_rh_gl(radians(45.0f), (float)width / (float)height, 0.1f, 10000.0f);
     Matrix view_proj = proj * view;
 
-    GLint loc;
     glUseProgram(m_prog);
-    loc = glGetUniformLocation(m_prog, "ViewProjection");
-    glUniformMatrix4fv(loc, 1, GL_TRUE, &view_proj.x.x);
+    glUniformMatrix4fv(0, 1, GL_TRUE, &view_proj.x.x);
 
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_ub);
 

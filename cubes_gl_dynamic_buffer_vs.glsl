@@ -1,7 +1,7 @@
 #version 430
 
-uniform mat4 ViewProjection;
-layout(std140, binding = 0) uniform CB0
+layout (location = 0) uniform mat4 ViewProjection;
+layout (std140, binding = 0) uniform CB0
 {
     mat4 World;
 };

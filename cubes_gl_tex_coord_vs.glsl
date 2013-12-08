@@ -1,6 +1,6 @@
 #version 430
 
-uniform mat4 ViewProjection;
+layout (location = 0) uniform mat4 ViewProjection;
 
 layout (location = 0) in vec3 Attr_Pos;
 layout (location = 1) in vec3 Attr_Color;

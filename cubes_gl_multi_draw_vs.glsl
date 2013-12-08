@@ -1,8 +1,8 @@
 #version 430
 #extension GL_ARB_shader_draw_parameters : enable
 
-uniform mat4 ViewProjection;
-layout(std140, binding = 0) buffer CB0
+layout (location = 0) uniform mat4 ViewProjection;
+layout (std140, binding = 0) buffer CB0
 {
     mat4 Transforms[];
 };

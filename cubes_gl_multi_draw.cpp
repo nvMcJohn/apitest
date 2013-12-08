@@ -77,8 +77,8 @@ bool Cubes_GL_MultiDraw::init()
     glGenBuffers(1, &m_tb);
 #if USE_BUFFER_STORAGE
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_tb);
-    glBufferStorage(GL_SHADER_STORAGE_BUFFER, 64 * 64 * 64 * 64, nullptr, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT | GL_DYNAMIC_STORAGE_BIT);
-    m_tb_ptr = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, 64 * 64 * 64 * 64, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
+    glBufferStorage(GL_SHADER_STORAGE_BUFFER, 64 * 64 * 64 * 64, nullptr, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_DYNAMIC_STORAGE_BIT);
+    m_tb_ptr = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, 64 * 64 * 64 * 64, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT);
 #endif
 
     return glGetError() == GL_NO_ERROR;
@@ -109,10 +109,8 @@ bool Cubes_GL_MultiDraw::begin(void* window, GfxSwapChain* swap_chain, GfxFrameB
     Matrix proj = matrix_perspective_rh_gl(radians(45.0f), (float)width / (float)height, 0.1f, 10000.0f);
     Matrix view_proj = proj * view;
 
-    GLint loc;
     glUseProgram(m_prog);
-    loc = glGetUniformLocation(m_prog, "ViewProjection");
-    glUniformMatrix4fv(loc, 1, GL_TRUE, &view_proj.x.x);
+    glUniformMatrix4fv(0, 1, GL_TRUE, &view_proj.x.x);
 
     // Input Layout
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ib);
@@ -153,6 +151,7 @@ void Cubes_GL_MultiDraw::draw(Matrix* transforms, int count)
 {
 #if USE_BUFFER_STORAGE
     memcpy(m_tb_ptr, transforms, sizeof(Matrix) * count);
+    glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
 #else
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_tb);
     glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Matrix) * count, transforms, GL_DYNAMIC_DRAW);
