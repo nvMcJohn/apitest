@@ -10,8 +10,6 @@
 
 // --------------------------------------------------------------------------------------------------------------------
 // GL 1.2
-PFNGLBLENDCOLORPROC glBlendColor;
-PFNGLBLENDEQUATIONPROC glBlendEquation;
 PFNGLDRAWRANGEELEMENTSPROC glDrawRangeElements;
 PFNGLTEXIMAGE3DPROC glTexImage3D;
 PFNGLTEXSUBIMAGE3DPROC glTexSubImage3D;
@@ -38,6 +36,8 @@ PFNGLPOINTPARAMETERFPROC glPointParameterf;
 PFNGLPOINTPARAMETERFVPROC glPointParameterfv;
 PFNGLPOINTPARAMETERIPROC glPointParameteri;
 PFNGLPOINTPARAMETERIVPROC glPointParameteriv;
+PFNGLBLENDCOLORPROC glBlendColor;
+PFNGLBLENDEQUATIONPROC glBlendEquation;
 
 // --------------------------------------------------------------------------------------------------------------------
 // GL 1.5
@@ -431,6 +431,7 @@ PFNGLBINDPROGRAMPIPELINEPROC glBindProgramPipeline;
 PFNGLDELETEPROGRAMPIPELINESPROC glDeleteProgramPipelines;
 PFNGLGENPROGRAMPIPELINESPROC glGenProgramPipelines;
 PFNGLISPROGRAMPIPELINEPROC glIsProgramPipeline;
+PFNGLPROGRAMPARAMETERIPROC glProgramParameteri;
 PFNGLGETPROGRAMPIPELINEIVPROC glGetProgramPipelineiv;
 PFNGLPROGRAMUNIFORM1IPROC glProgramUniform1i;
 PFNGLPROGRAMUNIFORM1IVPROC glProgramUniform1iv;
@@ -535,9 +536,102 @@ PFNGLMEMORYBARRIERPROC glMemoryBarrier;
 PFNGLTEXSTORAGE1DPROC glTexStorage1D;
 PFNGLTEXSTORAGE2DPROC glTexStorage2D;
 PFNGLTEXSTORAGE3DPROC glTexStorage3D;
-PFNGLTEXTURESTORAGE1DEXTPROC glTextureStorage1DEXT;
-PFNGLTEXTURESTORAGE2DEXTPROC glTextureStorage2DEXT;
-PFNGLTEXTURESTORAGE3DEXTPROC glTextureStorage3DEXT;
+
+// --------------------------------------------------------------------------------------------------------------------
+// GL 4.3
+
+// ARB_clear_buffer_object
+PFNGLCLEARBUFFERDATAPROC glClearBufferData;
+PFNGLCLEARBUFFERSUBDATAPROC glClearBufferSubData;
+
+// ARB_compute_shader
+PFNGLDISPATCHCOMPUTEPROC glDispatchCompute;
+PFNGLDISPATCHCOMPUTEINDIRECTPROC glDispatchComputeIndirect;
+
+// ARB_copy_image
+PFNGLCOPYIMAGESUBDATAPROC glCopyImageSubData;
+
+// ARB_debug_group
+PFNGLPUSHDEBUGGROUPPROC glPushDebugGroup;
+PFNGLPOPDEBUGGROUPPROC glPopDebugGroup;
+
+// ARB_debug_label
+PFNGLOBJECTLABELPROC glObjectLabel;
+PFNGLGETOBJECTLABELPROC glGetObjectLabel;
+PFNGLOBJECTPTRLABELPROC glObjectPtrLabel;
+PFNGLGETOBJECTPTRLABELPROC glGetObjectPtrLabel;
+
+// ARB_debug_output
+PFNGLDEBUGMESSAGECONTROLPROC glDebugMessageControl;
+PFNGLDEBUGMESSAGEINSERTPROC glDebugMessageInsert;
+PFNGLDEBUGMESSAGECALLBACKPROC glDebugMessageCallback;
+PFNGLGETDEBUGMESSAGELOGPROC glGetDebugMessageLog;
+
+// ARB_framebuffer_no_attachments
+PFNGLFRAMEBUFFERPARAMETERIPROC glFramebufferParameteri;
+PFNGLGETFRAMEBUFFERPARAMETERIVPROC glGetFramebufferParameteriv;
+
+// ARB_internalformat_query2
+PFNGLGETINTERNALFORMATI64VPROC glGetInternalformati64v;
+
+// ARB_invalidate_subdata
+PFNGLINVALIDATETEXSUBIMAGEPROC glInvalidateTexSubImage;
+PFNGLINVALIDATETEXIMAGEPROC glInvalidateTexImage;
+PFNGLINVALIDATEBUFFERSUBDATAPROC glInvalidateBufferSubData;
+PFNGLINVALIDATEBUFFERDATAPROC glInvalidateBufferData;
+PFNGLINVALIDATEFRAMEBUFFERPROC glInvalidateFramebuffer;
+PFNGLINVALIDATESUBFRAMEBUFFERPROC glInvalidateSubFramebuffer;
+
+// ARB_multi_draw_indirect
+PFNGLMULTIDRAWARRAYSINDIRECTPROC glMultiDrawArraysIndirect;
+PFNGLMULTIDRAWELEMENTSINDIRECTPROC glMultiDrawElementsIndirect;
+
+// ARB_program_interface_query
+PFNGLGETPROGRAMINTERFACEIVPROC glGetProgramInterfaceiv;
+PFNGLGETPROGRAMRESOURCEINDEXPROC glGetProgramResourceIndex;
+PFNGLGETPROGRAMRESOURCENAMEPROC glGetProgramResourceName;
+PFNGLGETPROGRAMRESOURCEIVPROC glGetProgramResourceiv;
+PFNGLGETPROGRAMRESOURCELOCATIONPROC glGetProgramResourceLocation;
+PFNGLGETPROGRAMRESOURCELOCATIONINDEXPROC glGetProgramResourceLocationIndex;
+
+// ARB_shader_storage_buffer_object
+PFNGLSHADERSTORAGEBLOCKBINDINGPROC glShaderStorageBlockBinding;
+
+// ARB_texture_buffer_range
+PFNGLTEXBUFFERRANGEPROC glTexBufferRange;
+
+// ARB_texture_storage_multisample
+PFNGLTEXSTORAGE2DMULTISAMPLEPROC glTexStorage2DMultisample;
+PFNGLTEXSTORAGE3DMULTISAMPLEPROC glTexStorage3DMultisample;
+
+// ARB_texture_view
+PFNGLTEXTUREVIEWPROC glTextureView;
+
+// ARB_vertex_attrib_binding
+PFNGLBINDVERTEXBUFFERPROC glBindVertexBuffer;
+PFNGLVERTEXATTRIBFORMATPROC glVertexAttribFormat;
+PFNGLVERTEXATTRIBIFORMATPROC glVertexAttribIFormat;
+PFNGLVERTEXATTRIBLFORMATPROC glVertexAttribLFormat;
+PFNGLVERTEXATTRIBBINDINGPROC glVertexAttribBinding;
+PFNGLVERTEXBINDINGDIVISORPROC glVertexBindingDivisor;
+
+// --------------------------------------------------------------------------------------------------------------------
+// GL 4.4
+
+// ARB_buffer_storage
+PFNGLBUFFERSTORAGEPROC glBufferStorage;
+
+// ARB_clear_texture
+PFNGLCLEARTEXIMAGEPROC glClearTexImage;
+PFNGLCLEARTEXSUBIMAGEPROC glClearTexSubImage;
+
+// ARB_multi_bind
+PFNGLBINDBUFFERSBASEPROC glBindBuffersBase;
+PFNGLBINDBUFFERSRANGEPROC glBindBuffersRange;
+PFNGLBINDTEXTURESPROC glBindTextures;
+PFNGLBINDSAMPLERSPROC glBindSamplers;
+PFNGLBINDIMAGETEXTURESPROC glBindImageTextures;
+PFNGLBINDVERTEXBUFFERSPROC glBindVertexBuffers;
 
 // --------------------------------------------------------------------------------------------------------------------
 // WGL
@@ -580,8 +674,6 @@ void wgl::bind_gl()
 {
     // ------------------------------------------------------------------------------------------------
     // GL 1.2
-    bind(glBlendColor, "glBlendColor");
-    bind(glBlendEquation, "glBlendEquation");
     bind(glDrawRangeElements, "glDrawRangeElements");
     bind(glTexImage3D, "glTexImage3D");
     bind(glTexSubImage3D, "glTexSubImage3D");
@@ -608,6 +700,8 @@ void wgl::bind_gl()
     bind(glPointParameterfv, "glPointParameterfv");
     bind(glPointParameteri, "glPointParameteri");
     bind(glPointParameteriv, "glPointParameteriv");
+    bind(glBlendColor, "glBlendColor");
+    bind(glBlendEquation, "glBlendEquation");
 
     // ------------------------------------------------------------------------------------------------
     // GL 1.5
@@ -1001,6 +1095,7 @@ void wgl::bind_gl()
     bind(glGenProgramPipelines, "glGenProgramPipelines");
     bind(glIsProgramPipeline, "glIsProgramPipeline");
     bind(glGetProgramPipelineiv, "glGetProgramPipelineiv");
+    bind(glProgramParameteri, "glProgramParameteri");
     bind(glProgramUniform1i, "glProgramUniform1i");
     bind(glProgramUniform1iv, "glProgramUniform1iv");
     bind(glProgramUniform1f, "glProgramUniform1f");
@@ -1104,9 +1199,102 @@ void wgl::bind_gl()
     bind(glTexStorage1D, "glTexStorage1D");
     bind(glTexStorage2D, "glTexStorage2D");
     bind(glTexStorage3D, "glTexStorage3D");
-    bind(glTextureStorage1DEXT, "glTextureStorage1DEXT");
-    bind(glTextureStorage2DEXT, "glTextureStorage2DEXT");
-    bind(glTextureStorage3DEXT, "glTextureStorage3DEXT");
+
+    // ------------------------------------------------------------------------------------------------
+    // GL 4.3
+
+    // ARB_clear_buffer_object
+    bind(glClearBufferData, "glClearBufferData");
+    bind(glClearBufferSubData, "glClearBufferSubData");
+
+    // ARB_compute_shader
+    bind(glDispatchCompute, "glDispatchCompute");
+    bind(glDispatchComputeIndirect, "glDispatchComputeIndirect");
+
+    // ARB_copy_image
+    bind(glCopyImageSubData, "glCopyImageSubData");
+
+    // ARB_debug_group
+    bind(glPushDebugGroup, "glPushDebugGroup");
+    bind(glPopDebugGroup, "glPopDebugGroup");
+
+    // ARB_debug_label
+    bind(glObjectLabel, "glObjectLabel");
+    bind(glGetObjectLabel, "glGetObjectLabel");
+    bind(glObjectPtrLabel, "glObjectPtrLabel");
+    bind(glGetObjectPtrLabel, "glGetObjectPtrLabel");
+
+    // ARB_debug_output
+    bind(glDebugMessageControl, "glDebugMessageControl");
+    bind(glDebugMessageInsert, "glDebugMessageInsert");
+    bind(glDebugMessageCallback, "glDebugMessageCallback");
+    bind(glGetDebugMessageLog, "glGetDebugMessageLog");
+
+    // ARB_framebuffer_no_attachments
+    bind(glFramebufferParameteri, "glFramebufferParameteri");
+    bind(glGetFramebufferParameteriv, "glGetFramebufferParameteriv");
+
+    // ARB_internalformat_query2
+    bind(glGetInternalformati64v, "glGetInternalformati64v");
+
+    // ARB_invalidate_subdata
+    bind(glInvalidateTexSubImage, "glInvalidateTexSubImage");
+    bind(glInvalidateTexImage, "glInvalidateTexImage");
+    bind(glInvalidateBufferSubData, "glInvalidateBufferSubData");
+    bind(glInvalidateBufferData, "glInvalidateBufferData");
+    bind(glInvalidateFramebuffer, "glInvalidateFramebuffer");
+    bind(glInvalidateSubFramebuffer, "glInvalidateSubFramebuffer");
+
+    // ARB_multi_draw_indirect
+    bind(glMultiDrawArraysIndirect, "glMultiDrawArraysIndirect");
+    bind(glMultiDrawElementsIndirect, "glMultiDrawElementsIndirect");
+
+    // ARB_program_interface_query
+    bind(glGetProgramInterfaceiv, "glGetProgramInterfaceiv");
+    bind(glGetProgramResourceIndex, "glGetProgramResourceIndex");
+    bind(glGetProgramResourceName, "glGetProgramResourceName");
+    bind(glGetProgramResourceiv, "glGetProgramResourceiv");
+    bind(glGetProgramResourceLocation, "glGetProgramResourceLocation");
+    bind(glGetProgramResourceLocationIndex, "glGetProgramResourceLocationIndex");
+
+    // ARB_shader_storage_buffer_object
+    bind(glShaderStorageBlockBinding, "glShaderStorageBlockBinding");
+
+    // ARB_texture_buffer_range
+    bind(glTexBufferRange, "glTexBufferRange");
+
+    // ARB_texture_storage_multisample
+    bind(glTexStorage2DMultisample, "glTexStorage2DMultisample");
+    bind(glTexStorage3DMultisample, "glTexStorage3DMultisample");
+
+    // ARB_texture_view
+    bind(glTextureView, "glTextureView");
+
+    // ARB_vertex_attrib_binding
+    bind(glBindVertexBuffer, "glBindVertexBuffer");
+    bind(glVertexAttribFormat, "glVertexAttribFormat");
+    bind(glVertexAttribIFormat, "glVertexAttribIFormat");
+    bind(glVertexAttribLFormat, "glVertexAttribLFormat");
+    bind(glVertexAttribBinding, "glVertexAttribBinding");
+    bind(glVertexBindingDivisor, "glVertexBindingDivisor");
+
+    // ------------------------------------------------------------------------------------------------
+    // GL 4.4
+
+    // ARB_buffer_storage
+    bind(glBufferStorage, "glBufferStorage");
+
+    // ARB_clear_texture
+    bind(glClearTexImage, "glClearTexImage");
+    bind(glClearTexSubImage, "glClearTexSubImage");
+
+    // ARB_multi_bind
+    bind(glBindBuffersBase, "glBindBuffersBase");
+    bind(glBindBuffersRange, "glBindBuffersRange");
+    bind(glBindTextures, "glBindTextures");
+    bind(glBindSamplers, "glBindSamplers");
+    bind(glBindImageTextures, "glBindImageTextures");
+    bind(glBindVertexBuffers, "glBindVertexBuffers");
 }
 
 #endif
