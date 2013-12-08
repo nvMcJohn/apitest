@@ -13,7 +13,7 @@ static GfxApi* s_api;
 static GfxSwapChain* s_swap_chain;
 static GfxFrameBuffer* s_frame_buffer;
 
-static TestId s_test_id = TestId::CubesBindless;
+static TestId s_test_id = TestId::CubesBindlessIndirect;
 static TestCase* s_test_case;
 
 // ------------------------------------------------------------------------------------------------
@@ -121,6 +121,10 @@ LRESULT CALLBACK wnd_proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         case VK_F8:
             set_test(TestId::CubesBindless);
+            break;
+
+        case VK_F9:
+            set_test(TestId::CubesBindlessIndirect);
             break;
         }
         break;

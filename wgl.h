@@ -783,6 +783,13 @@ extern PFNGLVERTEXATTRIBFORMATNVPROC glVertexAttribFormatNV;
 extern PFNGLVERTEXATTRIBIFORMATNVPROC glVertexAttribIFormatNV;
 extern PFNGLGETINTEGERUI64I_VNVPROC glGetIntegerui64i_vNV;
 
+// GL_NV_bindless_multi_draw_indirect
+typedef void (APIENTRYP PFNGLMULTIDRAWARRAYSINDIRECTBINDLESSNVPROC) (GLenum mode, const void *indirect, GLsizei drawCount, GLsizei stride, GLint vertexBufferCount);
+typedef void (APIENTRYP PFNGLMULTIDRAWELEMENTSINDIRECTBINDLESSNVPROC) (GLenum mode, GLenum type, const void *indirect, GLsizei drawCount, GLsizei stride, GLint vertexBufferCount);
+
+extern PFNGLMULTIDRAWARRAYSINDIRECTBINDLESSNVPROC glMultiDrawArraysIndirectBindlessNV;
+extern PFNGLMULTIDRAWELEMENTSINDIRECTBINDLESSNVPROC glMultiDrawElementsIndirectBindlessNV;
+
 // --------------------------------------------------------------------------------------------------------------------
 // Common extensions
 
@@ -809,6 +816,15 @@ extern PFNGLGETINTEGERUI64I_VNVPROC glGetIntegerui64i_vNV;
 
 // --------------------------------------------------------------------------------------------------------------------
 // Indirect structures
+
+struct DrawArraysIndirectCommand
+{
+    GLuint count;
+    GLuint primCount;
+    GLuint first;
+    GLuint baseInstance;
+};
+
 struct DrawElementsIndirectCommand
 {
     GLuint count;
@@ -816,6 +832,29 @@ struct DrawElementsIndirectCommand
     GLuint firstIndex;
     GLuint baseVertex;
     GLuint baseInstance;
+};
+
+struct BindlessPtrNV
+{
+    GLuint   index;
+    GLuint   reserved; 
+    GLuint64 address;
+    GLuint64 length;
+};
+
+struct DrawArraysIndirectBindlessCommandNV
+{
+    DrawArraysIndirectCommand   cmd;
+    GLuint                      reserved; 
+    //BindlessPtrNV               vertexBuffers[];
+};
+
+struct DrawElementsIndirectBindlessCommandNV
+{
+    DrawElementsIndirectCommand cmd;
+    GLuint                      reserved; 
+    BindlessPtrNV               indexBuffer;
+    //BindlessPtrNV               vertexBuffers[];
 };
 
 // --------------------------------------------------------------------------------------------------------------------

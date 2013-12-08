@@ -20,7 +20,8 @@ enum class TestId
     CubesTexCoord,
     CubesMultiDraw,
     CubesBufferStorage,
-    CubesBindless
+    CubesBindless,
+    CubesBindlessIndirect,
 };
 
 class TestCase

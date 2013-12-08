@@ -70,6 +70,9 @@
     <ClInclude Include="cubes_gl_bindless.h">
       <Filter>Cubes</Filter>
     </ClInclude>
+    <ClInclude Include="cubes_gl_bindless_indirect.h">
+      <Filter>Cubes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="api_speed_test.cpp">
@@ -115,6 +118,9 @@
       <Filter>Cubes</Filter>
     </ClCompile>
     <ClCompile Include="cubes_gl_bindless.cpp">
+      <Filter>Cubes</Filter>
+    </ClCompile>
+    <ClCompile Include="cubes_gl_bindless_indirect.cpp">
       <Filter>Cubes</Filter>
     </ClCompile>
   </ItemGroup>
@@ -165,6 +171,12 @@
       <Filter>Cubes</Filter>
     </None>
     <None Include="cubes_gl_bindless_fs.glsl">
+      <Filter>Cubes</Filter>
+    </None>
+    <None Include="cubes_gl_bindless_indirect_fs.glsl">
+      <Filter>Cubes</Filter>
+    </None>
+    <None Include="cubes_gl_bindless_indirect_vs.glsl">
       <Filter>Cubes</Filter>
     </None>
   </ItemGroup>

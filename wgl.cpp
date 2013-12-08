@@ -671,6 +671,10 @@ PFNGLVERTEXATTRIBFORMATNVPROC glVertexAttribFormatNV;
 PFNGLVERTEXATTRIBIFORMATNVPROC glVertexAttribIFormatNV;
 PFNGLGETINTEGERUI64I_VNVPROC glGetIntegerui64i_vNV;
 
+// GL_NV_bindless_multi_draw_indirect
+PFNGLMULTIDRAWARRAYSINDIRECTBINDLESSNVPROC glMultiDrawArraysIndirectBindlessNV;
+PFNGLMULTIDRAWELEMENTSINDIRECTBINDLESSNVPROC glMultiDrawElementsIndirectBindlessNV;
+
 // --------------------------------------------------------------------------------------------------------------------
 template<class T>
 void bind(T& x, const char* name)
@@ -1344,4 +1348,7 @@ void wgl::bind_gl()
     bind(glVertexAttribIFormatNV, "glVertexAttribIFormatNV");
     bind(glGetIntegerui64i_vNV, "glGetIntegerui64i_vNV");
 
+    // GL_NV_bindless_multi_draw_indirect
+    bind(glMultiDrawArraysIndirectBindlessNV, "glMultiDrawArraysIndirectBindlessNV");
+    bind(glMultiDrawElementsIndirectBindlessNV, "glMultiDrawElementsIndirectBindlessNV");
 }

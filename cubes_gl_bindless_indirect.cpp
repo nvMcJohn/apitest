@@ -1,0 +1,201 @@
+#include "cubes_gl_bindless_indirect.h"
+#include "mathlib.h"
+#include <assert.h>
+#include <stdint.h>
+
+Cubes_GL_BindlessIndirect::Cubes_GL_BindlessIndirect()
+    : m_ibs()
+    , m_vbs()
+    , m_vs()
+    , m_fs()
+    , m_prog()
+    , m_transform_buffer()
+    , m_transform_ptr()
+    , m_cmd_buffer()
+    , m_cmd_ptr()
+{}
+
+Cubes_GL_BindlessIndirect::~Cubes_GL_BindlessIndirect()
+{
+    if (m_transform_ptr)
+    {
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_transform_buffer);
+        glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+    }
+
+    if (m_cmd_ptr)
+    {
+        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_cmd_buffer);
+        glUnmapBuffer(GL_DRAW_INDIRECT_BUFFER);
+    }
+
+    glDeleteBuffers(CUBES_COUNT, m_ibs);
+    glDeleteBuffers(CUBES_COUNT, m_vbs);
+    glDeleteShader(m_vs);
+    glDeleteShader(m_fs);
+    glDeleteProgram(m_prog);
+}
+
+bool Cubes_GL_BindlessIndirect::init()
+{
+    // Shaders
+    if (!create_shader(GL_VERTEX_SHADER, "cubes_gl_bindless_indirect_vs.glsl", &m_vs))
+        return false;
+
+    if (!create_shader(GL_FRAGMENT_SHADER, "cubes_gl_bindless_indirect_fs.glsl", &m_fs))
+        return false;
+
+    if (!compile_program(&m_prog, m_vs, m_fs, 0))
+        return false;
+
+    // Buffers
+    Vertex vertices[] =
+    {
+        { -0.5f,  0.5f, -0.5f, 0.0f, 1.0f, 0.0f },
+        {  0.5f,  0.5f, -0.5f, 1.0f, 1.0f, 0.0f },
+        {  0.5f,  0.5f,  0.5f, 1.0f, 1.0f, 1.0f },
+        { -0.5f,  0.5f,  0.5f, 0.0f, 1.0f, 1.0f },
+        { -0.5f, -0.5f,  0.5f, 0.0f, 0.0f, 1.0f },
+        {  0.5f, -0.5f,  0.5f, 1.0f, 0.0f, 1.0f },
+        {  0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f },
+        { -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f },
+    };
+
+    uint16_t indices[] =
+    {
+        0, 1, 2, 0, 2, 3,
+        4, 5, 6, 4, 6, 7,
+        3, 2, 5, 3, 5, 4,
+        2, 1, 6, 2, 6, 5,
+        1, 7, 6, 1, 0, 7,
+        0, 3, 4, 0, 4, 7
+    };
+
+    glGenBuffers(CUBES_COUNT, m_ibs);
+    glGenBuffers(CUBES_COUNT, m_vbs);
+    for (int i = 0; i < CUBES_COUNT; ++i)
+    {
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibs[i]);
+        glBufferStorage(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, 0);
+        glGetBufferParameterui64vNV(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_GPU_ADDRESS_NV, &m_ib_addrs[i]);
+        glMakeBufferResidentNV(GL_ELEMENT_ARRAY_BUFFER, GL_READ_ONLY);
+        m_ib_sizes[i] = sizeof(indices);
+
+        glBindBuffer(GL_ARRAY_BUFFER, m_vbs[i]);
+        glBufferStorage(GL_ARRAY_BUFFER, sizeof(vertices), vertices, 0);
+        glGetBufferParameterui64vNV(GL_ARRAY_BUFFER, GL_BUFFER_GPU_ADDRESS_NV, &m_vbo_addrs[i]);
+        glMakeBufferResidentNV(GL_ARRAY_BUFFER, GL_READ_ONLY);
+        m_vbo_sizes[i] = sizeof(vertices);
+    }
+
+    glGenBuffers(1, &m_transform_buffer);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, m_transform_buffer);
+    glBufferStorage(GL_SHADER_STORAGE_BUFFER, CUBES_COUNT * 64, nullptr, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_DYNAMIC_STORAGE_BIT);
+    m_transform_ptr = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, 64 * 64 * 64 * 64, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT);
+
+    glGenBuffers(1, &m_cmd_buffer);
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_cmd_buffer);
+    glBufferStorage(GL_DRAW_INDIRECT_BUFFER, CUBES_COUNT * sizeof(Command), nullptr, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_DYNAMIC_STORAGE_BIT);
+    m_cmd_ptr = glMapBufferRange(GL_DRAW_INDIRECT_BUFFER, 0, CUBES_COUNT * sizeof(Command), GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT);
+
+    return glGetError() == GL_NO_ERROR;
+}
+
+bool Cubes_GL_BindlessIndirect::begin(void* window, GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buffer)
+{
+    HWND hWnd = reinterpret_cast<HWND>(window);
+
+    RECT rc;
+    GetClientRect(hWnd, &rc);
+    int width = rc.right - rc.left;
+    int height = rc.bottom - rc.top;
+
+    // Bind and clear frame buffer
+    int fbo = PTR_AS_INT(frame_buffer);
+    float c[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
+    float d = 1.0f;
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
+    glClearBufferfv(GL_COLOR, 0, c);
+    glClearBufferfv(GL_DEPTH, 0, &d);
+
+    // Program
+    Vec3 dir = { -0.5f, -1, 1 };
+    Vec3 at = { 0, 0, 0 };
+    Vec3 up = { 0, 0, 1 };
+    dir = normalize(dir);
+    Vec3 eye = at - 250 * dir;
+    Matrix view = matrix_look_at(eye, at, up);
+    Matrix proj = matrix_perspective_rh_gl(radians(45.0f), (float)width / (float)height, 0.1f, 10000.0f);
+    Matrix view_proj = proj * view;
+
+    glUseProgram(m_prog);
+    glUniformMatrix4fv(0, 1, GL_TRUE, &view_proj.x.x);
+
+    // Input Layout
+    glEnableClientState(GL_ELEMENT_ARRAY_UNIFIED_NV);
+    glEnableClientState(GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV);
+
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribFormatNV(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex));
+    glVertexAttribFormatNV(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex));
+
+    // Rasterizer State
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_FRONT);
+    glDisable(GL_SCISSOR_TEST);
+    glViewport(0, 0, width, height);
+
+    // Blend State
+    glDisable(GL_BLEND);
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+
+    // Depth Stencil State
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_TRUE);
+
+    return true;
+}
+
+void Cubes_GL_BindlessIndirect::end(GfxSwapChain* swap_chain)
+{
+    SwapBuffers(swap_chain->hdc);
+#if defined(_DEBUG)
+    GLenum error = glGetError();
+    assert(error == GL_NO_ERROR);
+#endif
+}
+
+void Cubes_GL_BindlessIndirect::draw(Matrix* transforms, int count)
+{
+    assert(count <= CUBES_COUNT);
+
+    for (int i = 0; i < count; ++i)
+    {
+        Command *cmd = &m_commands[i];
+        cmd->draw.count = 36;
+        cmd->draw.instanceCount = 1;
+        cmd->draw.firstIndex = 0;
+        cmd->draw.baseVertex = 0;
+        cmd->draw.baseInstance = 0;
+        cmd->reserved = 0;
+        cmd->indexBuffer.index = 0;
+        cmd->indexBuffer.reserved = 0;
+        cmd->indexBuffer.address = m_ib_addrs[i];
+        cmd->indexBuffer.length = m_ib_sizes[i];
+        cmd->vertexBuffers[0].index = 0;
+        cmd->vertexBuffers[0].reserved = 0;
+        cmd->vertexBuffers[0].address = m_vbo_addrs[i] + offsetof(Vertex, pos);
+        cmd->vertexBuffers[0].length = m_vbo_sizes[i] - offsetof(Vertex, pos);
+        cmd->vertexBuffers[1].index = 1;
+        cmd->vertexBuffers[1].reserved = 0;
+        cmd->vertexBuffers[1].address = m_vbo_addrs[i] + offsetof(Vertex, color);
+        cmd->vertexBuffers[1].length = m_vbo_sizes[i] - offsetof(Vertex, color);
+    }
+
+    memcpy(m_transform_ptr, transforms, sizeof(Matrix) * count);
+    memcpy(m_cmd_ptr, m_commands, sizeof(Command) * count);
+    glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
+
+    glMultiDrawElementsIndirectBindlessNV(GL_TRIANGLES, GL_UNSIGNED_SHORT, nullptr, count, 0, 2);
+}

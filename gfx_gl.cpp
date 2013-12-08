@@ -10,6 +10,7 @@
 #include "cubes_gl_multi_draw.h"
 #include "cubes_gl_buffer_storage.h"
 #include "cubes_gl_bindless.h"
+#include "cubes_gl_bindless_indirect.h"
 
 #include "streaming_vb_gl.h"
 
@@ -143,6 +144,7 @@ TestCase* GfxApi_GL::create_test(TestId id)
     case TestId::CubesMultiDraw:        return new Cubes_GL_MultiDraw;
     case TestId::CubesBufferStorage:    return new Cubes_GL_BufferStorage;
     case TestId::CubesBindless:         return new Cubes_GL_Bindless;
+    case TestId::CubesBindlessIndirect: return new Cubes_GL_BindlessIndirect;
     }
 
     return nullptr;
