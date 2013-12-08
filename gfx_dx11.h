@@ -1,5 +1,3 @@
-// DX11 implementation
-
 #pragma once
 
 #include "gfx.h"
@@ -28,7 +26,7 @@ public:
     virtual void destroy_swap_chain(GfxSwapChain* swap_chain) override;
     virtual void destroy_frame_buffer(GfxFrameBuffer* frame_buffer) override;
 
-    virtual StreamingVB* create_streaming_vb() override;
+    virtual TestCase* create_test(TestId id) override;
 };
 
 // DX11 Utilities

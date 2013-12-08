@@ -1,5 +1,3 @@
-// GL implementation
-
 #pragma once
 
 #include "gfx.h"
@@ -29,9 +27,9 @@ public:
     virtual void destroy_swap_chain(GfxSwapChain* swap_chain) override;
     virtual void destroy_frame_buffer(GfxFrameBuffer* frame_buffer) override;
 
-    virtual StreamingVB* create_streaming_vb() override;
+    virtual TestCase* create_test(TestId id) override;
 };
 
 // GL Utilities
-bool create_shader(GLenum target, const GLchar* source_code, GLuint* out_shader);
+bool create_shader(GLenum target, const char* path, GLuint* out_shader);
 bool compile_program(GLuint* out_program, ...);

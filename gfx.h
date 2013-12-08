@@ -3,8 +3,35 @@
 
 #pragma once
 
+#include "mathlib.h"
+
 struct GfxSwapChain;
 struct GfxFrameBuffer;
+
+// --------------------------------------------------------------------------------------------------------------------
+// Test Case
+
+enum class TestId
+{
+    StreamingVB,
+    CubesUniform,
+    CubesDynamicBuffer,
+    CubesMultiBuffer,
+    CubesBufferRange,
+    CubesTexCoord,
+    CubesMultiDraw
+};
+
+class TestCase
+{
+public:
+    virtual ~TestCase() {}
+
+    virtual bool init() = 0;
+
+    virtual bool begin(void* hwnd, GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buffer) = 0;
+    virtual void end(GfxSwapChain* swap_chain) = 0;
+};
 
 // --------------------------------------------------------------------------------------------------------------------
 // Streaming VB test
@@ -12,22 +39,24 @@ struct GfxFrameBuffer;
 // Size of dynamic buffer used (should be large enough for 3 frames of submission)
 #define DYN_VB_SIZE 24 * 1024 * 1024
 
-struct Vert
+struct VertexPos2
 {
     float x, y;
 };
 
-class StreamingVB
+class StreamingVB : public TestCase
 {
 public:
-    virtual ~StreamingVB() {}
+    virtual void draw(VertexPos2* vertices, int count) = 0;
+};
 
-    virtual bool init() = 0;
+// --------------------------------------------------------------------------------------------------------------------
+// Cubes test
 
-    virtual bool begin(void* hwnd, GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buffer) = 0;
-    virtual void end(GfxSwapChain* swap_chain) = 0;
-
-    virtual void draw(Vert* vertices, int count) = 0;
+class Cubes : public TestCase
+{
+public:
+    virtual void draw(Matrix* transforms, int count) = 0;
 };
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -46,8 +75,7 @@ public:
     virtual void destroy_swap_chain(GfxSwapChain* swap_chain) = 0;
     virtual void destroy_frame_buffer(GfxFrameBuffer* frame_buffer) = 0;
 
-    // tests
-    virtual StreamingVB* create_streaming_vb() = 0;
+    virtual TestCase* create_test(TestId id) = 0;
 };
 
 GfxApi *create_gfx_gl();

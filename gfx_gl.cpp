@@ -1,8 +1,17 @@
 #include "gfx_gl.h"
-#include "streaming_vb_gl.h"
 #include "console.h"
+#include <assert.h>
+#include <stdio.h>
+
+#include "cubes_gl_uniform.h"
+#include "streaming_vb_gl.h"
 
 GfxApi *create_gfx_gl() { return new GfxApi_GL; }
+
+static void APIENTRY ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char* message, const void* userParam)
+{
+    console::debug("%s\n", message);
+}
 
 GfxApi_GL::GfxApi_GL()
 {}
@@ -85,6 +94,14 @@ bool GfxApi_GL::create_swap_chain(void* window,
     glDisable(GL_BLEND);
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
+#if defined(_DEBUG)
+    glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
+    glDebugMessageControl(GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_OTHER, GL_DEBUG_SEVERITY_LOW, 0, nullptr, GL_FALSE);
+    glDebugMessageCallback(ErrorCallback, nullptr);
+    glEnable(GL_DEBUG_OUTPUT);
+    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+#endif
+
     return true;
 }
 
@@ -107,15 +124,33 @@ void GfxApi_GL::destroy_swap_chain(GfxSwapChain* swap_chain)
 void GfxApi_GL::destroy_frame_buffer(GfxFrameBuffer* frame_buffer)
 {}
 
-StreamingVB* GfxApi_GL::create_streaming_vb()
+TestCase* GfxApi_GL::create_test(TestId id)
 {
-    return new StreamingVB_GL;
+    switch (id)
+    {
+    case TestId::StreamingVB:   return new StreamingVB_GL;
+    case TestId::CubesUniform:  return new Cubes_GL_Uniform;
+    }
+
+    return nullptr;
 }
 
-bool create_shader(GLenum target, const GLchar* source_code, GLuint* out_shader)
+bool create_shader(GLenum target, const char* path, GLuint* out_shader)
 {
+    FILE* fp = fopen(path, "rb");
+    if (!fp)
+        return false;
+
+    fseek(fp, 0, SEEK_END);
+    int file_size = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+
+    char* source_code = new char[file_size];
+    size_t bytes_read = fread(source_code, 1, file_size, fp);
+    assert(bytes_read == file_size);
+
     GLuint shader = glCreateShader(target);
-    glShaderSource(shader, 1, &source_code, nullptr);
+    glShaderSource(shader, 1, &source_code, &file_size);
     glCompileShader(shader);
 
     GLint compile_status;
@@ -134,10 +169,12 @@ bool create_shader(GLenum target, const GLchar* source_code, GLuint* out_shader)
         }
 
         glDeleteShader(shader);
+        delete[] source_code;
         return false;
     }
 
     *out_shader = shader;
+    delete[] source_code;
     return true;
 }
 

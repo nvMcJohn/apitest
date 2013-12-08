@@ -2,13 +2,6 @@
 #include "streaming_vb_dx11_ps.h"
 #include "streaming_vb_dx11_vs.h"
 
-struct UIConstants
-{
-    float width;
-    float height;
-    float pad[2];
-};
-
 StreamingVB_DX11::StreamingVB_DX11()
     : m_layout()
     , m_cb()
@@ -39,7 +32,7 @@ StreamingVB_DX11::~StreamingVB_DX11()
 bool StreamingVB_DX11::init()
 {
     // Constant Buffer
-    HRESULT hr = create_constant_buffer(sizeof(UIConstants), nullptr, &m_cb);
+    HRESULT hr = create_constant_buffer(sizeof(Constants), nullptr, &m_cb);
     if (FAILED(hr))
         return false;
 
@@ -179,13 +172,13 @@ bool StreamingVB_DX11::begin(void* window, GfxSwapChain* swap_chain, GfxFrameBuf
     vp.TopLeftX = 0;
     vp.TopLeftY = 0;
 
-    UIConstants cb;
+    Constants cb;
     cb.width = 2.0f / width;
     cb.height = -2.0f / height;
     g_d3d_context->UpdateSubresource(m_cb, 0, nullptr, &cb, 0, 0);
 
     ID3D11Buffer* ia_buffers[] = { m_dyn_vb };
-    UINT ia_strides[] = { sizeof(Vert) };
+    UINT ia_strides[] = { sizeof(VertexPos2) };
     UINT ia_offsets[] = { 0 };
 
     float blendFactor[4] = { 0, 0, 0, 0 };
@@ -213,9 +206,9 @@ void StreamingVB_DX11::end(GfxSwapChain* swap_chain)
     dxgi_swap_chain->Present(0, 0);
 }
 
-void StreamingVB_DX11::draw(Vert* vertices, int count)
+void StreamingVB_DX11::draw(VertexPos2* vertices, int count)
 {
-    int stride = sizeof(Vert);
+    int stride = sizeof(VertexPos2);
     int vertex_offset = (m_dyn_offset + stride - 1) / stride;
     int byte_offset = vertex_offset * stride;
     int size = count * stride;
@@ -236,7 +229,7 @@ void StreamingVB_DX11::draw(Vert* vertices, int count)
 
     void* dst = static_cast<unsigned char*>(mappedResource.pData) + byte_offset;
 
-    memcpy(dst, vertices, count * sizeof(Vert));
+    memcpy(dst, vertices, count * sizeof(VertexPos2));
 
     g_d3d_context->Unmap(m_dyn_vb, 0);
 

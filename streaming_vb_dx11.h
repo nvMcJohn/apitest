@@ -1,5 +1,3 @@
-// Streaming VB test - DX11 Implementation
-
 #pragma once
 
 #include "gfx_dx11.h"
@@ -15,9 +13,16 @@ public:
     virtual bool begin(void* hwnd, GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buffer) override;
     virtual void end(GfxSwapChain* swap_chain) override;
 
-    virtual void draw(Vert* vertices, int count) override;
+    virtual void draw(VertexPos2* vertices, int count) override;
 
 private:
+    struct Constants
+    {
+        float width;
+        float height;
+        float pad[2];
+    };
+
     ID3D11InputLayout* m_layout;
     ID3D11Buffer* m_cb;
     ID3D11VertexShader* m_vs;

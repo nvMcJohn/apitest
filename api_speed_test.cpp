@@ -4,21 +4,35 @@
 
 #include <Windows.h>
 
+#define SAFE_DELETE(x)         { delete x; x = nullptr; }
+
 // --------------------------------------------------------------------------------------------------------------------
 static HINSTANCE s_instance;
 static HWND s_window;
 static GfxApi* s_api;
 static GfxSwapChain* s_swap_chain;
 static GfxFrameBuffer* s_frame_buffer;
-static StreamingVB* s_streaming_vb;
+
+static TestId s_test_id = TestId::CubesUniform;
+static TestCase* s_test_case;
+
+// ------------------------------------------------------------------------------------------------
+static bool set_test(TestId id)
+{
+    SAFE_DELETE(s_test_case);
+
+    s_test_id = id;
+
+    s_test_case = s_api->create_test(s_test_id);
+    if (!s_test_case)
+        return false;
+
+    return s_test_case->init();
+}
 
 // ------------------------------------------------------------------------------------------------
 static bool set_api(GfxApi *api)
 {
-    // Delete existing test case/api
-    delete s_streaming_vb;
-    s_streaming_vb = nullptr;
-
     if (s_api)
     {
         s_api->destroy_frame_buffer(s_frame_buffer);
@@ -26,8 +40,8 @@ static bool set_api(GfxApi *api)
         delete s_api;
     }
 
-    // Initialize new api/test case
     s_api = api;
+
     if (s_api)
     {
         if (!s_api->init())
@@ -36,8 +50,7 @@ static bool set_api(GfxApi *api)
         if (!s_api->create_swap_chain(s_window, &s_swap_chain, &s_frame_buffer))
             return false;
 
-        s_streaming_vb = s_api->create_streaming_vb();
-        if (!s_streaming_vb->init())
+        if (!set_test(s_test_id))
             return false;
     }
 
@@ -76,6 +89,14 @@ LRESULT CALLBACK wnd_proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case 'G':
             console::debug("Initializing GL backend\n");
             set_api(create_gfx_gl());
+            break;
+
+        case VK_F1:
+            set_test(TestId::StreamingVB);
+            break;
+
+        case VK_F2:
+            set_test(TestId::CubesUniform);
             break;
         }
         break;
@@ -155,40 +176,74 @@ static void update_fps()
 // ------------------------------------------------------------------------------------------------
 static void render()
 {
-    update_fps();
-
-    if (!s_streaming_vb->begin(s_window, s_swap_chain, s_frame_buffer))
+    if (!s_test_case)
         return;
 
-    float spacing = 1.0f;
-    float x = spacing;
-    float y = spacing;
-    float w = 1.0f;
-    float h = 1.0f;
+    if (!s_test_case->begin(s_window, s_swap_chain, s_frame_buffer))
+        return;
 
-    for (int i = 0; i < 160000; ++i)
+    StreamingVB* streaming_vb = dynamic_cast<StreamingVB*>(s_test_case);
+    if (streaming_vb)
     {
-        Vert verts[] =
-        {
-            { x, y },
-            { x + w, y },
-            { x, y + h },
-            { x + w, y },
-            { x, y + h },
-            { x + w, y + h },
-        };
+        float spacing = 1.0f;
+        float x = spacing;
+        float y = spacing;
+        float w = 1.0f;
+        float h = 1.0f;
 
-        s_streaming_vb->draw(verts, 6);
-
-        x += w + spacing;
-        if (x > 1000)
+        for (int i = 0; i < 160000; ++i)
         {
-            x = spacing;
-            y += h + spacing;
+            VertexPos2 verts[] =
+            {
+                { x, y },
+                { x + w, y },
+                { x, y + h },
+                { x + w, y },
+                { x, y + h },
+                { x + w, y + h },
+            };
+
+            streaming_vb->draw(verts, 6);
+
+            x += w + spacing;
+            if (x > 1000)
+            {
+                x = spacing;
+                y += h + spacing;
+            }
         }
     }
 
-    s_streaming_vb->end(s_swap_chain);
+    Cubes* cubes = dynamic_cast<Cubes*>(s_test_case);
+    if (cubes)
+    {
+        static Matrix* transforms;
+        if (!transforms)
+        {
+            transforms = new Matrix[64 * 64 * 64];
+
+            Matrix *m = transforms;
+            for (int x = 0; x < 64; ++x)
+            {
+                for (int y = 0; y < 64; ++y)
+                {
+                    for (int z = 0; z < 64; ++z)
+                    {
+                        *m = matrix_identity();
+                        m->w.x = (float)x - 32;
+                        m->w.y = (float)y - 32;
+                        m->w.z = (float)z - 32;
+                        ++m;
+                    }
+                }
+            }
+        }
+
+        cubes->draw(transforms, 64 * 64 * 64);
+    }
+
+    s_test_case->end(s_swap_chain);
+    update_fps();
 }
 
 // ------------------------------------------------------------------------------------------------

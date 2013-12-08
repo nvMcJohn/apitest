@@ -1,81 +1,99 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    <Filter Include="StreamingVB">
+      <UniqueIdentifier>{a72ba286-a6c1-4d9b-9a6d-9d909454275c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files">
+    <Filter Include="Cubes">
+      <UniqueIdentifier>{4c017367-7076-478c-841c-5e83f51820d0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gfx">
+      <UniqueIdentifier>{5a395c9f-7946-4905-9039-a07fd8fdc73b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Framework">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="gfx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="wgl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="console.h">
-      <Filter>Header Files</Filter>
+      <Filter>Framework</Filter>
     </ClInclude>
     <ClInclude Include="timer.h">
-      <Filter>Header Files</Filter>
+      <Filter>Framework</Filter>
     </ClInclude>
-    <ClInclude Include="streaming_vb_gl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="gfx_gl.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="cubes_gl_uniform.h">
+      <Filter>Cubes</Filter>
     </ClInclude>
     <ClInclude Include="streaming_vb_dx11.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="gfx_dx11.h">
-      <Filter>Header Files</Filter>
+      <Filter>StreamingVB</Filter>
     </ClInclude>
     <ClInclude Include="streaming_vb_dx11_ps.h">
-      <Filter>Header Files</Filter>
+      <Filter>StreamingVB</Filter>
     </ClInclude>
     <ClInclude Include="streaming_vb_dx11_vs.h">
-      <Filter>Header Files</Filter>
+      <Filter>StreamingVB</Filter>
     </ClInclude>
-    <ClInclude Include="streaming_vb_gl_vs.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="streaming_vb_gl.h">
+      <Filter>StreamingVB</Filter>
     </ClInclude>
-    <ClInclude Include="streaming_vb_gl_fs.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="gfx.h">
+      <Filter>Gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="gfx_dx11.h">
+      <Filter>Gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="gfx_gl.h">
+      <Filter>Gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="wgl.h">
+      <Filter>Gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="mathlib.h">
+      <Filter>Framework</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="api_speed_test.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="gfx_dx11.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="gfx_gl.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="wgl.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Framework</Filter>
     </ClCompile>
     <ClCompile Include="console.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Framework</Filter>
     </ClCompile>
-    <ClCompile Include="timer.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="cubes_gl_uniform.cpp">
+      <Filter>Cubes</Filter>
     </ClCompile>
-    <ClCompile Include="streaming_vb_gl.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="gfx_dx11.cpp">
+      <Filter>Gfx</Filter>
+    </ClCompile>
+    <ClCompile Include="gfx_gl.cpp">
+      <Filter>Gfx</Filter>
     </ClCompile>
     <ClCompile Include="streaming_vb_dx11.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>StreamingVB</Filter>
     </ClCompile>
+    <ClCompile Include="streaming_vb_gl.cpp">
+      <Filter>StreamingVB</Filter>
+    </ClCompile>
+    <ClCompile Include="timer.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="wgl.cpp">
+      <Filter>Gfx</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="streaming_vb_gl_fs.glsl">
+      <Filter>StreamingVB</Filter>
+    </None>
+    <None Include="streaming_vb_gl_vs.glsl">
+      <Filter>StreamingVB</Filter>
+    </None>
+    <None Include="cubes_gl_uniform_fs.glsl">
+      <Filter>Cubes</Filter>
+    </None>
+    <None Include="cubes_gl_uniform_vs.glsl">
+      <Filter>Cubes</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -141,11 +141,15 @@ void GfxApi_DX11::destroy_frame_buffer(GfxFrameBuffer* frame_buffer)
     }
 }
 
-StreamingVB* GfxApi_DX11::create_streaming_vb()
+TestCase* GfxApi_DX11::create_test(TestId id)
 {
-    return new StreamingVB_DX11;
-}
+    switch (id)
+    {
+    case TestId::StreamingVB:   return new StreamingVB_DX11;
+    }
 
+    return nullptr;
+}
 
 HRESULT create_constant_buffer(int size, const void* data, ID3D11Buffer** out_buffer)
 {

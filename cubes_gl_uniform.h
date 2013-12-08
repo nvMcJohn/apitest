@@ -1,33 +1,31 @@
 #pragma once
 
 #include "gfx_gl.h"
+#include "mathlib.h"
 
-class StreamingVB_GL : public StreamingVB
+class Cubes_GL_Uniform : public Cubes
 {
 public:
-    StreamingVB_GL();
-    virtual ~StreamingVB_GL();
+    Cubes_GL_Uniform();
+    virtual ~Cubes_GL_Uniform();
 
     virtual bool init() override;
 
     virtual bool begin(void* hwnd, GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buffer) override;
     virtual void end(GfxSwapChain* swap_chain) override;
 
-    virtual void draw(VertexPos2* vertices, int count) override;
+    virtual void draw(Matrix* transforms, int count) override;
 
 private:
-    struct Constants
+    struct Vertex
     {
-        float width;
-        float height;
-        float pad[2];
+        Vec3 pos;
+        Vec3 color;
     };
 
-    GLuint m_ub;
+    GLuint m_ib;
+    GLuint m_vb;
     GLuint m_vs;
     GLuint m_fs;
     GLuint m_prog;
-
-    GLuint m_dyn_vb;
-    int m_dyn_offset;
 };
