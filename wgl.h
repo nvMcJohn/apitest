@@ -745,6 +745,17 @@ extern PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
 #define GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT 0x8C4F
 
 // --------------------------------------------------------------------------------------------------------------------
+// Indirect structures
+struct DrawElementsIndirectCommand
+{
+    GLuint count;
+    GLuint instanceCount;
+    GLuint firstIndex;
+    GLuint baseVertex;
+    GLuint baseInstance;
+};
+
+// --------------------------------------------------------------------------------------------------------------------
 namespace wgl
 {
     void bind_wgl();

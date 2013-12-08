@@ -13,7 +13,7 @@ static GfxApi* s_api;
 static GfxSwapChain* s_swap_chain;
 static GfxFrameBuffer* s_frame_buffer;
 
-static TestId s_test_id = TestId::CubesDynamicBuffer;
+static TestId s_test_id = TestId::CubesMultiDraw;
 static TestCase* s_test_case;
 
 // ------------------------------------------------------------------------------------------------
@@ -101,6 +101,18 @@ LRESULT CALLBACK wnd_proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         case VK_F3:
             set_test(TestId::CubesDynamicBuffer);
+            break;
+
+        case VK_F4:
+            set_test(TestId::CubesBufferRange);
+            break;
+
+        case VK_F5:
+            set_test(TestId::CubesTexCoord);
+            break;
+
+        case VK_F6:
+            set_test(TestId::CubesMultiDraw);
             break;
         }
         break;

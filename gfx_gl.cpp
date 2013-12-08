@@ -5,6 +5,10 @@
 
 #include "cubes_gl_uniform.h"
 #include "cubes_gl_dynamic_buffer.h"
+#include "cubes_gl_buffer_range.h"
+#include "cubes_gl_tex_coord.h"
+#include "cubes_gl_multi_draw.h"
+
 #include "streaming_vb_gl.h"
 
 GfxApi *create_gfx_gl() { return new GfxApi_GL; }
@@ -132,6 +136,9 @@ TestCase* GfxApi_GL::create_test(TestId id)
     case TestId::StreamingVB:           return new StreamingVB_GL;
     case TestId::CubesUniform:          return new Cubes_GL_Uniform;
     case TestId::CubesDynamicBuffer:    return new Cubes_GL_DynamicBuffer;
+    case TestId::CubesBufferRange:      return new Cubes_GL_BufferRange;
+    case TestId::CubesTexCoord:         return new Cubes_GL_TexCoord;
+    case TestId::CubesMultiDraw:        return new Cubes_GL_MultiDraw;
     }
 
     return nullptr;
