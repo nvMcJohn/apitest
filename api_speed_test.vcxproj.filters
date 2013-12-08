@@ -52,6 +52,9 @@
     <ClInclude Include="mathlib.h">
       <Filter>Framework</Filter>
     </ClInclude>
+    <ClInclude Include="cubes_gl_dynamic_buffer.h">
+      <Filter>Cubes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="api_speed_test.cpp">
@@ -81,6 +84,9 @@
     <ClCompile Include="wgl.cpp">
       <Filter>Gfx</Filter>
     </ClCompile>
+    <ClCompile Include="cubes_gl_dynamic_buffer.cpp">
+      <Filter>Cubes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="streaming_vb_gl_fs.glsl">
@@ -93,6 +99,12 @@
       <Filter>Cubes</Filter>
     </None>
     <None Include="cubes_gl_uniform_vs.glsl">
+      <Filter>Cubes</Filter>
+    </None>
+    <None Include="cubes_gl_dynamic_buffer_fs.glsl">
+      <Filter>Cubes</Filter>
+    </None>
+    <None Include="cubes_gl_dynamic_buffer_vs.glsl">
       <Filter>Cubes</Filter>
     </None>
   </ItemGroup>

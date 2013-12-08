@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="console.h" />
+    <ClInclude Include="cubes_gl_dynamic_buffer.h" />
     <ClInclude Include="cubes_gl_uniform.h" />
     <ClInclude Include="mathlib.h" />
     <ClInclude Include="streaming_vb_dx11_ps.h" />
@@ -35,6 +36,7 @@
   <ItemGroup>
     <ClCompile Include="api_speed_test.cpp" />
     <ClCompile Include="console.cpp" />
+    <ClCompile Include="cubes_gl_dynamic_buffer.cpp" />
     <ClCompile Include="cubes_gl_uniform.cpp" />
     <ClCompile Include="gfx_dx11.cpp" />
     <ClCompile Include="gfx_gl.cpp" />
@@ -44,6 +46,8 @@
     <ClCompile Include="wgl.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="cubes_gl_dynamic_buffer_fs.glsl" />
+    <None Include="cubes_gl_dynamic_buffer_vs.glsl" />
     <None Include="cubes_gl_uniform_fs.glsl" />
     <None Include="cubes_gl_uniform_vs.glsl" />
     <None Include="streaming_vb_gl_fs.glsl" />

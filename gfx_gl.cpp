@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #include "cubes_gl_uniform.h"
+#include "cubes_gl_dynamic_buffer.h"
 #include "streaming_vb_gl.h"
 
 GfxApi *create_gfx_gl() { return new GfxApi_GL; }
@@ -128,8 +129,9 @@ TestCase* GfxApi_GL::create_test(TestId id)
 {
     switch (id)
     {
-    case TestId::StreamingVB:   return new StreamingVB_GL;
-    case TestId::CubesUniform:  return new Cubes_GL_Uniform;
+    case TestId::StreamingVB:           return new StreamingVB_GL;
+    case TestId::CubesUniform:          return new Cubes_GL_Uniform;
+    case TestId::CubesDynamicBuffer:    return new Cubes_GL_DynamicBuffer;
     }
 
     return nullptr;

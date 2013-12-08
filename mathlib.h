@@ -103,6 +103,19 @@ inline Vec3 cross(Vec3 a, Vec3 b)
     return r;
 }
 
+inline Matrix transpose(Matrix m)
+{
+    Matrix r = 
+    {
+        m.x.x, m.y.x, m.z.x, m.w.x,
+        m.x.y, m.y.y, m.z.y, m.w.y,
+        m.x.z, m.y.z, m.z.z, m.w.z,
+        m.x.w, m.y.w, m.z.w, m.w.w
+    };
+
+    return r;
+}
+
 inline Matrix matrix_identity()
 {
     Matrix m =

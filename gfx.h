@@ -16,7 +16,6 @@ enum class TestId
     StreamingVB,
     CubesUniform,
     CubesDynamicBuffer,
-    CubesMultiBuffer,
     CubesBufferRange,
     CubesTexCoord,
     CubesMultiDraw
