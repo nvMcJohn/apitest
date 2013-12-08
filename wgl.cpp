@@ -2,8 +2,6 @@
 
 #include "gfx.h"
 
-#if defined(USE_GL4)
-
 #include "wgl.h"
 
 #pragma comment (lib, "opengl32.lib")
@@ -1296,5 +1294,3 @@ void wgl::bind_gl()
     bind(glBindImageTextures, "glBindImageTextures");
     bind(glBindVertexBuffers, "glBindVertexBuffers");
 }
-
-#endif

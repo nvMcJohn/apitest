@@ -27,16 +27,28 @@
     <ClInclude Include="timer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="gl4_fs_code.h">
+    <ClInclude Include="streaming_vb_gl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="gl4_vs_code.h">
+    <ClInclude Include="gfx_gl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="dx50_fs_code.h">
+    <ClInclude Include="streaming_vb_dx11.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="dx50_vs_code.h">
+    <ClInclude Include="gfx_dx11.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="streaming_vb_dx11_ps.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="streaming_vb_dx11_vs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="streaming_vb_gl_vs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="streaming_vb_gl_fs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -57,6 +69,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="timer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="streaming_vb_gl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="streaming_vb_dx11.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

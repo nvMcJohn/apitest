@@ -20,11 +20,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="console.h" />
-    <ClInclude Include="dx50_fs_code.h" />
-    <ClInclude Include="dx50_vs_code.h" />
+    <ClInclude Include="streaming_vb_dx11_ps.h" />
+    <ClInclude Include="streaming_vb_dx11_vs.h" />
     <ClInclude Include="gfx.h" />
-    <ClInclude Include="gl4_fs_code.h" />
-    <ClInclude Include="gl4_vs_code.h" />
+    <ClInclude Include="gfx_dx11.h" />
+    <ClInclude Include="gfx_gl.h" />
+    <ClInclude Include="streaming_vb_gl_fs.h" />
+    <ClInclude Include="streaming_vb_gl_vs.h" />
+    <ClInclude Include="streaming_vb_dx11.h" />
+    <ClInclude Include="streaming_vb_gl.h" />
     <ClInclude Include="timer.h" />
     <ClInclude Include="wgl.h" />
   </ItemGroup>
@@ -33,6 +37,8 @@
     <ClCompile Include="console.cpp" />
     <ClCompile Include="gfx_dx11.cpp" />
     <ClCompile Include="gfx_gl.cpp" />
+    <ClCompile Include="streaming_vb_dx11.cpp" />
+    <ClCompile Include="streaming_vb_gl.cpp" />
     <ClCompile Include="timer.cpp" />
     <ClCompile Include="wgl.cpp" />
   </ItemGroup>

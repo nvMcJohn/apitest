@@ -7,9 +7,42 @@
 // --------------------------------------------------------------------------------------------------------------------
 static HINSTANCE s_instance;
 static HWND s_window;
+static GfxApi* s_api;
 static GfxSwapChain* s_swap_chain;
 static GfxFrameBuffer* s_frame_buffer;
+static StreamingVB* s_streaming_vb;
 
+// ------------------------------------------------------------------------------------------------
+static bool set_api(GfxApi *api)
+{
+    // Delete existing test case/api
+    delete s_streaming_vb;
+    s_streaming_vb = nullptr;
+
+    if (s_api)
+    {
+        s_api->destroy_frame_buffer(s_frame_buffer);
+        s_api->destroy_swap_chain(s_swap_chain);
+        delete s_api;
+    }
+
+    // Initialize new api/test case
+    s_api = api;
+    if (s_api)
+    {
+        if (!s_api->init())
+            return false;
+
+        if (!s_api->create_swap_chain(s_window, &s_swap_chain, &s_frame_buffer))
+            return false;
+
+        s_streaming_vb = s_api->create_streaming_vb();
+        if (!s_streaming_vb->init())
+            return false;
+    }
+
+    return true;
+}
 // --------------------------------------------------------------------------------------------------------------------
 LRESULT CALLBACK wnd_proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -33,6 +66,20 @@ LRESULT CALLBACK wnd_proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         break;
 
+    case WM_KEYDOWN:
+        switch (wParam)
+        {
+        case 'D':
+            console::debug("Initializing DX11 backend\n");
+            set_api(create_gfx_dx11());
+            break;
+        case 'G':
+            console::debug("Initializing GL backend\n");
+            set_api(create_gfx_gl());
+            break;
+        }
+        break;
+
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
     }
@@ -41,7 +88,7 @@ LRESULT CALLBACK wnd_proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 // ------------------------------------------------------------------------------------------------
-HWND create_window(const char* title, int x, int y, int width, int height)
+static HWND create_window(const char* title, int x, int y, int width, int height)
 {
     // Initialize window class description
     WNDCLASSEX wcex;
@@ -108,17 +155,10 @@ static void update_fps()
 // ------------------------------------------------------------------------------------------------
 static void render()
 {
-    if (!gfx::begin(s_window, s_swap_chain, s_frame_buffer))
-        return;
-
     update_fps();
 
-    float c[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
-    //float c[4] = { 0.5f, 0.0f, 0.0f, 1.0f };
-
-    gfx::set_frame_buffer(s_frame_buffer);
-    gfx::clear_color(c);
-    gfx::clear_depth(1.0f);
+    if (!s_streaming_vb->begin(s_window, s_swap_chain, s_frame_buffer))
+        return;
 
     float spacing = 1.0f;
     float x = spacing;
@@ -138,7 +178,7 @@ static void render()
             { x + w, y + h },
         };
 
-        gfx::draw(verts, 6);
+        s_streaming_vb->draw(verts, 6);
 
         x += w + spacing;
         if (x > 1000)
@@ -148,7 +188,7 @@ static void render()
         }
     }
 
-    gfx::end(s_swap_chain);
+    s_streaming_vb->end(s_swap_chain);
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -156,17 +196,11 @@ static bool init()
 {
     timer::init();
 
-    if (!gfx::init_device())
-        return false;
-
     s_window = create_window("Test Window", 50, 50, 1024, 748);
     if (!s_window)
         return false;
 
-    if (!gfx::create_swap_chain(s_window, &s_swap_chain, &s_frame_buffer))
-        return false;
-
-    if (!gfx::init_objects())
+    if (!set_api(create_gfx_gl()))
         return false;
 
     return true;
@@ -175,10 +209,7 @@ static bool init()
 // ------------------------------------------------------------------------------------------------
 static void cleanup()
 {
-    gfx::destroy_objects();
-    gfx::destroy_frame_buffer(s_frame_buffer);
-    gfx::destroy_swap_chain(s_swap_chain);
-    gfx::shutdown_device();
+    set_api(nullptr);
     DestroyWindow(s_window);
 }
 
