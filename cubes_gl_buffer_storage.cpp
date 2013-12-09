@@ -84,7 +84,7 @@ bool Cubes_GL_BufferStorage::init()
     glGenBuffers(1, &m_transform_buffer);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, m_transform_buffer);
     glBufferStorage(GL_SHADER_STORAGE_BUFFER, CUBES_COUNT * 64, nullptr, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_DYNAMIC_STORAGE_BIT);
-    m_transform_ptr = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, 64 * 64 * 64 * 64, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT);
+    m_transform_ptr = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, CUBES_COUNT * 64, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT);
 
     glGenBuffers(1, &m_cmd_buffer);
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_cmd_buffer);
