@@ -22,18 +22,24 @@ Cubes_GL_BindlessIndirect::~Cubes_GL_BindlessIndirect()
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_transform_buffer);
         glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
     }
+    glDeleteBuffers(1, &m_transform_buffer);
 
     if (m_cmd_ptr)
     {
         glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_cmd_buffer);
         glUnmapBuffer(GL_DRAW_INDIRECT_BUFFER);
     }
+    glDeleteBuffers(1, &m_cmd_buffer);
 
     glDeleteBuffers(CUBES_COUNT, m_ibs);
     glDeleteBuffers(CUBES_COUNT, m_vbs);
     glDeleteShader(m_vs);
     glDeleteShader(m_fs);
     glDeleteProgram(m_prog);
+
+    // TODO: These could also go in ::end. 
+    glDisableClientState(GL_ELEMENT_ARRAY_UNIFIED_NV);
+    glDisableClientState(GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV);
 }
 
 bool Cubes_GL_BindlessIndirect::init()

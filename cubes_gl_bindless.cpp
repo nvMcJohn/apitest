@@ -18,6 +18,9 @@ Cubes_GL_Bindless::~Cubes_GL_Bindless()
     glDeleteShader(m_vs);
     glDeleteShader(m_fs);
     glDeleteProgram(m_prog);
+
+    glDisableClientState(GL_ELEMENT_ARRAY_UNIFIED_NV);
+    glDisableClientState(GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV);
 }
 
 bool Cubes_GL_Bindless::init()

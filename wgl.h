@@ -78,6 +78,8 @@ GLAPI GLboolean APIENTRY glIsTexture (GLuint);
 
 // Needed for nVidia bindless
 GLAPI void APIENTRY glEnableClientState (GLenum);
+GLAPI void APIENTRY glDisableClientState(GLenum);
+
 };
 
 // --------------------------------------------------------------------------------------------------------------------

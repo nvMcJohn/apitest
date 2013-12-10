@@ -108,6 +108,8 @@ bool GfxApi_GL::create_swap_chain(void* window,
     glDebugMessageCallback(ErrorCallback, nullptr);
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+
+    GLenum err = glGetError();
 #endif
 
     return true;
