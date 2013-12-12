@@ -5,12 +5,6 @@
 
 #include "dds_helper.h"
 
-// Instead of rebinding the texture, GL_TEXTURES_ALTERNATE_BIND_POINT says "let's bind the textures 
-// into different samplers, then use a simple glUniform call to update which sampler we're using."
-// This turns out to be super expensive, because validating that mapping is much more expensive that
-// the validation that has to occur from just calling activeTexture/bindTexture
-#define GL_TEXTURES_ALTERNATE_BIND_POINT 0
-
 Textures_GL_Forward::Textures_GL_Forward()
     : m_ib()
     , m_vb_pos()
@@ -157,10 +151,8 @@ bool Textures_GL_Forward::begin(void* window, GfxSwapChain* swap_chain, GfxFrame
 
     glUseProgram(m_prog);
     glUniformMatrix4fv(0, 1, GL_TRUE, &view_proj.x.x);
-    // We will bind the texture we care about to unit 0, if we're not doing GL_TEXTURES_ALTERNATE_BIND_POINT
-#if !GL_TEXTURES_ALTERNATE_BIND_POINT
+    // We will bind the texture we care about to unit 0, so let the program know now.
     glUniform1i(128, 0);
-#endif
 
     // Input Layout. First the IB
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ib);
@@ -190,14 +182,6 @@ bool Textures_GL_Forward::begin(void* window, GfxSwapChain* swap_chain, GfxFrame
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
 
-#if GL_TEXTURES_ALTERNATE_BIND_POINT
-    glActiveTexture(GL_TEXTURE0 + 0);
-    glBindTexture(GL_TEXTURE_2D, m_tex1);
-
-    glActiveTexture(GL_TEXTURE0 + 1);
-    glBindTexture(GL_TEXTURE_2D, m_tex2);
-#endif
-
     return true;
 }
 
@@ -221,9 +205,6 @@ void Textures_GL_Forward::draw(Matrix* transforms, int count)
         // Update the draw ID (since we cannot use multi_draw here
         glUniform1i(1, i); 
 
-#if GL_TEXTURES_ALTERNATE_BIND_POINT
-        glUniform1i(128, ((i & 1) == 1) ? 1 : 0);
-#else
         // And update our texture via binding.
         GLuint activeTex = 0;
         activeTex = ((i & 1) == 1) ? m_tex2 : m_tex1;
@@ -233,7 +214,6 @@ void Textures_GL_Forward::draw(Matrix* transforms, int count)
 #else
         glActiveTexture(GL_TEXTURE0 + 0);
         glBindTexture(GL_TEXTURE_2D, activeTex);
-#endif
 #endif
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
     }
