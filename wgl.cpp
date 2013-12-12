@@ -346,6 +346,9 @@ PFNGLVERTEXATTRIBP3UIVPROC glVertexAttribP3uiv;
 PFNGLVERTEXATTRIBP4UIPROC glVertexAttribP4ui;
 PFNGLVERTEXATTRIBP4UIVPROC glVertexAttribP4uiv;
 
+// EXT_direct_state_access
+PFNGLBINDMULTITEXTUREEXTPROC glBindMultiTextureEXT;
+
 // --------------------------------------------------------------------------------------------------------------------
 // GL 4.0
 PFNGLMINSAMPLESHADINGPROC glMinSampleShading;
@@ -1037,6 +1040,9 @@ void wgl::bind_gl()
     bind(glVertexAttribP3uiv, "glVertexAttribP3uiv");
     bind(glVertexAttribP4ui, "glVertexAttribP4ui");
     bind(glVertexAttribP4uiv, "glVertexAttribP4uiv");
+
+    // EXT_direct_state_access
+    bind(glBindMultiTextureEXT, "glBindMultiTextureEXT");
 
     // ------------------------------------------------------------------------------------------------
     // GL 4.0

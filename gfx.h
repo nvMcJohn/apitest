@@ -22,6 +22,7 @@ enum class TestId
     CubesBufferStorage,
     CubesBindless,
     CubesBindlessIndirect,
+    TexturesForward
 };
 
 class TestCase
@@ -32,6 +33,7 @@ public:
     virtual bool init() = 0;
 
     virtual bool begin(void* hwnd, GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buffer) = 0;
+    virtual void render() = 0;
     virtual void end(GfxSwapChain* swap_chain) = 0;
 };
 
@@ -50,6 +52,7 @@ class StreamingVB : public TestCase
 {
 public:
     virtual void draw(VertexPos2* vertices, int count) = 0;
+    virtual void render();
 };
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -64,6 +67,20 @@ class Cubes : public TestCase
 {
 public:
     virtual void draw(Matrix* transforms, int count) = 0;
+    virtual void render();
+};
+
+// --------------------------------------------------------------------------------------------------------------------
+// Textures test
+#define TEXTURES_X 100
+#define TEXTURES_Y 100
+#define TEXTURES_COUNT (TEXTURES_X * TEXTURES_Y)
+
+class Textures : public TestCase
+{
+public:
+    virtual void draw(Matrix* transforms, int count) = 0;
+    virtual void render();
 };
 
 // --------------------------------------------------------------------------------------------------------------------

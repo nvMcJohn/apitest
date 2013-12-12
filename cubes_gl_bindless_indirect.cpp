@@ -174,6 +174,7 @@ void Cubes_GL_BindlessIndirect::end(GfxSwapChain* swap_chain)
 
 void Cubes_GL_BindlessIndirect::draw(Matrix* transforms, int count)
 {
+    // TODO: Consider multithreaded generation here?
     assert(count <= CUBES_COUNT);
 
     for (int i = 0; i < count; ++i)

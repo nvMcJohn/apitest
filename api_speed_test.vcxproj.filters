@@ -14,6 +14,9 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
+    <Filter Include="Textures">
+      <UniqueIdentifier>{178dbcb1-a45d-4178-9c30-d4ba12cc93fc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="console.h">
@@ -73,6 +76,12 @@
     <ClInclude Include="cubes_gl_bindless_indirect.h">
       <Filter>Cubes</Filter>
     </ClInclude>
+    <ClInclude Include="textures_gl_forward.h">
+      <Filter>Textures</Filter>
+    </ClInclude>
+    <ClInclude Include="dds_helper.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="api_speed_test.cpp">
@@ -122,6 +131,9 @@
     </ClCompile>
     <ClCompile Include="cubes_gl_bindless_indirect.cpp">
       <Filter>Cubes</Filter>
+    </ClCompile>
+    <ClCompile Include="textures_gl_forward.cpp">
+      <Filter>Textures</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -178,6 +190,12 @@
     </None>
     <None Include="cubes_gl_bindless_indirect_vs.glsl">
       <Filter>Cubes</Filter>
+    </None>
+    <None Include="textures_gl_forward_fs.glsl">
+      <Filter>Textures</Filter>
+    </None>
+    <None Include="textures_gl_forward_vs.glsl">
+      <Filter>Textures</Filter>
     </None>
   </ItemGroup>
 </Project>

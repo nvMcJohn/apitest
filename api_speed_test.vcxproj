@@ -28,6 +28,7 @@
     <ClInclude Include="cubes_gl_multi_draw.h" />
     <ClInclude Include="cubes_gl_tex_coord.h" />
     <ClInclude Include="cubes_gl_uniform.h" />
+    <ClInclude Include="dds_helper.h" />
     <ClInclude Include="mathlib.h" />
     <ClInclude Include="streaming_vb_dx11_ps.h" />
     <ClInclude Include="streaming_vb_dx11_vs.h" />
@@ -36,6 +37,7 @@
     <ClInclude Include="gfx_gl.h" />
     <ClInclude Include="streaming_vb_dx11.h" />
     <ClInclude Include="streaming_vb_gl.h" />
+    <ClInclude Include="textures_gl_forward.h" />
     <ClInclude Include="timer.h" />
     <ClInclude Include="wgl.h" />
   </ItemGroup>
@@ -54,6 +56,7 @@
     <ClCompile Include="gfx_gl.cpp" />
     <ClCompile Include="streaming_vb_dx11.cpp" />
     <ClCompile Include="streaming_vb_gl.cpp" />
+    <ClCompile Include="textures_gl_forward.cpp" />
     <ClCompile Include="timer.cpp" />
     <ClCompile Include="wgl.cpp" />
   </ItemGroup>
@@ -76,6 +79,8 @@
     <None Include="cubes_gl_uniform_vs.glsl" />
     <None Include="streaming_vb_gl_fs.glsl" />
     <None Include="streaming_vb_gl_vs.glsl" />
+    <None Include="textures_gl_forward_fs.glsl" />
+    <None Include="textures_gl_forward_vs.glsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{726F05FB-CAC7-4D59-A6E8-7610016500FC}</ProjectGuid>

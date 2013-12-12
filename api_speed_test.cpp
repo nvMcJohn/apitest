@@ -13,7 +13,7 @@ static GfxApi* s_api;
 static GfxSwapChain* s_swap_chain;
 static GfxFrameBuffer* s_frame_buffer;
 
-static TestId s_test_id = TestId::CubesBindlessIndirect;
+static TestId s_test_id = TestId::TexturesForward;
 static TestCase* s_test_case;
 
 // ------------------------------------------------------------------------------------------------
@@ -126,6 +126,11 @@ LRESULT CALLBACK wnd_proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case VK_F9:
             set_test(TestId::CubesBindlessIndirect);
             break;
+
+        case VK_F10:
+            set_test(TestId::TexturesForward);
+            break;
+
         }
         break;
 
@@ -202,6 +207,93 @@ static void update_fps()
 }
 
 // ------------------------------------------------------------------------------------------------
+void StreamingVB::render()
+{
+    float spacing = 1.0f;
+    float x = spacing;
+    float y = spacing;
+    float w = 1.0f;
+    float h = 1.0f;
+
+    for (int i = 0; i < 160000; ++i)
+    {
+        VertexPos2 verts[] =
+        {
+            { x, y },
+            { x + w, y },
+            { x, y + h },
+            { x + w, y },
+            { x, y + h },
+            { x + w, y + h },
+        };
+
+        // TODO: It'd be ideal to get rid of this virtual call--it's 160,000 per frame. Or at least
+        // make sure it's not really virtual in release builds.
+        draw(verts, 6);
+
+        x += w + spacing;
+        if (x > 1000)
+        {
+            x = spacing;
+            y += h + spacing;
+        }
+    }
+}
+
+// ------------------------------------------------------------------------------------------------
+void Cubes::render()
+{
+    static float angle;
+    static Matrix* transforms;
+    if (!transforms)
+        transforms = new Matrix[CUBES_COUNT];
+
+    Matrix *m = transforms;
+    for (int x = 0; x < CUBES_X; ++x)
+    {
+        for (int y = 0; y < CUBES_Y; ++y)
+        {
+            for (int z = 0; z < CUBES_Z; ++z)
+            {
+                *m = matrix_rotation_z(angle);
+                m->w.x = 2.0f * x - CUBES_X;
+                m->w.y = 2.0f * y - CUBES_Y;
+                m->w.z = 2.0f * z - CUBES_Z;
+                ++m;
+            }
+        }
+    }
+
+    draw(transforms, CUBES_COUNT);
+    angle += 0.01f;
+}
+
+// ------------------------------------------------------------------------------------------------
+void Textures::render()
+{
+    static float angle;
+    static Matrix* transforms;
+    if (!transforms)
+        transforms = new Matrix[CUBES_COUNT];
+
+    Matrix *m = transforms;
+    for (int x = 0; x < TEXTURES_X; ++x)
+    {
+        for (int y = 0; y < TEXTURES_Y; ++y)
+        {
+            *m = matrix_rotation_z(angle);
+            m->w.x = 2.0f * x - TEXTURES_X;
+            m->w.y = 2.0f * y - TEXTURES_Y;
+            m->w.z = 0.0f;
+            ++m;
+        }
+    }
+
+    draw(transforms, TEXTURES_COUNT);
+    angle += 0.01f;
+}
+
+// ------------------------------------------------------------------------------------------------
 static void render()
 {
     if (!s_test_case)
@@ -210,66 +302,9 @@ static void render()
     if (!s_test_case->begin(s_window, s_swap_chain, s_frame_buffer))
         return;
 
-    StreamingVB* streaming_vb = dynamic_cast<StreamingVB*>(s_test_case);
-    if (streaming_vb)
-    {
-        float spacing = 1.0f;
-        float x = spacing;
-        float y = spacing;
-        float w = 1.0f;
-        float h = 1.0f;
-
-        for (int i = 0; i < 160000; ++i)
-        {
-            VertexPos2 verts[] =
-            {
-                { x, y },
-                { x + w, y },
-                { x, y + h },
-                { x + w, y },
-                { x, y + h },
-                { x + w, y + h },
-            };
-
-            streaming_vb->draw(verts, 6);
-
-            x += w + spacing;
-            if (x > 1000)
-            {
-                x = spacing;
-                y += h + spacing;
-            }
-        }
-    }
-
-    Cubes* cubes = dynamic_cast<Cubes*>(s_test_case);
-    if (cubes)
-    {
-        static float angle;
-        static Matrix* transforms;
-        if (!transforms)
-            transforms = new Matrix[CUBES_COUNT];
-
-        Matrix *m = transforms;
-        for (int x = 0; x < CUBES_X; ++x)
-        {
-            for (int y = 0; y < CUBES_Y; ++y)
-            {
-                for (int z = 0; z < CUBES_Z; ++z)
-                {
-                    *m = matrix_rotation_z(angle);
-                    m->w.x = 2.0f * x - CUBES_X;
-                    m->w.y = 2.0f * y - CUBES_Y;
-                    m->w.z = 2.0f * z - CUBES_Z;
-                    ++m;
-                }
-            }
-        }
-
-        cubes->draw(transforms, CUBES_COUNT);
-        angle += 0.01f;
-    }
-
+    // This is the main entry point shared by all tests. 
+    s_test_case->render();
+    
     s_test_case->end(s_swap_chain);
     update_fps();
 }

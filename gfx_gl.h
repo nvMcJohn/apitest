@@ -6,6 +6,8 @@
 
 #define PTR_AS_INT(x)           static_cast<int>(reinterpret_cast<intptr_t>(x))
 
+#define GL_USE_DIRECT_STATE_ACCESS 1
+
 struct GfxSwapChain
 {
     HDC hdc;

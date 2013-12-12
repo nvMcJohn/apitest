@@ -4,6 +4,7 @@
 
 #include "GL/glcorearb.h"
 #include "GL/wglext.h"
+#include "GL/glext.h"
 
 // --------------------------------------------------------------------------------------------------------------------
 // GL 1.0
@@ -420,6 +421,9 @@ extern PFNGLVERTEXATTRIBP3UIPROC glVertexAttribP3ui;
 extern PFNGLVERTEXATTRIBP3UIVPROC glVertexAttribP3uiv;
 extern PFNGLVERTEXATTRIBP4UIPROC glVertexAttribP4ui;
 extern PFNGLVERTEXATTRIBP4UIVPROC glVertexAttribP4uiv;
+
+// EXT_direct_state_access
+extern PFNGLBINDMULTITEXTUREEXTPROC glBindMultiTextureEXT;
 
 // --------------------------------------------------------------------------------------------------------------------
 // GL 4.0

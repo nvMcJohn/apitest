@@ -3,6 +3,7 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
+struct Vec2 { float x, y; };
 struct Vec3 { float x, y, z; };
 struct Vec4 { float x, y, z, w; };
 struct Matrix { Vec4 x, y, z, w; };
