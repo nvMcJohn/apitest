@@ -789,12 +789,16 @@ extern PFNGLVERTEXATTRIBFORMATNVPROC glVertexAttribFormatNV;
 extern PFNGLVERTEXATTRIBIFORMATNVPROC glVertexAttribIFormatNV;
 extern PFNGLGETINTEGERUI64I_VNVPROC glGetIntegerui64i_vNV;
 
-// GL_NV_bindless_multi_draw_indirect
-typedef void (APIENTRYP PFNGLMULTIDRAWARRAYSINDIRECTBINDLESSNVPROC) (GLenum mode, const void *indirect, GLsizei drawCount, GLsizei stride, GLint vertexBufferCount);
-typedef void (APIENTRYP PFNGLMULTIDRAWELEMENTSINDIRECTBINDLESSNVPROC) (GLenum mode, GLenum type, const void *indirect, GLsizei drawCount, GLsizei stride, GLint vertexBufferCount);
-
+// NV_bindless_multi_draw_indirect
 extern PFNGLMULTIDRAWARRAYSINDIRECTBINDLESSNVPROC glMultiDrawArraysIndirectBindlessNV;
 extern PFNGLMULTIDRAWELEMENTSINDIRECTBINDLESSNVPROC glMultiDrawElementsIndirectBindlessNV;
+
+// ARB_bindless_texture
+extern PFNGLGETTEXTUREHANDLEARBPROC glGetTextureHandleARB;
+extern PFNGLMAKETEXTUREHANDLERESIDENTARBPROC glMakeTextureHandleResidentARB;
+extern PFNGLMAKETEXTUREHANDLENONRESIDENTARBPROC glMakeTextureHandleNonResidentARB;
+extern PFNGLUNIFORMHANDLEUI64ARBPROC glUniformHandleui64ARB;
+
 
 // --------------------------------------------------------------------------------------------------------------------
 // Common extensions

@@ -12,6 +12,7 @@
 #include "cubes_gl_bindless.h"
 #include "cubes_gl_bindless_indirect.h"
 #include "textures_gl_forward.h"
+#include "textures_gl_bindless.h"
 
 #include "streaming_vb_gl.h"
 
@@ -149,6 +150,7 @@ TestCase* GfxApi_GL::create_test(TestId id)
     case TestId::CubesBindless:         return new Cubes_GL_Bindless;
     case TestId::CubesBindlessIndirect: return new Cubes_GL_BindlessIndirect;
     case TestId::TexturesForward:       return new Textures_GL_Forward;
+    case TestId::TexturesBindless:      return new Textures_GL_Bindless;
     }
 
     return nullptr;

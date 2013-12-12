@@ -13,7 +13,7 @@ static GfxApi* s_api;
 static GfxSwapChain* s_swap_chain;
 static GfxFrameBuffer* s_frame_buffer;
 
-static TestId s_test_id = TestId::TexturesForward;
+static TestId s_test_id = TestId::TexturesBindless;
 static TestCase* s_test_case;
 
 // ------------------------------------------------------------------------------------------------
@@ -80,60 +80,82 @@ LRESULT CALLBACK wnd_proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
 
     case WM_KEYDOWN:
-        switch (wParam)
         {
-        case 'D':
-            console::debug("Initializing DX11 backend\n");
-            set_api(create_gfx_dx11());
-            break;
-        case 'G':
-            console::debug("Initializing GL backend\n");
-            set_api(create_gfx_gl());
-            break;
+            bool handled = true;
+            switch (wParam)
+            {
+            case 'D':
+                console::debug("Initializing DX11 backend\n");
+                set_api(create_gfx_dx11());
+                break;
+            case 'G':
+                console::debug("Initializing GL backend\n");
+                set_api(create_gfx_gl());
+                break;
 
-        case VK_F1:
-            set_test(TestId::StreamingVB);
-            break;
+            case VK_F1:
+                set_test(TestId::StreamingVB);
+                break;
 
-        case VK_F2:
-            set_test(TestId::CubesUniform);
-            break;
+            case VK_F2:
+                set_test(TestId::CubesUniform);
+                break;
 
-        case VK_F3:
-            set_test(TestId::CubesDynamicBuffer);
-            break;
+            case VK_F3:
+                set_test(TestId::CubesDynamicBuffer);
+                break;
 
-        case VK_F4:
-            set_test(TestId::CubesBufferRange);
-            break;
+            case VK_F4:
+                set_test(TestId::CubesBufferRange);
+                break;
 
-        case VK_F5:
-            set_test(TestId::CubesTexCoord);
-            break;
+            case VK_F5:
+                set_test(TestId::CubesTexCoord);
+                break;
 
-        case VK_F6:
-            set_test(TestId::CubesMultiDraw);
-            break;
+            case VK_F6:
+                set_test(TestId::CubesMultiDraw);
+                break;
 
-        case VK_F7:
-            set_test(TestId::CubesBufferStorage);
-            break;
+            case VK_F7:
+                set_test(TestId::CubesBufferStorage);
+                break;
 
-        case VK_F8:
-            set_test(TestId::CubesBindless);
-            break;
+            case VK_F8:
+                set_test(TestId::CubesBindless);
+                break;
 
-        case VK_F9:
-            set_test(TestId::CubesBindlessIndirect);
-            break;
+            case VK_F9:
+                set_test(TestId::CubesBindlessIndirect);
+                break;
 
-        case VK_F10:
-            set_test(TestId::TexturesForward);
-            break;
+            case VK_F11:
+                set_test(TestId::TexturesBindless);
+                break;
 
+            default:
+                handled = false;
+                break;
+            }
+
+            if (handled)
+                return 0;
         }
+        // else drop through to DefWindowProc
         break;
 
+    case WM_SYSKEYDOWN:
+        switch (wParam) 
+        {
+            case VK_F10:
+                set_test(TestId::TexturesForward);
+                return 0;
+                break;
+            default:
+                break;
+        }
+        break;
+        
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
     }

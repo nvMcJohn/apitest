@@ -2,11 +2,11 @@
 
 #include "gfx_gl.h"
 
-class Textures_GL_Forward : public Textures
+class Textures_GL_Bindless : public Textures
 {
 public:
-    Textures_GL_Forward();
-    virtual ~Textures_GL_Forward();
+    Textures_GL_Bindless();
+    virtual ~Textures_GL_Bindless();
 
     virtual bool init() override;
 
@@ -32,4 +32,9 @@ private:
     GLuint m_prog;
 
     GLuint m_transform_buffer;
+
+    GLuint64 m_tex1_handle;
+    GLuint64 m_tex2_handle;
+
+    DrawElementsIndirectCommand m_commands[TEXTURES_COUNT];
 };

@@ -82,6 +82,9 @@
     <ClInclude Include="dds_helper.h">
       <Filter>Framework</Filter>
     </ClInclude>
+    <ClInclude Include="textures_gl_bindless.h">
+      <Filter>Textures</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="api_speed_test.cpp">
@@ -133,6 +136,9 @@
       <Filter>Cubes</Filter>
     </ClCompile>
     <ClCompile Include="textures_gl_forward.cpp">
+      <Filter>Textures</Filter>
+    </ClCompile>
+    <ClCompile Include="textures_gl_bindless.cpp">
       <Filter>Textures</Filter>
     </ClCompile>
   </ItemGroup>
@@ -195,6 +201,12 @@
       <Filter>Textures</Filter>
     </None>
     <None Include="textures_gl_forward_vs.glsl">
+      <Filter>Textures</Filter>
+    </None>
+    <None Include="textures_gl_bindless_fs.glsl">
+      <Filter>Textures</Filter>
+    </None>
+    <None Include="textures_gl_bindless_vs.glsl">
       <Filter>Textures</Filter>
     </None>
   </ItemGroup>

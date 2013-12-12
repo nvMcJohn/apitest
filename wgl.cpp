@@ -652,7 +652,7 @@ PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
 // --------------------------------------------------------------------------------------------------------------------
 // nVidia extensions
 
-// GL_NV_shader_buffer_load
+// NV_shader_buffer_load
 PFNGLMAKEBUFFERRESIDENTNVPROC glMakeBufferResidentNV;
 PFNGLMAKEBUFFERNONRESIDENTNVPROC glMakeBufferNonResidentNV;
 PFNGLISBUFFERRESIDENTNVPROC glIsBufferResidentNV;
@@ -668,15 +668,22 @@ PFNGLGETUNIFORMUI64VNVPROC glGetUniformui64vNV;
 PFNGLPROGRAMUNIFORMUI64NVPROC glProgramUniformui64NV;
 PFNGLPROGRAMUNIFORMUI64VNVPROC glProgramUniformui64vNV;
 
-// GL_NV_vertex_buffer_unified_memory
+// NV_vertex_buffer_unified_memory
 PFNGLBUFFERADDRESSRANGENVPROC glBufferAddressRangeNV;
 PFNGLVERTEXATTRIBFORMATNVPROC glVertexAttribFormatNV;
 PFNGLVERTEXATTRIBIFORMATNVPROC glVertexAttribIFormatNV;
 PFNGLGETINTEGERUI64I_VNVPROC glGetIntegerui64i_vNV;
 
-// GL_NV_bindless_multi_draw_indirect
+// NV_bindless_multi_draw_indirect
 PFNGLMULTIDRAWARRAYSINDIRECTBINDLESSNVPROC glMultiDrawArraysIndirectBindlessNV;
 PFNGLMULTIDRAWELEMENTSINDIRECTBINDLESSNVPROC glMultiDrawElementsIndirectBindlessNV;
+
+// ARB_bindless_texture
+PFNGLGETTEXTUREHANDLEARBPROC glGetTextureHandleARB;
+PFNGLMAKETEXTUREHANDLERESIDENTARBPROC glMakeTextureHandleResidentARB;
+PFNGLMAKETEXTUREHANDLENONRESIDENTARBPROC glMakeTextureHandleNonResidentARB;
+PFNGLUNIFORMHANDLEUI64ARBPROC glUniformHandleui64ARB;
+
 
 // --------------------------------------------------------------------------------------------------------------------
 template<class T>
@@ -1332,7 +1339,7 @@ void wgl::bind_gl()
     // ------------------------------------------------------------------------------------------------
     // nVidia extensions
 
-    // GL_NV_shader_buffer_load
+    // NV_shader_buffer_load
     bind(glMakeBufferResidentNV, "glMakeBufferResidentNV");
     bind(glMakeBufferNonResidentNV, "glMakeBufferNonResidentNV");
     bind(glIsBufferResidentNV, "glIsBufferResidentNV");
@@ -1348,13 +1355,19 @@ void wgl::bind_gl()
     bind(glProgramUniformui64NV, "glProgramUniformui64NV");
     bind(glProgramUniformui64vNV, "glProgramUniformui64vNV");
 
-    // GL_NV_vertex_buffer_unified_memory
+    // NV_vertex_buffer_unified_memory
     bind(glBufferAddressRangeNV, "glBufferAddressRangeNV");
     bind(glVertexAttribFormatNV, "glVertexAttribFormatNV");
     bind(glVertexAttribIFormatNV, "glVertexAttribIFormatNV");
     bind(glGetIntegerui64i_vNV, "glGetIntegerui64i_vNV");
 
-    // GL_NV_bindless_multi_draw_indirect
+    // NV_bindless_multi_draw_indirect
     bind(glMultiDrawArraysIndirectBindlessNV, "glMultiDrawArraysIndirectBindlessNV");
     bind(glMultiDrawElementsIndirectBindlessNV, "glMultiDrawElementsIndirectBindlessNV");
+
+    // ARB_bindless_texture
+    bind(glGetTextureHandleARB, "glGetTextureHandleARB");
+    bind(glMakeTextureHandleResidentARB, "glMakeTextureHandleResidentARB");
+    bind(glMakeTextureHandleNonResidentARB, "glMakeTextureHandleNonResidentARB");
+    bind(glUniformHandleui64ARB, "glUniformHandleui64ARB");
 }

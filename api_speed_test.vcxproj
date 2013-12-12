@@ -37,6 +37,7 @@
     <ClInclude Include="gfx_gl.h" />
     <ClInclude Include="streaming_vb_dx11.h" />
     <ClInclude Include="streaming_vb_gl.h" />
+    <ClInclude Include="textures_gl_bindless.h" />
     <ClInclude Include="textures_gl_forward.h" />
     <ClInclude Include="timer.h" />
     <ClInclude Include="wgl.h" />
@@ -56,6 +57,7 @@
     <ClCompile Include="gfx_gl.cpp" />
     <ClCompile Include="streaming_vb_dx11.cpp" />
     <ClCompile Include="streaming_vb_gl.cpp" />
+    <ClCompile Include="textures_gl_bindless.cpp" />
     <ClCompile Include="textures_gl_forward.cpp" />
     <ClCompile Include="timer.cpp" />
     <ClCompile Include="wgl.cpp" />
@@ -79,6 +81,8 @@
     <None Include="cubes_gl_uniform_vs.glsl" />
     <None Include="streaming_vb_gl_fs.glsl" />
     <None Include="streaming_vb_gl_vs.glsl" />
+    <None Include="textures_gl_bindless_fs.glsl" />
+    <None Include="textures_gl_bindless_vs.glsl" />
     <None Include="textures_gl_forward_fs.glsl" />
     <None Include="textures_gl_forward_vs.glsl" />
   </ItemGroup>

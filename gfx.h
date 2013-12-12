@@ -22,7 +22,8 @@ enum class TestId
     CubesBufferStorage,
     CubesBindless,
     CubesBindlessIndirect,
-    TexturesForward
+    TexturesForward,
+    TexturesBindless
 };
 
 class TestCase
