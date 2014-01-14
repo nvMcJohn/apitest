@@ -30,6 +30,7 @@
     <ClInclude Include="cubes_gl_uniform.h" />
     <ClInclude Include="dds_helper.h" />
     <ClInclude Include="mathlib.h" />
+    <ClInclude Include="sparse_bindless_texarray.h" />
     <ClInclude Include="streaming_vb_dx11_ps.h" />
     <ClInclude Include="streaming_vb_dx11_vs.h" />
     <ClInclude Include="gfx.h" />
@@ -56,6 +57,7 @@
     <ClCompile Include="cubes_gl_uniform.cpp" />
     <ClCompile Include="gfx_dx11.cpp" />
     <ClCompile Include="gfx_gl.cpp" />
+    <ClCompile Include="sparse_bindless_texarray.cpp" />
     <ClCompile Include="streaming_vb_dx11.cpp" />
     <ClCompile Include="streaming_vb_gl.cpp" />
     <ClCompile Include="textures_gl_bindless.cpp" />
