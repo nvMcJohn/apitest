@@ -13,6 +13,7 @@
 #include "cubes_gl_bindless_indirect.h"
 #include "textures_gl_forward.h"
 #include "textures_gl_bindless.h"
+#include "textures_gl_sparse_bindless_texture_array.h"
 
 #include "streaming_vb_gl.h"
 
@@ -20,6 +21,10 @@ GfxApi *create_gfx_gl() { return new GfxApi_GL; }
 
 static void APIENTRY ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char* message, const void* userParam)
 {
+    if (source == GL_DEBUG_SOURCE_API && type == GL_DEBUG_TYPE_OTHER && severity == GL_DEBUG_SEVERITY_LOW && strstr(message, "DRAW_INDIRECT_BUFFER") == nullptr) {
+        return;
+    }
+    
     console::debug("%s\n", message);
 }
 
@@ -106,7 +111,7 @@ bool GfxApi_GL::create_swap_chain(void* window,
 
 #if defined(_DEBUG)
     glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
-    glDebugMessageControl(GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_OTHER, GL_DEBUG_SEVERITY_LOW, 0, nullptr, GL_FALSE);
+    // glDebugMessageControl(GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_OTHER, GL_DEBUG_SEVERITY_LOW, 0, nullptr, GL_FALSE);
     glDebugMessageCallback(ErrorCallback, nullptr);
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
@@ -151,6 +156,7 @@ TestCase* GfxApi_GL::create_test(TestId id)
     case TestId::CubesBindlessIndirect: return new Cubes_GL_BindlessIndirect;
     case TestId::TexturesForward:       return new Textures_GL_Forward;
     case TestId::TexturesBindless:      return new Textures_GL_Bindless;
+    case TestId::TexturesSparseBindlessTextureArray: return new Textures_GL_Sparse_Bindless_Texture_Array;
     }
 
     return nullptr;

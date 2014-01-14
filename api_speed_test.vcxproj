@@ -39,6 +39,7 @@
     <ClInclude Include="streaming_vb_gl.h" />
     <ClInclude Include="textures_gl_bindless.h" />
     <ClInclude Include="textures_gl_forward.h" />
+    <ClInclude Include="textures_gl_sparse_bindless_texture_array.h" />
     <ClInclude Include="timer.h" />
     <ClInclude Include="wgl.h" />
   </ItemGroup>
@@ -59,6 +60,7 @@
     <ClCompile Include="streaming_vb_gl.cpp" />
     <ClCompile Include="textures_gl_bindless.cpp" />
     <ClCompile Include="textures_gl_forward.cpp" />
+    <ClCompile Include="textures_gl_sparse_bindless_texture_array.cpp" />
     <ClCompile Include="timer.cpp" />
     <ClCompile Include="wgl.cpp" />
   </ItemGroup>
@@ -85,6 +87,8 @@
     <None Include="textures_gl_bindless_vs.glsl" />
     <None Include="textures_gl_forward_fs.glsl" />
     <None Include="textures_gl_forward_vs.glsl" />
+    <None Include="textures_gl_sparse_bindless_texture_array_fs.glsl" />
+    <None Include="textures_gl_sparse_bindless_texture_array_vs.glsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{726F05FB-CAC7-4D59-A6E8-7610016500FC}</ProjectGuid>

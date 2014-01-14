@@ -1,7 +1,9 @@
 #include "streaming_vb_gl.h"
 #include <assert.h>
 
-#define GL_USE_MAP 0
+#define GL_USE_MAP 1
+#define GL_USE_PERSISTENT_MAP 1
+
 
 StreamingVB_GL::StreamingVB_GL()
     : m_ub()
@@ -10,10 +12,15 @@ StreamingVB_GL::StreamingVB_GL()
     , m_prog()
     , m_dyn_vb()
     , m_dyn_offset()
+    , m_dyn_vb_ptr()
 {}
 
 StreamingVB_GL::~StreamingVB_GL()
 {
+#if GL_USE_PERSISTENT_MAP
+    glBindBuffer(GL_ARRAY_BUFFER, m_dyn_vb);
+    glUnmapBuffer(GL_ARRAY_BUFFER);
+#endif
     glDeleteBuffers(1, &m_dyn_vb);
 
     glDeleteBuffers(1, &m_ub);
@@ -40,7 +47,13 @@ bool StreamingVB_GL::init()
     // Dynamic vertex buffer
     glGenBuffers(1, &m_dyn_vb);
     glBindBuffer(GL_ARRAY_BUFFER, m_dyn_vb);
+#if GL_USE_PERSISTENT_MAP
+    GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
+    glBufferStorage(GL_ARRAY_BUFFER, DYN_VB_SIZE, NULL, flags);
+    m_dyn_vb_ptr = glMapBufferRange(GL_ARRAY_BUFFER, 0, DYN_VB_SIZE, flags); 
+#else
     glBufferData(GL_ARRAY_BUFFER, DYN_VB_SIZE, nullptr, GL_DYNAMIC_DRAW);
+#endif
 
     return glGetError() == GL_NO_ERROR;
 }
@@ -113,7 +126,18 @@ void StreamingVB_GL::draw(VertexPos2* vertices, int count)
     int byte_offset = vertex_offset * stride;
     int size = count * stride;
 
-#if GL_USE_MAP
+#if GL_USE_PERSISTENT_MAP
+    if (byte_offset + size > DYN_VB_SIZE)
+    {
+        vertex_offset = byte_offset = 0;
+    }
+
+    m_dyn_offset = byte_offset + size;
+    void* dst = (unsigned char*)m_dyn_vb_ptr + byte_offset; 
+
+    memcpy(dst, vertices, count * sizeof(VertexPos2));
+
+#elif GL_USE_MAP
     GLbitfield access = GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_UNSYNCHRONIZED_BIT;
     if (byte_offset + size > DYN_VB_SIZE)
     {

@@ -30,4 +30,5 @@ private:
 
     GLuint m_dyn_vb;
     int m_dyn_offset;
+    void* m_dyn_vb_ptr;
 };

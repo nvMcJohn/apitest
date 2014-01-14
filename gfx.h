@@ -23,7 +23,8 @@ enum class TestId
     CubesBindless,
     CubesBindlessIndirect,
     TexturesForward,
-    TexturesBindless
+    TexturesBindless,
+    TexturesSparseBindlessTextureArray
 };
 
 class TestCase

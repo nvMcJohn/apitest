@@ -151,6 +151,24 @@ bool Textures_GL_Bindless::init()
     glGenBuffers(1, &m_transform_buffer);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, m_transform_buffer);
 
+    GLuint tex = 0;
+    glGenTextures(1, &tex);
+    glBindTexture(GL_TEXTURE_1D, tex);
+    glBindTexture(GL_TEXTURE_1D, 0);
+    glDeleteTextures(1, &tex);
+
+    tex = 0;
+    glGenTextures(1, &tex);
+    glBindTexture(GL_TEXTURE_1D, tex);
+    glBindTexture(GL_TEXTURE_1D, 0);
+    glDeleteTextures(1, &tex);
+
+    tex = 0;
+    glGenTextures(1, &tex);
+    glBindTexture(GL_TEXTURE_1D, tex);
+    glBindTexture(GL_TEXTURE_1D, 0);
+    glDeleteTextures(1, &tex);
+
     return glGetError() == GL_NO_ERROR;
 }
 

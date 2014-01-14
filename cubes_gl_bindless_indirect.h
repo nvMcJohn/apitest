@@ -2,6 +2,8 @@
 
 #include "gfx_gl.h"
 
+#define QUERY_COUNT 4
+
 class Cubes_GL_BindlessIndirect : public Cubes
 {
 public:
@@ -30,6 +32,8 @@ private:
         BindlessPtrNV               vertexBuffers[2];
     };
 
+    void resolveQueries();
+
     GLuint m_ibs[CUBES_COUNT];
     GLuint64 m_ib_addrs[CUBES_COUNT];
     GLsizeiptr m_ib_sizes[CUBES_COUNT];
@@ -40,6 +44,9 @@ private:
     GLuint m_fs;
     GLuint m_prog;
 
+    GLuint m_queries[QUERY_COUNT];
+    GLint m_currentQueryIssue;
+    GLint m_currentQueryGet;
 
     GLuint m_transform_buffer;
     void *m_transform_ptr;

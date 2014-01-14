@@ -634,6 +634,10 @@ PFNGLBINDSAMPLERSPROC glBindSamplers;
 PFNGLBINDIMAGETEXTURESPROC glBindImageTextures;
 PFNGLBINDVERTEXBUFFERSPROC glBindVertexBuffers;
 
+// ARB_sparse_texture
+PFNGLTEXPAGECOMMITMENTARBPROC glTexPageCommitmentARB;
+PFNGLTEXTUREPAGECOMMITMENTEXTPROC glTexturePageCommitmentEXT;
+
 // --------------------------------------------------------------------------------------------------------------------
 // WGL
 
@@ -1335,6 +1339,10 @@ void wgl::bind_gl()
     bind(glBindSamplers, "glBindSamplers");
     bind(glBindImageTextures, "glBindImageTextures");
     bind(glBindVertexBuffers, "glBindVertexBuffers");
+
+    // ARB_sparse_texture
+    bind(glTexPageCommitmentARB, "glTexPageCommitmentARB");
+    bind(glTexturePageCommitmentEXT, "glTexturePageCommitmentEXT");
 
     // ------------------------------------------------------------------------------------------------
     // nVidia extensions

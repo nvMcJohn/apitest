@@ -119,6 +119,18 @@ bool Textures_GL_Forward::init()
     glGenBuffers(1, &m_transform_buffer);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, m_transform_buffer);
 
+    GLuint tex = 0;
+    glGenTextures(1, &tex);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    // glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB10_A2, 512, 512);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB10_A2, 512, 512, 0, GL_RGBA, GL_UNSIGNED_INT_10_10_10_2, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glDeleteTextures(1, &tex);
+
     return glGetError() == GL_NO_ERROR;
 }
 

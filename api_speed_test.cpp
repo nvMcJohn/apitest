@@ -13,7 +13,7 @@ static GfxApi* s_api;
 static GfxSwapChain* s_swap_chain;
 static GfxFrameBuffer* s_frame_buffer;
 
-static TestId s_test_id = TestId::TexturesBindless;
+static TestId s_test_id = TestId::TexturesSparseBindlessTextureArray;
 static TestCase* s_test_case;
 
 // ------------------------------------------------------------------------------------------------
@@ -131,6 +131,10 @@ LRESULT CALLBACK wnd_proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             case VK_F11:
                 set_test(TestId::TexturesBindless);
+                break;
+
+            case '1':
+                set_test(TestId::TexturesSparseBindlessTextureArray);
                 break;
 
             default:

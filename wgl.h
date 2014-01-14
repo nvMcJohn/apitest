@@ -710,6 +710,10 @@ extern PFNGLBINDSAMPLERSPROC glBindSamplers;
 extern PFNGLBINDIMAGETEXTURESPROC glBindImageTextures;
 extern PFNGLBINDVERTEXBUFFERSPROC glBindVertexBuffers;
 
+// ARB_sparse_texture
+extern PFNGLTEXPAGECOMMITMENTARBPROC glTexPageCommitmentARB;
+extern PFNGLTEXTUREPAGECOMMITMENTEXTPROC glTexturePageCommitmentEXT;
+
 // --------------------------------------------------------------------------------------------------------------------
 // WGL
 

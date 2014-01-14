@@ -3,17 +3,25 @@
 #include <assert.h>
 #include <stdint.h>
 
+#include "console.h"
+
+#define GL_BINDLESS_SIMULATE_GPU_GENERATION 0
+
 Cubes_GL_BindlessIndirect::Cubes_GL_BindlessIndirect()
     : m_ibs()
     , m_vbs()
     , m_vs()
     , m_fs()
     , m_prog()
+    , m_currentQueryIssue(0)
+    , m_currentQueryGet(-1)
     , m_transform_buffer()
     , m_transform_ptr()
     , m_cmd_buffer()
     , m_cmd_ptr()
-{}
+{
+    memset(m_queries, 0, sizeof(m_queries));
+}
 
 Cubes_GL_BindlessIndirect::~Cubes_GL_BindlessIndirect()
 {
@@ -26,9 +34,16 @@ Cubes_GL_BindlessIndirect::~Cubes_GL_BindlessIndirect()
 
     if (m_cmd_ptr)
     {
+#if GL_BINDLESS_SIMULATE_GPU_GENERATION
+        delete [] m_cmd_ptr;
+        m_cmd_ptr = nullptr;
+#else
         glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_cmd_buffer);
         glUnmapBuffer(GL_DRAW_INDIRECT_BUFFER);
+#endif
     }
+
+    glDeleteQueries(QUERY_COUNT, m_queries);
     glDeleteBuffers(1, &m_cmd_buffer);
 
     glDeleteBuffers(CUBES_COUNT, m_ibs);
@@ -100,9 +115,17 @@ bool Cubes_GL_BindlessIndirect::init()
     m_transform_ptr = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, CUBES_COUNT * 64, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT);
 
     glGenBuffers(1, &m_cmd_buffer);
+#if GL_BINDLESS_SIMULATE_GPU_GENERATION
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_cmd_buffer);
+    glBufferStorage(GL_DRAW_INDIRECT_BUFFER, CUBES_COUNT * sizeof(Command), nullptr, GL_DYNAMIC_STORAGE_BIT);
+    m_cmd_ptr = new char[CUBES_COUNT * sizeof(Command)];
+#else
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_cmd_buffer);
     glBufferStorage(GL_DRAW_INDIRECT_BUFFER, CUBES_COUNT * sizeof(Command), nullptr, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_DYNAMIC_STORAGE_BIT);
     m_cmd_ptr = glMapBufferRange(GL_DRAW_INDIRECT_BUFFER, 0, CUBES_COUNT * sizeof(Command), GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT);
+#endif
+
+    glGenQueries(QUERY_COUNT, m_queries);
 
     return glGetError() == GL_NO_ERROR;
 }
@@ -200,9 +223,54 @@ void Cubes_GL_BindlessIndirect::draw(Matrix* transforms, int count)
         cmd->vertexBuffers[1].length = m_vbo_sizes[i] - offsetof(Vertex, color);
     }
 
-    memcpy(m_transform_ptr, transforms, sizeof(Matrix) * count);
-    memcpy(m_cmd_ptr, m_commands, sizeof(Command) * count);
+    memcpy(m_transform_ptr, transforms, sizeof(Matrix)* count);
+
+#if GL_BINDLESS_SIMULATE_GPU_GENERATION
+    static bool first = true;
+    if (first) {
+        memcpy(m_cmd_ptr, m_commands, sizeof(Command) * count);
+        glBufferSubData(GL_DRAW_INDIRECT_BUFFER, 0, sizeof(Command)* count, m_cmd_ptr);
+        first = false;
+    }
+#else
+    memcpy(m_cmd_ptr, m_commands, sizeof(Command)* count);
+#endif
+
     glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
 
+//    resolveQueries();
+
+//    glBeginQuery(GL_TIME_ELAPSED, m_queries[m_currentQueryIssue]);
     glMultiDrawElementsIndirectBindlessNV(GL_TRIANGLES, GL_UNSIGNED_SHORT, nullptr, count, 0, 2);
+//    glEndQuery(GL_TIME_ELAPSED);
+
+//    m_currentQueryIssue = (m_currentQueryIssue + 1) % QUERY_COUNT;
+}
+
+void Cubes_GL_BindlessIndirect::resolveQueries()
+{
+    // Only happens the first time, and we don't need to resolve to move forward.
+    if (m_currentQueryGet == -1) {
+        m_currentQueryGet = 0;
+        return;
+    }
+
+    while (1) {
+        GLuint available = GL_FALSE;
+        glGetQueryObjectuiv(m_queries[m_currentQueryGet], GL_QUERY_RESULT_AVAILABLE, &available);
+        if (available == GL_FALSE && ((m_currentQueryIssue + 1) % QUERY_COUNT) != m_currentQueryGet) {
+            // If we're not already overlapping, can just exit if the result is unavailable.
+            break;
+        }
+
+        GLint64 timeElapsed = 0;
+        glGetQueryObjecti64v(m_queries[m_currentQueryGet], GL_QUERY_RESULT, &timeElapsed);
+
+        console::debug("Elapsed GPU: %.2f ms\n", float(timeElapsed) / 1000000.0f);
+
+        m_currentQueryGet = (m_currentQueryGet + 1) % QUERY_COUNT;
+        if (m_currentQueryGet == m_currentQueryIssue) {
+            break;
+        }
+    }
 }
