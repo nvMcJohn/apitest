@@ -10,26 +10,10 @@ class Texture2D;
 class Texture2DContainer;
 class TextureManager;
 
-// ------------------------------------------------------------------------------------------------
-// ------------------------------------------------------------------------------------------------
-// ------------------------------------------------------------------------------------------------
-class Texture2D
+__declspec(align(16)) struct TexAddress
 {
-public:
-    Texture2D(Texture2DContainer* container, GLsizei sliceNum);
-    ~Texture2D();
-    void commit();
-    void free();
-
-    const Texture2DContainer* getTexture2DContainer() const { return mContainer; }
-    GLsizei getSliceNum() const { return (GLsizei)mSliceNum; }
-
-private:
-    Texture2DContainer* mContainer;
-
-    // Kept as a float because that's how we need to write the uniform, and that should be done
-    // much more often than changing data or adjusting residency.
-    GLfloat mSliceNum;
+    GLuint64 m_container_handle;
+    GLfloat m_tex_page;
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -39,6 +23,7 @@ class Texture2DContainer
 {
 public:
     Texture2DContainer(GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei slices);
+    ~Texture2DContainer();
     GLsizei hasRoom() const;
     GLsizei virtualAlloc();
     void virtualFree(GLsizei slice);
@@ -46,7 +31,13 @@ public:
     void commit(Texture2D* _tex);
     void free(Texture2D* _tex);
 
+    void CompressedTexSubImage3D(GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const GLvoid * data);
+
+    // Returns the handle to this container.
+    GLuint64 GetHandle() const { return mHandle; }
+
 private:
+    GLuint64 mHandle;
     GLuint mTexId;
     std::queue<GLsizei> mFreeList;
 
@@ -58,6 +49,37 @@ private:
 
     void changeCommitment(GLsizei slice, GLboolean commit);
 };
+
+// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
+class Texture2D
+{
+public:
+    Texture2D(Texture2DContainer* container, GLsizei sliceNum);
+    ~Texture2D();
+    void commit();
+    void free();
+
+    void CompressedTexSubImage2D(GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const GLvoid* data);
+
+    const Texture2DContainer* getTexture2DContainer() const { return mContainer; }
+    GLsizei getSliceNum() const { return (GLsizei)mSliceNum; }
+
+    TexAddress GetAddress() const
+    {
+        TexAddress ta = { mContainer->GetHandle(), mSliceNum };
+        return ta;
+    }
+
+private:
+    Texture2DContainer* mContainer;
+
+    // Kept as a float because that's how we need to write the uniform, and that should be done
+    // much more often than changing data or adjusting residency.
+    GLfloat mSliceNum;
+};
+
 
 // ------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------

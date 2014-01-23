@@ -19,6 +19,7 @@ layout(location=0) in struct {
 //  Output ----------------------------------------------------------------------------------------
 layout(location=0) out struct {
     vec2 v2TexCoord;
+	int iDrawID;
 } Out;
 
 void main()
@@ -28,4 +29,5 @@ void main()
     gl_Position = ViewProjection * worldPos;
 	
 	Out.v2TexCoord = In.v2TexCoord;
+	Out.iDrawID = DrawID;
 }

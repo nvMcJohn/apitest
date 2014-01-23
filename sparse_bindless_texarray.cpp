@@ -31,12 +31,18 @@ void Texture2D::free()
     mContainer->free(this);
 }
 
+// ------------------------------------------------------------------------------------------------
+void Texture2D::CompressedTexSubImage2D(GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const GLvoid* data)
+{
+    mContainer->CompressedTexSubImage3D(level, xoffset, yoffset, getSliceNum(), width, height, 1, format, imageSize, data);
+}
 
 // ------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------
 Texture2DContainer::Texture2DContainer(GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei slices)
-: mWidth(width)
+: mHandle(0)
+, mWidth(width)
 , mHeight(height)
 , mLevels(levels)
 , mXTileSize(0)
@@ -74,7 +80,7 @@ Texture2DContainer::Texture2DContainer(GLsizei levels, GLenum internalformat, GL
     }
 
     // This would mean the implementation has no valid sizes for us, or that this format doesn't actually support sparse
-    // texture allocation.
+    // texture allocation. Need to implement the fallback. TODO: Implement that.
     assert(bestIndex != -1);
 
     mXTileSize = bestXSize;
@@ -86,6 +92,18 @@ Texture2DContainer::Texture2DContainer(GLsizei levels, GLenum internalformat, GL
     for (GLsizei i = 0; i < slices; ++i) {
         mFreeList.push(i);
     }
+
+    mHandle = glGetTextureHandleARB(mTexId);
+    assert(mHandle != 0);
+    glMakeTextureHandleResidentARB(mHandle);
+}
+
+// ------------------------------------------------------------------------------------------------
+Texture2DContainer::~Texture2DContainer()
+{
+    glMakeTextureHandleNonResidentARB(mHandle);
+    mHandle = 0;
+    glDeleteTextures(1, &mTexId);
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -121,6 +139,13 @@ void Texture2DContainer::free(Texture2D* _tex)
 {
     assert(_tex->getTexture2DContainer() == this);
     changeCommitment(_tex->getSliceNum(), GL_FALSE);
+}
+
+// ------------------------------------------------------------------------------------------------
+void Texture2DContainer::CompressedTexSubImage3D(GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const GLvoid * data)
+{
+    glBindTexture(GL_TEXTURE_2D_ARRAY, mTexId);
+    glCompressedTexSubImage3D(GL_TEXTURE_2D_ARRAY, level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, data);
 }
 
 // ------------------------------------------------------------------------------------------------

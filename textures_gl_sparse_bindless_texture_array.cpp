@@ -18,32 +18,24 @@ Textures_GL_Sparse_Bindless_Texture_Array::Textures_GL_Sparse_Bindless_Texture_A
     : m_ib()
     , m_vb_pos()
     , m_vb_tex()
-    , m_tex1()
-    , m_tex2()
     , m_vs()
     , m_fs()
     , m_prog()
+    , m_texbuf()
     , m_transform_buffer()
-    , m_tex1_handle()
-    , m_tex2_handle()
 {}
 
 // ------------------------------------------------------------------------------------------------
 Textures_GL_Sparse_Bindless_Texture_Array::~Textures_GL_Sparse_Bindless_Texture_Array()
 {
-#if GL_TEXTURE_BINDLESS_RESIDENCY_ONCE_EVER
-    glMakeTextureHandleNonResidentARB(m_tex1_handle);
-    glMakeTextureHandleNonResidentARB(m_tex2_handle);
-#endif
-
-    m_tex1_handle = m_tex2_handle = 0;
+    delete mTex2;
+    delete mTex1;
 
     glDeleteBuffers(1, &m_ib);
     glDeleteBuffers(1, &m_vb_pos);
     glDeleteBuffers(1, &m_vb_tex);
     glDeleteBuffers(1, &m_transform_buffer);
-    glDeleteTextures(1, &m_tex1);
-    glDeleteTextures(1, &m_tex2);
+    glDeleteBuffers(1, &m_texbuf);
     glDeleteShader(m_vs);
     glDeleteShader(m_fs);
     glDeleteProgram(m_prog);
@@ -56,14 +48,12 @@ bool Textures_GL_Sparse_Bindless_Texture_Array::init()
         return false;
     }
 
-    Texture2D* myTex = mTexManager.newTexture2D(10, GL_COMPRESSED_RGB_S3TC_DXT1_EXT, 512, 512);
-    delete myTex; 
-    myTex = nullptr;
-
+#if 1
     if (glGetTextureHandleARB == nullptr) {
         console::debug("Textures_GL_Sparse_Bindless_Texture_Array requires support for bindless textures (duh?). Cannot start this test.");
         return false;
     }
+#endif
 
     // Shaders
     if (!create_shader(GL_VERTEX_SHADER, "textures_gl_sparse_bindless_texture_array_vs.glsl", &m_vs))
@@ -74,6 +64,30 @@ bool Textures_GL_Sparse_Bindless_Texture_Array::init()
 
     if (!compile_program(&m_prog, m_vs, m_fs, 0))
         return false;
+
+    const char* uninames[] = {
+        "texAddress[0].Container",
+        "texAddress[0].Page",
+    };
+
+    GLuint uniindices[ARRAYSIZE(uninames)] = { 0 };
+    GLint offsets[ARRAYSIZE(uninames)] = { 0 };
+    GLint sizes[ARRAYSIZE(uninames)] = { 0 };
+    GLint arraystrides[ARRAYSIZE(uninames)] = { 0 };
+
+    for (int i = 0; i < ARRAYSIZE(uninames); ++i) {
+        uniindices[i] = glGetProgramResourceIndex(m_prog, GL_BUFFER_VARIABLE, uninames[i]);
+    }
+
+    for (int i = 0; i < ARRAYSIZE(uniindices); ++i) {
+        GLenum props[] = { GL_OFFSET, GL_TOP_LEVEL_ARRAY_STRIDE };
+        GLint results[ARRAYSIZE(props)] = { 0 };
+        glGetProgramResourceiv(m_prog, GL_BUFFER_VARIABLE, uniindices[i], ARRAYSIZE(props), props, ARRAYSIZE(props), NULL, results);
+        offsets[i] = results[0];
+        arraystrides[i] = results[1];
+    }
+
+    glGetActiveUniformsiv(m_prog, ARRAYSIZE(uninames), uniindices, GL_UNIFORM_OFFSET, offsets);
 
     // Buffers
     Vec3 vertices_pos[] =
@@ -97,25 +111,17 @@ bool Textures_GL_Sparse_Bindless_Texture_Array::init()
         0, 1, 2, 0, 2, 3,
     };
 
-    GLuint texs[2] = { 0 };
-
-    glGenTextures(2, texs);
-    m_tex1 = texs[0];
-    m_tex2 = texs[1];
-
     // Textures (TODO: This should go in a utility function elsewhere; also we should cache the texture loads. For now; whatevs).
     TextureDetails tex_details;
     if (!readDDSFromFile("Media/tex/Mandelbrot.dds", &tex_details)) {
         return false;
     }
 
-    glBindTexture(GL_TEXTURE_2D, m_tex1);
-    glTexStorage2D(GL_TEXTURE_2D, tex_details.szMipMapCount, tex_details.glFormat,
-                   tex_details.dwWidth, tex_details.dwHeight);
+    mTex1 = mTexManager.newTexture2D(tex_details.szMipMapCount, tex_details.glFormat, tex_details.dwWidth, tex_details.dwHeight);
 
     size_t offset = 0;
     for (int mip = 0; mip < tex_details.szMipMapCount; ++mip) {
-        glCompressedTexSubImage2D(GL_TEXTURE_2D, mip, 0, 0, tex_details.MipMapWidth(mip), tex_details.MipMapHeight(mip), tex_details.glFormat, tex_details.pSizes[mip], (char*)tex_details.pPixels + offset);
+        mTex1->CompressedTexSubImage2D(mip, 0, 0, tex_details.MipMapWidth(mip), tex_details.MipMapHeight(mip), tex_details.glFormat, tex_details.pSizes[mip], (char*)tex_details.pPixels + offset);
         offset += tex_details.pSizes[mip];
     }
 
@@ -123,26 +129,11 @@ bool Textures_GL_Sparse_Bindless_Texture_Array::init()
         return false;
     }
 
-    glBindTexture(GL_TEXTURE_2D, m_tex2);
-    glTexStorage2D(GL_TEXTURE_2D, tex_details.szMipMapCount, tex_details.glFormat,
-                   tex_details.dwWidth, tex_details.dwHeight);
-
-    // Bindless
-    m_tex1_handle = glGetTextureHandleARB(m_tex1);
-    m_tex2_handle = glGetTextureHandleARB(m_tex2);
-
-    if (m_tex1_handle == 0 || m_tex2_handle == 0) {
-        return false;
-    }
-
-#if GL_TEXTURE_BINDLESS_RESIDENCY_ONCE_EVER
-    glMakeTextureHandleResidentARB(m_tex1_handle);
-    glMakeTextureHandleResidentARB(m_tex2_handle);
-#endif
+    mTex2 = mTexManager.newTexture2D(tex_details.szMipMapCount, tex_details.glFormat, tex_details.dwWidth, tex_details.dwHeight);
 
     offset = 0;
     for (int mip = 0; mip < tex_details.szMipMapCount; ++mip) {
-        glCompressedTexSubImage2D(GL_TEXTURE_2D, mip, 0, 0, tex_details.MipMapWidth(mip), tex_details.MipMapHeight(mip), tex_details.glFormat, tex_details.pSizes[mip], (char*)tex_details.pPixels + offset);
+        mTex2->CompressedTexSubImage2D(mip, 0, 0, tex_details.MipMapWidth(mip), tex_details.MipMapHeight(mip), tex_details.glFormat, tex_details.pSizes[mip], (char*)tex_details.pPixels + offset);
         offset += tex_details.pSizes[mip];
     }
 
@@ -166,23 +157,17 @@ bool Textures_GL_Sparse_Bindless_Texture_Array::init()
     glGenBuffers(1, &m_transform_buffer);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, m_transform_buffer);
 
-    GLuint tex = 0;
-    glGenTextures(1, &tex);
-    glBindTexture(GL_TEXTURE_1D, tex);
-    glBindTexture(GL_TEXTURE_1D, 0);
-    glDeleteTextures(1, &tex);
+    assert(TEXTURES_COUNT % 2 == 0);
+    TexAddress addr[TEXTURES_COUNT];
+    for (int i = 0; i < TEXTURES_COUNT; i += 2) {
+        addr[i + 0] = mTex1->GetAddress();
+        addr[i + 1] = mTex2->GetAddress();
+    }    
 
-    tex = 0;
-    glGenTextures(1, &tex);
-    glBindTexture(GL_TEXTURE_1D, tex);
-    glBindTexture(GL_TEXTURE_1D, 0);
-    glDeleteTextures(1, &tex);
-
-    tex = 0;
-    glGenTextures(1, &tex);
-    glBindTexture(GL_TEXTURE_1D, tex);
-    glBindTexture(GL_TEXTURE_1D, 0);
-    glDeleteTextures(1, &tex);
+    glGenBuffers(1, &m_texbuf);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_texbuf);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(addr), addr, GL_DYNAMIC_DRAW);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, m_texbuf);
 
     return glGetError() == GL_NO_ERROR;
 }
@@ -246,22 +231,12 @@ bool Textures_GL_Sparse_Bindless_Texture_Array::begin(void* window, GfxSwapChain
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
 
-#if !GL_TEXTURE_BINDLESS_RESIDENCY_ONCE_EVER
-    glMakeTextureHandleResidentARB(m_tex1_handle);
-    glMakeTextureHandleResidentARB(m_tex2_handle);
-#endif
-
     return true;
 }
 
 // ------------------------------------------------------------------------------------------------
 void Textures_GL_Sparse_Bindless_Texture_Array::end(GfxSwapChain* swap_chain)
 {
-#if !GL_TEXTURE_BINDLESS_RESIDENCY_ONCE_EVER
-    glMakeTextureHandleNonResidentARB(m_tex1_handle);
-    glMakeTextureHandleNonResidentARB(m_tex2_handle);
-#endif
-
     SwapBuffers(swap_chain->hdc);
 #if defined(_DEBUG)
     GLenum error = glGetError();
@@ -284,9 +259,10 @@ void Textures_GL_Sparse_Bindless_Texture_Array::draw(Matrix* transforms, int cou
         // And update our texture via bindless
         // Note: Intentionally doing this different than Textures_GL_Forward so it's obvious
         // that the test is different.
-        GLuint64 activeTex = ((i & 1) == 1) ? m_tex1_handle : m_tex2_handle;
+        // TODO: switch textures here.
+        // GLuint64 activeTex = ((i & 1) == 1) ? m_tex1_handle : m_tex2_handle;
 
-        glUniformHandleui64ARB(128, activeTex);
+        // glUniformHandleui64ARB(128, activeTex);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
     }
 }

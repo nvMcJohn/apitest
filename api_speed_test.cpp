@@ -300,7 +300,7 @@ void Textures::render()
     static float angle;
     static Matrix* transforms;
     if (!transforms)
-        transforms = new Matrix[CUBES_COUNT];
+        transforms = new Matrix[TEXTURES_COUNT];
 
     Matrix *m = transforms;
     for (int x = 0; x < TEXTURES_X; ++x)

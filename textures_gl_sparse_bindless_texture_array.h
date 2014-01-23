@@ -2,6 +2,8 @@
 
 #include "sparse_bindless_texarray.h"
 
+class Texture2D;
+
 // ------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------
@@ -28,16 +30,15 @@ private:
     GLuint m_ib;
     GLuint m_vb_pos;
     GLuint m_vb_tex;
-    GLuint m_tex1;
-    GLuint m_tex2;
     GLuint m_vs;
     GLuint m_fs;
     GLuint m_prog;
+    GLuint m_texbuf;
 
     GLuint m_transform_buffer;
 
-    GLuint64 m_tex1_handle;
-    GLuint64 m_tex2_handle;
+    Texture2D* mTex1;
+    Texture2D* mTex2;
 
     DrawElementsIndirectCommand m_commands[TEXTURES_COUNT];
 
