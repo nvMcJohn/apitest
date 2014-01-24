@@ -94,6 +94,9 @@
     <ClInclude Include="textures_gl_notex.h">
       <Filter>Textures</Filter>
     </ClInclude>
+    <ClInclude Include="textures_gl_bindless_multidraw.h">
+      <Filter>Textures</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="api_speed_test.cpp">
@@ -157,6 +160,9 @@
       <Filter>Gfx</Filter>
     </ClCompile>
     <ClCompile Include="textures_gl_notex.cpp">
+      <Filter>Textures</Filter>
+    </ClCompile>
+    <ClCompile Include="textures_gl_bindless_multidraw.cpp">
       <Filter>Textures</Filter>
     </ClCompile>
   </ItemGroup>
@@ -237,6 +243,12 @@
       <Filter>Textures</Filter>
     </None>
     <None Include="textures_gl_notex_vs.glsl">
+      <Filter>Textures</Filter>
+    </None>
+    <None Include="textures_gl_bindless_multidraw_fs.glsl">
+      <Filter>Textures</Filter>
+    </None>
+    <None Include="textures_gl_bindless_multidraw_vs.glsl">
       <Filter>Textures</Filter>
     </None>
   </ItemGroup>
