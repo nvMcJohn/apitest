@@ -16,6 +16,7 @@
 #include "textures_gl_bindless.h"
 #include "textures_gl_bindless_multidraw.h"
 #include "textures_gl_sparse_bindless_texture_array.h"
+#include "textures_gl_sparse_bindless_texture_array_multidraw.h"
 
 #include "streaming_vb_gl.h"
 
@@ -147,20 +148,21 @@ TestCase* GfxApi_GL::create_test(TestId id)
 {
     switch (id)
     {
-    case TestId::StreamingVB:                               return new StreamingVB_GL;
-    case TestId::CubesUniform:                              return new Cubes_GL_Uniform;
-    case TestId::CubesDynamicBuffer:                        return new Cubes_GL_DynamicBuffer;
-    case TestId::CubesBufferRange:                          return new Cubes_GL_BufferRange;
-    case TestId::CubesTexCoord:                             return new Cubes_GL_TexCoord;
-    case TestId::CubesMultiDraw:                            return new Cubes_GL_MultiDraw;
-    case TestId::CubesBufferStorage:                        return new Cubes_GL_BufferStorage;
-    case TestId::CubesBindless:                             return new Cubes_GL_Bindless;
-    case TestId::CubesBindlessIndirect:                     return new Cubes_GL_BindlessIndirect;
-    case TestId::TexturesNoTex:                             return new Textures_GL_NoTex;
-    case TestId::TexturesForward:                           return new Textures_GL_Forward;
-    case TestId::TexturesBindless:                          return new Textures_GL_Bindless;
-    case TestId::TexturesBindlessMultiDraw:                 return new Textures_GL_Bindless_MultiDraw;
-    case TestId::TexturesSparseBindlessTextureArray:        return new Textures_GL_Sparse_Bindless_Texture_Array;
+    case TestId::StreamingVB:                                   return new StreamingVB_GL;
+    case TestId::CubesUniform:                                  return new Cubes_GL_Uniform;
+    case TestId::CubesDynamicBuffer:                            return new Cubes_GL_DynamicBuffer;
+    case TestId::CubesBufferRange:                              return new Cubes_GL_BufferRange;
+    case TestId::CubesTexCoord:                                 return new Cubes_GL_TexCoord;
+    case TestId::CubesMultiDraw:                                return new Cubes_GL_MultiDraw;
+    case TestId::CubesBufferStorage:                            return new Cubes_GL_BufferStorage;
+    case TestId::CubesBindless:                                 return new Cubes_GL_Bindless;
+    case TestId::CubesBindlessIndirect:                         return new Cubes_GL_BindlessIndirect;
+    case TestId::TexturesNoTex:                                 return new Textures_GL_NoTex;
+    case TestId::TexturesForward:                               return new Textures_GL_Forward;
+    case TestId::TexturesBindless:                              return new Textures_GL_Bindless;
+    case TestId::TexturesBindlessMultiDraw:                     return new Textures_GL_Bindless_MultiDraw;
+    case TestId::TexturesSparseBindlessTextureArray:            return new Textures_GL_Sparse_Bindless_Texture_Array;
+    case TestId::TexturesSparseBindlessTextureArrayMultiDraw:   return new Textures_GL_Sparse_Bindless_Texture_Array_MultiDraw;
     }
 
     return nullptr;

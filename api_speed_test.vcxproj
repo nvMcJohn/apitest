@@ -43,6 +43,7 @@
     <ClInclude Include="textures_gl_forward.h" />
     <ClInclude Include="textures_gl_notex.h" />
     <ClInclude Include="textures_gl_sparse_bindless_texture_array.h" />
+    <ClInclude Include="textures_gl_sparse_bindless_texture_array_multidraw.h" />
     <ClInclude Include="timer.h" />
     <ClInclude Include="wgl.h" />
   </ItemGroup>
@@ -67,6 +68,7 @@
     <ClCompile Include="textures_gl_forward.cpp" />
     <ClCompile Include="textures_gl_notex.cpp" />
     <ClCompile Include="textures_gl_sparse_bindless_texture_array.cpp" />
+    <ClCompile Include="textures_gl_sparse_bindless_texture_array_multidraw.cpp" />
     <ClCompile Include="timer.cpp" />
     <ClCompile Include="wgl.cpp" />
   </ItemGroup>
@@ -98,6 +100,8 @@
     <None Include="textures_gl_notex_fs.glsl" />
     <None Include="textures_gl_notex_vs.glsl" />
     <None Include="textures_gl_sparse_bindless_texture_array_fs.glsl" />
+    <None Include="textures_gl_sparse_bindless_texture_array_multidraw_fs.glsl" />
+    <None Include="textures_gl_sparse_bindless_texture_array_multidraw_vs.glsl" />
     <None Include="textures_gl_sparse_bindless_texture_array_vs.glsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

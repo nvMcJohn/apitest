@@ -1,4 +1,4 @@
-#include "textures_gl_sparse_bindless_texture_array.h"
+#include "textures_gl_sparse_bindless_texture_array_multidraw.h"
 #include "mathlib.h"
 #include <assert.h>
 #include <stdint.h>
@@ -9,12 +9,10 @@
 // This doesn't seem to cost very much. Good news!
 #define GL_TEXTURE_BINDLESS_RESIDENCY_ONCE_EVER 0
 
-
-
 // ------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------
-Textures_GL_Sparse_Bindless_Texture_Array::Textures_GL_Sparse_Bindless_Texture_Array()
+Textures_GL_Sparse_Bindless_Texture_Array_MultiDraw::Textures_GL_Sparse_Bindless_Texture_Array_MultiDraw()
     : m_ib()
     , m_vb_pos()
     , m_vb_tex()
@@ -26,7 +24,7 @@ Textures_GL_Sparse_Bindless_Texture_Array::Textures_GL_Sparse_Bindless_Texture_A
 {}
 
 // ------------------------------------------------------------------------------------------------
-Textures_GL_Sparse_Bindless_Texture_Array::~Textures_GL_Sparse_Bindless_Texture_Array()
+Textures_GL_Sparse_Bindless_Texture_Array_MultiDraw::~Textures_GL_Sparse_Bindless_Texture_Array_MultiDraw()
 {
     delete mTex2;
     delete mTex1;
@@ -42,7 +40,7 @@ Textures_GL_Sparse_Bindless_Texture_Array::~Textures_GL_Sparse_Bindless_Texture_
 }
 
 // ------------------------------------------------------------------------------------------------
-bool Textures_GL_Sparse_Bindless_Texture_Array::init()
+bool Textures_GL_Sparse_Bindless_Texture_Array_MultiDraw::init()
 {
     if (!mTexManager.init()) {
         return false;
@@ -50,16 +48,16 @@ bool Textures_GL_Sparse_Bindless_Texture_Array::init()
 
 #if 1
     if (glGetTextureHandleARB == nullptr) {
-        console::debug("Textures_GL_Sparse_Bindless_Texture_Array requires support for bindless textures (duh?). Cannot start this test.");
+        console::debug("Textures_GL_Sparse_Bindless_Texture_Array_MultiDraw requires support for bindless textures (duh?). Cannot start this test.");
         return false;
     }
 #endif
 
     // Shaders
-    if (!create_shader(GL_VERTEX_SHADER, "textures_gl_sparse_bindless_texture_array_vs.glsl", &m_vs))
+    if (!create_shader(GL_VERTEX_SHADER, "textures_gl_sparse_bindless_texture_array_multidraw_vs.glsl", &m_vs))
         return false;
 
-    if (!create_shader(GL_FRAGMENT_SHADER, "textures_gl_sparse_bindless_texture_array_fs.glsl", &m_fs))
+    if (!create_shader(GL_FRAGMENT_SHADER, "textures_gl_sparse_bindless_texture_array_multidraw_fs.glsl", &m_fs))
         return false;
 
     if (!compile_program(&m_prog, m_vs, m_fs, 0))
@@ -173,7 +171,7 @@ bool Textures_GL_Sparse_Bindless_Texture_Array::init()
 }
 
 // ------------------------------------------------------------------------------------------------
-bool Textures_GL_Sparse_Bindless_Texture_Array::begin(void* window, GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buffer)
+bool Textures_GL_Sparse_Bindless_Texture_Array_MultiDraw::begin(void* window, GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buffer)
 {
     HWND hWnd = reinterpret_cast<HWND>(window);
 
@@ -235,7 +233,7 @@ bool Textures_GL_Sparse_Bindless_Texture_Array::begin(void* window, GfxSwapChain
 }
 
 // ------------------------------------------------------------------------------------------------
-void Textures_GL_Sparse_Bindless_Texture_Array::end(GfxSwapChain* swap_chain)
+void Textures_GL_Sparse_Bindless_Texture_Array_MultiDraw::end(GfxSwapChain* swap_chain)
 {
     SwapBuffers(swap_chain->hdc);
 #if defined(_DEBUG)
@@ -245,24 +243,22 @@ void Textures_GL_Sparse_Bindless_Texture_Array::end(GfxSwapChain* swap_chain)
 }
 
 // ------------------------------------------------------------------------------------------------
-void Textures_GL_Sparse_Bindless_Texture_Array::draw(Matrix* transforms, int count)
+void Textures_GL_Sparse_Bindless_Texture_Array_MultiDraw::draw(Matrix* transforms, int count)
 {
     assert(count <= TEXTURES_COUNT);
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_transform_buffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Matrix) * count, transforms, GL_DYNAMIC_DRAW);
-
-    for (int i = 0; i < count; ++i) {
-        // Update the draw ID (since we cannot use multi_draw here
-        glUniform1i(1, i); 
-
-        // And update our texture via bindless
-        // Note: Intentionally doing this different than Textures_GL_Forward so it's obvious
-        // that the test is different.
-        // TODO: switch textures here.
-        // GLuint64 activeTex = ((i & 1) == 1) ? m_tex1_handle : m_tex2_handle;
-
-        // glUniformHandleui64ARB(128, activeTex);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
+    for (int i = 0; i < count; ++i)
+    {
+        DrawElementsIndirectCommand *cmd = &m_commands[i];
+        cmd->count = 6;
+        cmd->instanceCount = 1;
+        cmd->firstIndex = 0;
+        cmd->baseVertex = 0;
+        cmd->baseInstance = 0;
     }
+
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_transform_buffer);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Matrix)* count, transforms, GL_DYNAMIC_DRAW);
+
+    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_SHORT, m_commands, count, 0);
 }

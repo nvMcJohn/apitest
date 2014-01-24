@@ -7,7 +7,7 @@
 #include "dds_helper.h"
 
 // This doesn't seem to cost very much. Good news!
-#define GL_TEXTURE_BINDLESS_RESIDENCY_ONCE_EVER 1
+#define GL_TEXTURE_BINDLESS_RESIDENCY_ONCE_EVER 0
 
 Textures_GL_Bindless::Textures_GL_Bindless()
     : m_ib()
