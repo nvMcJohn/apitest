@@ -11,6 +11,7 @@
 #include "cubes_gl_buffer_storage.h"
 #include "cubes_gl_bindless.h"
 #include "cubes_gl_bindless_indirect.h"
+#include "textures_gl_notex.h"
 #include "textures_gl_forward.h"
 #include "textures_gl_bindless.h"
 #include "textures_gl_sparse_bindless_texture_array.h"
@@ -154,6 +155,7 @@ TestCase* GfxApi_GL::create_test(TestId id)
     case TestId::CubesBufferStorage:    return new Cubes_GL_BufferStorage;
     case TestId::CubesBindless:         return new Cubes_GL_Bindless;
     case TestId::CubesBindlessIndirect: return new Cubes_GL_BindlessIndirect;
+    case TestId::TexturesNoTex:         return new Textures_GL_NoTex;
     case TestId::TexturesForward:       return new Textures_GL_Forward;
     case TestId::TexturesBindless:      return new Textures_GL_Bindless;
     case TestId::TexturesSparseBindlessTextureArray: return new Textures_GL_Sparse_Bindless_Texture_Array;

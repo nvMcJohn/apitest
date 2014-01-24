@@ -130,10 +130,14 @@ LRESULT CALLBACK wnd_proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 break;
 
             case VK_F11:
-                set_test(TestId::TexturesBindless);
+                set_test(TestId::TexturesForward);
                 break;
 
             case '1':
+                set_test(TestId::TexturesBindless);
+                break;
+
+            case '2':
                 set_test(TestId::TexturesSparseBindlessTextureArray);
                 break;
 
@@ -152,7 +156,7 @@ LRESULT CALLBACK wnd_proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         switch (wParam) 
         {
             case VK_F10:
-                set_test(TestId::TexturesForward);
+                set_test(TestId::TexturesNoTex);
                 return 0;
                 break;
             default:

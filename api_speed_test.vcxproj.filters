@@ -91,6 +91,9 @@
     <ClInclude Include="sparse_bindless_texarray.h">
       <Filter>Gfx</Filter>
     </ClInclude>
+    <ClInclude Include="textures_gl_notex.h">
+      <Filter>Textures</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="api_speed_test.cpp">
@@ -152,6 +155,9 @@
     </ClCompile>
     <ClCompile Include="sparse_bindless_texarray.cpp">
       <Filter>Gfx</Filter>
+    </ClCompile>
+    <ClCompile Include="textures_gl_notex.cpp">
+      <Filter>Textures</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -225,6 +231,12 @@
       <Filter>Textures</Filter>
     </None>
     <None Include="textures_gl_sparse_bindless_texture_array_vs.glsl">
+      <Filter>Textures</Filter>
+    </None>
+    <None Include="textures_gl_notex_fs.glsl">
+      <Filter>Textures</Filter>
+    </None>
+    <None Include="textures_gl_notex_vs.glsl">
       <Filter>Textures</Filter>
     </None>
   </ItemGroup>
