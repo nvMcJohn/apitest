@@ -90,14 +90,11 @@ bool Textures_GL_NoTex::init()
 }
 
 // ------------------------------------------------------------------------------------------------
-bool Textures_GL_NoTex::begin(void* window, GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buffer)
+bool Textures_GL_NoTex::begin(GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buffer)
 {
-    HWND hWnd = reinterpret_cast<HWND>(window);
-
-    RECT rc;
-    GetClientRect(hWnd, &rc);
-    int width = rc.right - rc.left;
-    int height = rc.bottom - rc.top;
+    int width = 0;
+    int height = 0;
+    SDL_GetWindowSize(swap_chain->wnd, &width, &height);
 
     // Bind and clear frame buffer
     int fbo = PTR_AS_INT(frame_buffer);
@@ -154,7 +151,7 @@ bool Textures_GL_NoTex::begin(void* window, GfxSwapChain* swap_chain, GfxFrameBu
 // ------------------------------------------------------------------------------------------------
 void Textures_GL_NoTex::end(GfxSwapChain* swap_chain)
 {
-    SwapBuffers(swap_chain->hdc);
+    SDL_GL_SwapWindow(swap_chain->wnd);
 #if defined(_DEBUG)
     GLenum error = glGetError();
     assert(error == GL_NO_ERROR);

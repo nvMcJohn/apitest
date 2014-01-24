@@ -1,42 +1,32 @@
 #include "timer.h"
 
-#include <Windows.h>
-
 namespace timer
 {
-    static unsigned long long s_freq;
+    static Uint64 s_freq;
 }
 
 bool timer::init()
 {
-    LARGE_INTEGER f;
-    if (!QueryPerformanceFrequency(&f))
-    {
-        return false;
-    }
-
-    s_freq = f.QuadPart;
+    s_freq = SDL_GetPerformanceFrequency();
     return true;
 }
 
-unsigned long long timer::read()
+Uint64 timer::read()
 {
-    LARGE_INTEGER f;
-    QueryPerformanceCounter(&f);
-    return f.QuadPart;
+    return SDL_GetPerformanceCounter();
 }
 
-unsigned long long timer::to_usec(unsigned long long x)
+Uint64 timer::to_usec(Uint64 x)
 {
     return x * 1000000 / s_freq;
 }
 
-unsigned long long timer::to_msec(unsigned long long x)
+Uint64 timer::to_msec(Uint64 x)
 {
     return x * 1000 / s_freq;
 }
 
-double timer::to_sec(unsigned long long x)
+double timer::to_sec(Uint64 x)
 {
     return (double)x / (double)s_freq;
 }

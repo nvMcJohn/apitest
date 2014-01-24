@@ -171,18 +171,15 @@ bool Textures_GL_Sparse_Bindless_Texture_Array_MultiDraw::init()
 }
 
 // ------------------------------------------------------------------------------------------------
-bool Textures_GL_Sparse_Bindless_Texture_Array_MultiDraw::begin(void* window, GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buffer)
+bool Textures_GL_Sparse_Bindless_Texture_Array_MultiDraw::begin(GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buffer)
 {
-    HWND hWnd = reinterpret_cast<HWND>(window);
-
-    RECT rc;
-    GetClientRect(hWnd, &rc);
-    int width = rc.right - rc.left;
-    int height = rc.bottom - rc.top;
+    int width = 0;
+    int height = 0;
+    SDL_GetWindowSize(swap_chain->wnd, &width, &height);
 
     // Bind and clear frame buffer
     int fbo = PTR_AS_INT(frame_buffer);
-    float c[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
+    float c[4] = { 0.25f, 0.25f, 0.33f, 1.0f };
     float d = 1.0f;
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
     glClearBufferfv(GL_COLOR, 0, c);
@@ -235,7 +232,7 @@ bool Textures_GL_Sparse_Bindless_Texture_Array_MultiDraw::begin(void* window, Gf
 // ------------------------------------------------------------------------------------------------
 void Textures_GL_Sparse_Bindless_Texture_Array_MultiDraw::end(GfxSwapChain* swap_chain)
 {
-    SwapBuffers(swap_chain->hdc);
+    SDL_GL_SwapWindow(swap_chain->wnd);
 #if defined(_DEBUG)
     GLenum error = glGetError();
     assert(error == GL_NO_ERROR);

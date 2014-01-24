@@ -3,6 +3,8 @@
 #include <assert.h>
 #include <stdio.h>
 
+#include "SDL.h"
+
 #include "cubes_gl_uniform.h"
 #include "cubes_gl_dynamic_buffer.h"
 #include "cubes_gl_buffer_range.h"
@@ -42,65 +44,27 @@ bool GfxApi_GL::init()
     return true;
 }
 
-bool GfxApi_GL::create_swap_chain(void* window,
+bool GfxApi_GL::create_swap_chain(void* _wnd,
     GfxSwapChain** out_swap_chain,
     GfxFrameBuffer** out_frame_buffer)
 {
-    HWND hwnd = (HWND)window;
+    SDL_Window* wnd = (SDL_Window*)_wnd;
 
     GfxSwapChain* swap_chain = new GfxSwapChain;
-    swap_chain->hdc = nullptr;
-    swap_chain->hwnd = nullptr;
-    swap_chain->hglrc = nullptr;
+    swap_chain->wnd = nullptr;
+    swap_chain->glrc = nullptr;
 
     *out_swap_chain = swap_chain;
     *out_frame_buffer = nullptr;
 
-    HDC hdc = GetDC(hwnd);
+    swap_chain->wnd = wnd;
+    swap_chain->glrc = SDL_GL_CreateContext(wnd);
 
-    BYTE colorBits = 24;
-    BYTE alphaBits = 8;
-    BYTE depthBits = 24;
-    BYTE stencilBits = 8;
-    UINT multisample = 1;
+    SDL_GL_MakeCurrent(swap_chain->wnd, swap_chain->glrc);
 
-    // Choose pixel format
-    PIXELFORMATDESCRIPTOR pfd = { 0 };
-    pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
-    pfd.nVersion = 1;
-    pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
-    pfd.iPixelType = PFD_TYPE_RGBA;
-    pfd.cColorBits = colorBits;
-    pfd.cAlphaBits = alphaBits;
-    pfd.cAccumBits = 0;
-    pfd.cDepthBits = depthBits;
-    pfd.cStencilBits = stencilBits;
-    pfd.cAuxBuffers = 0;
-    pfd.iLayerType = PFD_MAIN_PLANE;
-
-    int pixelFormat = ChoosePixelFormat(hdc, &pfd);
-    BOOL result = SetPixelFormat(hdc, pixelFormat, &pfd);
-    if (!result)
-    {
-        ReleaseDC(hwnd, hdc);
-        return false;
-    }
-
-    swap_chain->hwnd = hwnd;
-    swap_chain->hdc = hdc;
-
-    // Create context
-    swap_chain->hglrc = wglCreateContext(hdc);
-
-    // Make the context and surface current
-    if (!wglMakeCurrent(hdc, swap_chain->hglrc))
-        return false;
-
-    wgl::bind_wgl();
     wgl::bind_gl();
 
-    if (wglSwapIntervalEXT)
-        wglSwapIntervalEXT(0);
+    SDL_GL_SetSwapInterval(0);
 
     // Default GL State
     glCullFace(GL_FRONT);
@@ -129,13 +93,11 @@ void GfxApi_GL::destroy_swap_chain(GfxSwapChain* swap_chain)
 {
     if (swap_chain)
     {
-        wglMakeCurrent(nullptr, nullptr);
+        SDL_GL_MakeCurrent(nullptr, nullptr);
 
-        if (swap_chain->hglrc)
-            wglDeleteContext(swap_chain->hglrc);
-
-        if (swap_chain->hdc)
-            ReleaseDC(swap_chain->hwnd, swap_chain->hdc);
+        if (swap_chain->glrc) {
+            SDL_GL_DeleteContext(swap_chain->glrc);
+        }
 
         delete swap_chain;
     }

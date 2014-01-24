@@ -1,14 +1,16 @@
+#include <assert.h>
 #include "console.h"
 #include "gfx.h"
 #include "timer.h"
 
-#include <Windows.h>
+#include "SDL.h"
+#include "wgl.h"
 
 #define SAFE_DELETE(x)         { delete x; x = nullptr; }
 
 // --------------------------------------------------------------------------------------------------------------------
-static HINSTANCE s_instance;
-static HWND s_window;
+SDL_Window *s_window; /* Our window handle */
+
 static GfxApi* s_api;
 static GfxSwapChain* s_swap_chain;
 static GfxFrameBuffer* s_frame_buffer;
@@ -31,6 +33,7 @@ static bool set_test(TestId id)
 }
 
 // ------------------------------------------------------------------------------------------------
+
 static bool set_api(GfxApi *api)
 {
     if (s_api)
@@ -56,80 +59,100 @@ static bool set_api(GfxApi *api)
 
     return true;
 }
+
 // --------------------------------------------------------------------------------------------------------------------
-LRESULT CALLBACK wnd_proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+void PostQuitEvent()
 {
-    LRESULT result = 0;
+    SDL_Event quitEvent;
+    quitEvent.type = SDL_QUIT;
+    SDL_PushEvent(&quitEvent);
+}
 
-    switch (message)
+// --------------------------------------------------------------------------------------------------------------------
+void on_event(SDL_Event* _event)
+{
+    assert(_event);
+
+    switch (_event->type)
     {
-    case WM_CLOSE:
-        PostQuitMessage(0);
-        break;
+#if 0
+        case WM_CLOSE:
+            PostQuitMessage(0);
+            break;
 
-    case WM_ERASEBKGND:
-        result = 1;
-        break;
+        case WM_ERASEBKGND:
+            break;
 
-    case WM_PAINT:
-        {
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hWnd, &ps);
-            EndPaint(hWnd, &ps);
-        }
-        break;
+        case WM_PAINT:
+            {
+                PAINTSTRUCT ps;
+                HDC hdc = BeginPaint(hWnd, &ps);
+                EndPaint(hWnd, &ps);
+            }
+            break;
+#endif
 
-    case WM_KEYDOWN:
+    case SDL_KEYDOWN:
         {
             bool handled = true;
-            switch (wParam)
+            switch (_event->key.keysym.sym)
             {
-            case 'D':
+            case 'd':
                 console::debug("Initializing DX11 backend\n");
                 set_api(create_gfx_dx11());
                 break;
-            case 'G':
+            case 'g':
                 console::debug("Initializing GL backend\n");
                 set_api(create_gfx_gl());
                 break;
 
-            case VK_F1:
+            case SDLK_F1:
                 set_test(TestId::StreamingVB);
                 break;
 
-            case VK_F2:
+            case SDLK_F2:
                 set_test(TestId::CubesUniform);
                 break;
 
-            case VK_F3:
+            case SDLK_F3:
                 set_test(TestId::CubesDynamicBuffer);
                 break;
 
-            case VK_F4:
+            case SDLK_F4:
+                #ifdef _WIN32
+                    if (_event->key.keysym.mod & KMOD_ALT) {
+                        PostQuitEvent();
+                        break;
+                    }
+                #endif
                 set_test(TestId::CubesBufferRange);
                 break;
 
-            case VK_F5:
+            case SDLK_F5:
                 set_test(TestId::CubesTexCoord);
                 break;
 
-            case VK_F6:
+            case SDLK_F6:
                 set_test(TestId::CubesMultiDraw);
                 break;
 
-            case VK_F7:
+            case SDLK_F7:
                 set_test(TestId::CubesBufferStorage);
                 break;
 
-            case VK_F8:
+            case SDLK_F8:
                 set_test(TestId::CubesBindless);
                 break;
 
-            case VK_F9:
+            case SDLK_F9:
                 set_test(TestId::CubesBindlessIndirect);
                 break;
 
-            case VK_F11:
+            case SDLK_F10:
+                set_test(TestId::TexturesNoTex);
+                break;
+
+            case SDLK_F11:
                 set_test(TestId::TexturesForward);
                 break;
 
@@ -154,78 +177,24 @@ LRESULT CALLBACK wnd_proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 break;
             }
 
-            if (handled)
-                return 0;
         }
         // else drop through to DefWindowProc
         break;
-
-    case WM_SYSKEYDOWN:
-        switch (wParam) 
-        {
-            case VK_F10:
-                set_test(TestId::TexturesNoTex);
-                return 0;
-                break;
-            default:
-                break;
-        }
-        break;
-        
-    default:
-        return DefWindowProc(hWnd, message, wParam, lParam);
     }
-
-    return result;
 }
 
 // ------------------------------------------------------------------------------------------------
-static HWND create_window(const char* title, int x, int y, int width, int height)
+static SDL_Window* create_window(const char* title, int x, int y, int width, int height)
 {
-    // Initialize window class description
-    WNDCLASSEX wcex;
-    wcex.cbSize = sizeof(WNDCLASSEX);
-    wcex.style = CS_HREDRAW | CS_VREDRAW;
-    wcex.lpfnWndProc = wnd_proc;
-    wcex.cbClsExtra = 0;
-    wcex.cbWndExtra = 0;
-    wcex.hInstance = s_instance;
-    wcex.hIcon = NULL;
-    wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wcex.hbrBackground = (HBRUSH)(COLOR_BACKGROUND + 1);
-    wcex.lpszMenuName = NULL;
-    wcex.lpszClassName = "api_speed_test";
-    wcex.hIconSm = NULL;
-    if (!RegisterClassEx(&wcex))
-    {
-        MessageBox(nullptr, "Failed to register root window class", "Init Failed", MB_ICONEXCLAMATION | MB_OK);
-        return false;
-    }
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
-    // Create window
-    DWORD dwStyle = WS_OVERLAPPEDWINDOW;
-    DWORD dwExStyle = 0;
-    const char* className = "api_speed_test";
+    SDL_Window* retWnd = SDL_CreateWindow(title, x, y, width, height, 
+                                          SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
 
-    RECT rc = { 0, 0, width, height };
-    AdjustWindowRect(&rc, dwStyle, FALSE);
-    HWND hWnd = CreateWindowEx(
-        dwExStyle,
-        className,
-        title,
-        dwStyle,
-        x,
-        y,
-        rc.right - rc.left,
-        rc.bottom - rc.top,
-        NULL,
-        NULL,
-        s_instance,
-        nullptr);
-
-    ShowWindow(hWnd, SW_SHOW);
-    return hWnd;
+    return retWnd;
 }
+
 
 // ------------------------------------------------------------------------------------------------
 static void update_fps()
@@ -243,6 +212,85 @@ static void update_fps()
         s_last_frame_time = now;
     }
 }
+
+// ------------------------------------------------------------------------------------------------
+static void render()
+{
+    if (!s_test_case)
+        return;
+
+    if (!s_test_case->begin(s_swap_chain, s_frame_buffer))
+        return;
+
+    // This is the main entry point shared by all tests. 
+    s_test_case->render();
+    
+    s_test_case->end(s_swap_chain);
+    update_fps();
+}
+
+static bool sdl_init()
+{
+    return SDL_Init(SDL_INIT_EVERYTHING) >= 0;
+}
+
+// ------------------------------------------------------------------------------------------------
+static bool init()
+{
+    if (!sdl_init())
+        return false;
+
+    timer::init();
+
+    s_window = create_window("Test Window", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 768);
+    if (!s_window)
+        return false;
+    
+    if (!set_api(create_gfx_gl())) {
+        return false;
+    }
+        
+    return true;
+}
+
+// ------------------------------------------------------------------------------------------------
+static void cleanup()
+{
+    set_api(nullptr);
+
+    SDL_DestroyWindow(s_window);
+    SDL_Quit();
+}
+
+// ------------------------------------------------------------------------------------------------
+int main(int argv, char* argc[])
+{
+    if (!init()) {
+        return -1;
+    }
+
+    if (!s_window) {
+        console::error("Unable to create window");
+    }
+
+    for (;;) {
+        SDL_Event sdl_event;
+        if (SDL_PollEvent(&sdl_event)) {
+            if (sdl_event.type == SDL_QUIT) {
+                break;
+            }
+
+            on_event(&sdl_event);
+        } else {
+            render();
+        }
+    }
+
+    cleanup();
+
+    return 0;
+}
+
 
 // ------------------------------------------------------------------------------------------------
 void StreamingVB::render()
@@ -329,75 +377,4 @@ void Textures::render()
 
     draw(transforms, TEXTURES_COUNT);
     angle += 0.01f;
-}
-
-// ------------------------------------------------------------------------------------------------
-static void render()
-{
-    if (!s_test_case)
-        return;
-
-    if (!s_test_case->begin(s_window, s_swap_chain, s_frame_buffer))
-        return;
-
-    // This is the main entry point shared by all tests. 
-    s_test_case->render();
-    
-    s_test_case->end(s_swap_chain);
-    update_fps();
-}
-
-// ------------------------------------------------------------------------------------------------
-static bool init()
-{
-    timer::init();
-
-    s_window = create_window("Test Window", 50, 50, 1024, 748);
-    if (!s_window)
-        return false;
-
-    if (!set_api(create_gfx_gl()))
-        return false;
-
-    return true;
-}
-
-// ------------------------------------------------------------------------------------------------
-static void cleanup()
-{
-    set_api(nullptr);
-    DestroyWindow(s_window);
-}
-
-// ------------------------------------------------------------------------------------------------
-int WINAPI WinMain(
-    _In_ HINSTANCE hInstance,
-    _In_opt_ HINSTANCE hPrevInstance,
-    _In_ LPSTR lpCmdLine,
-    _In_ int nCmdShow)
-{
-    s_instance = hInstance;
-
-    if (!init())
-        return 1;
-
-    MSG msg;
-
-    for (;;)
-    {
-        if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
-        {
-            if (msg.message == WM_QUIT)
-                break;
-
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
-        else
-            render();
-    }
-
-    cleanup();
-
-    return 0;
 }

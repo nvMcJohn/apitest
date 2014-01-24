@@ -37,7 +37,7 @@ public:
 
     virtual bool init() = 0;
 
-    virtual bool begin(void* hwnd, GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buffer) = 0;
+    virtual bool begin(GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buffer) = 0;
     virtual void render() = 0;
     virtual void end(GfxSwapChain* swap_chain) = 0;
 };
@@ -97,7 +97,7 @@ public:
     virtual ~GfxApi() {}
 
     virtual bool init() = 0;
-    virtual bool create_swap_chain(void* hwnd,
+    virtual bool create_swap_chain(void* wnd,
         GfxSwapChain** out_swap_chain,
         GfxFrameBuffer** out_frame_buffer) = 0;
 

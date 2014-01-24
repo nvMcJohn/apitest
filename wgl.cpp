@@ -639,21 +639,6 @@ PFNGLTEXPAGECOMMITMENTARBPROC glTexPageCommitmentARB;
 PFNGLTEXTUREPAGECOMMITMENTEXTPROC glTexturePageCommitmentEXT;
 
 // --------------------------------------------------------------------------------------------------------------------
-// WGL
-
-// WGL_ARB_pixel_format
-PFNWGLGETPIXELFORMATATTRIBIVARBPROC wglGetPixelFormatAttribivARB;
-PFNWGLGETPIXELFORMATATTRIBFVARBPROC wglGetPixelFormatAttribfvARB;
-PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB;
-
-// WGL_EXT_swap_control
-PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT;
-PFNWGLGETSWAPINTERVALEXTPROC wglGetSwapIntervalEXT;
-
-// WGL_ARB_create_context
-PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
-
-// --------------------------------------------------------------------------------------------------------------------
 // nVidia extensions
 
 // NV_shader_buffer_load
@@ -694,21 +679,6 @@ template<class T>
 void bind(T& x, const char* name)
 {
     x = reinterpret_cast<T>(wglGetProcAddress(name));
-}
-
-void wgl::bind_wgl()
-{
-    // WGL_ARB_pixel_format
-    bind(wglGetPixelFormatAttribivARB, "wglGetPixelFormatAttribivARB");
-    bind(wglGetPixelFormatAttribfvARB, "wglGetPixelFormatAttribfvARB");
-    bind(wglChoosePixelFormatARB, "wglChoosePixelFormatARB");
-
-    // WGL_EXT_swap_control
-    bind(wglSwapIntervalEXT, "wglSwapIntervalEXT");
-    bind(wglGetSwapIntervalEXT, "wglGetSwapIntervalEXT");
-
-    // WGL_ARB_create_context
-    bind(wglCreateContextAttribsARB, "wglCreateContextAttribsARB");
 }
 
 void wgl::bind_gl()

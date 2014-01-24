@@ -2,6 +2,8 @@
 #include "streaming_vb_dx11_ps.h"
 #include "streaming_vb_dx11_vs.h"
 
+#include <assert.h>
+
 StreamingVB_DX11::StreamingVB_DX11()
     : m_layout()
     , m_cb()
@@ -144,15 +146,16 @@ bool StreamingVB_DX11::init()
     return true;
 }
 
-bool StreamingVB_DX11::begin(void* window, GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buffer)
+bool StreamingVB_DX11::begin(GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buffer)
 {
-    HWND hWnd = reinterpret_cast<HWND>(window);
+    int width = 0;
+    int height = 0;
 
-    // Check for resize
-    RECT rc;
-    GetClientRect(hWnd, &rc);
-    UINT width = rc.right - rc.left;
-    UINT height = rc.bottom - rc.top;
+#if 0
+    SDL_GetWindowSize(swap_chain->wnd, &width, &height);
+#else
+    assert(0);
+#endif
 
     if (!resize_swap_chain(swap_chain, frame_buffer, width, height))
         return false;

@@ -264,4 +264,8 @@
       <Filter>Textures</Filter>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <Library Include="thirdparty\SDL2-2.0.1\VisualC\SDLmain\x64\Release\SDL2main.lib" />
+    <Library Include="thirdparty\SDL2-2.0.1\VisualC\SDL\x64\Release\SDL2.lib" />
+  </ItemGroup>
 </Project>

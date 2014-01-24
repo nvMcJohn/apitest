@@ -715,21 +715,6 @@ extern PFNGLTEXPAGECOMMITMENTARBPROC glTexPageCommitmentARB;
 extern PFNGLTEXTUREPAGECOMMITMENTEXTPROC glTexturePageCommitmentEXT;
 
 // --------------------------------------------------------------------------------------------------------------------
-// WGL
-
-// WGL_ARB_pixel_format
-extern PFNWGLGETPIXELFORMATATTRIBIVARBPROC wglGetPixelFormatAttribivARB;
-extern PFNWGLGETPIXELFORMATATTRIBFVARBPROC wglGetPixelFormatAttribfvARB;
-extern PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB;
-
-// WGL_EXT_swap_control
-extern PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT;
-extern PFNWGLGETSWAPINTERVALEXTPROC wglGetSwapIntervalEXT;
-
-// WGL_ARB_create_context
-extern PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
-
-// --------------------------------------------------------------------------------------------------------------------
 // ARB extensions
 
 
@@ -874,6 +859,5 @@ struct DrawElementsIndirectBindlessCommandNV
 // --------------------------------------------------------------------------------------------------------------------
 namespace wgl
 {
-    void bind_wgl();
     void bind_gl();
 }
