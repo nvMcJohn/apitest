@@ -179,7 +179,7 @@ bool Textures_GL_Sparse_Bindless_Texture_Array_MultiDraw::begin(GfxSwapChain* sw
 
     // Bind and clear frame buffer
     int fbo = PTR_AS_INT(frame_buffer);
-    float c[4] = { 0.25f, 0.25f, 0.33f, 1.0f };
+    float c[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
     float d = 1.0f;
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
     glClearBufferfv(GL_COLOR, 0, c);
