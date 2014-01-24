@@ -329,7 +329,7 @@ void StreamingVB::render()
 // ------------------------------------------------------------------------------------------------
 void Cubes::render()
 {
-    static float angle;
+    static float angle = 0.0f;
     static Matrix* transforms;
     if (!transforms)
         transforms = new Matrix[CUBES_COUNT];
@@ -357,7 +357,7 @@ void Cubes::render()
 // ------------------------------------------------------------------------------------------------
 void Textures::render()
 {
-    static float angle;
+    static float angle = 0.0f;
     static Matrix* transforms;
     if (!transforms)
         transforms = new Matrix[TEXTURES_COUNT];
