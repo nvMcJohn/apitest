@@ -2,8 +2,6 @@
 
 #include "gfx.h"
 
-#include <d3d11.h>
-
 #define SAFE_RELEASE(x)         { if (x != nullptr) { x->Release(); x = nullptr; } }
 
 struct GfxFrameBuffer

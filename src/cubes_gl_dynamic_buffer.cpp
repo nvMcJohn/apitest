@@ -1,7 +1,7 @@
+#include "pch.h"
+
 #include "cubes_gl_dynamic_buffer.h"
 #include "mathlib.h"
-#include <assert.h>
-#include <stdint.h>
 
 Cubes_GL_DynamicBuffer::Cubes_GL_DynamicBuffer()
     : m_ib()

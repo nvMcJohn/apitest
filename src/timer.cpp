@@ -1,3 +1,5 @@
+#include "pch.h"
+
 #include "timer.h"
 
 namespace timer

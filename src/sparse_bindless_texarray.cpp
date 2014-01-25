@@ -1,4 +1,4 @@
-#include <assert.h>
+#include "pch.h"
 
 #include "sparse_bindless_texarray.h"
 

@@ -1,9 +1,9 @@
+#include "pch.h"
+
 #include "streaming_vb_gl.h"
-#include <assert.h>
 
 #define GL_USE_MAP 1
 #define GL_USE_PERSISTENT_MAP 1
-
 
 StreamingVB_GL::StreamingVB_GL()
     : m_ub()

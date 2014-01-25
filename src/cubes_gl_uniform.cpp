@@ -1,7 +1,8 @@
+#include "pch.h"
+
 #include "cubes_gl_uniform.h"
 #include "mathlib.h"
-#include <assert.h>
-#include <stdint.h>
+
 
 Cubes_GL_Uniform::Cubes_GL_Uniform()
     : m_ib()

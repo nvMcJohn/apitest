@@ -1,7 +1,6 @@
+#include "pch.h"
+
 #include "cubes_gl_bindless_indirect.h"
-#include "mathlib.h"
-#include <assert.h>
-#include <stdint.h>
 
 #include "console.h"
 

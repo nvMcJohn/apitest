@@ -1,9 +1,7 @@
+#include "pch.h"
+
 #include "gfx_gl.h"
 #include "console.h"
-#include <assert.h>
-#include <stdio.h>
-
-#include "SDL.h"
 
 #include "cubes_gl_uniform.h"
 #include "cubes_gl_dynamic_buffer.h"

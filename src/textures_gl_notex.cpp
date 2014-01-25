@@ -1,10 +1,8 @@
+#include "pch.h"
+
 #include "textures_gl_notex.h"
 #include "mathlib.h"
-#include <assert.h>
-#include <stdint.h>
 #include "console.h"
-
-#include "dds_helper.h"
 
 // ------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------

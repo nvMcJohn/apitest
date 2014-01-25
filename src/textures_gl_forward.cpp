@@ -1,9 +1,7 @@
+#include "pch.h"
+
 #include "textures_gl_forward.h"
 #include "mathlib.h"
-#include <assert.h>
-#include <stdint.h>
-
-#include "dds_helper.h"
 
 Textures_GL_Forward::Textures_GL_Forward()
     : m_ib()

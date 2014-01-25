@@ -1,6 +1,7 @@
+#include "pch.h"
+
 #include "gfx_dx11.h"
 #include "streaming_vb_dx11.h"
-#include <assert.h>
 
 // Libraries
 #pragma comment(lib, "dxgi.lib")

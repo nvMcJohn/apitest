@@ -1,9 +1,9 @@
-#include <assert.h>
+#include "pch.h"
+
 #include "console.h"
 #include "gfx.h"
 #include "timer.h"
 
-#include "SDL.h"
 #include "wgl.h"
 
 #define SAFE_DELETE(x)         { delete x; x = nullptr; }

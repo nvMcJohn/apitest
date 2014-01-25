@@ -1,7 +1,7 @@
+#include "pch.h"
+
 #include "cubes_gl_buffer_range.h"
 #include "mathlib.h"
-#include <assert.h>
-#include <stdint.h>
 
 Cubes_GL_BufferRange::Cubes_GL_BufferRange()
     : m_ib()

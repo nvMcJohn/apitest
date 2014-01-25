@@ -1,10 +1,9 @@
+#include "pch.h"
+
 #include "textures_gl_sparse_bindless_texture_array_multidraw.h"
 #include "mathlib.h"
-#include <assert.h>
-#include <stdint.h>
 #include "console.h"
 
-#include "dds_helper.h"
 
 // This doesn't seem to cost very much. Good news!
 #define GL_TEXTURE_BINDLESS_RESIDENCY_ONCE_EVER 0

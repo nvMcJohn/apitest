@@ -1,7 +1,7 @@
+#include "pch.h"
+
 #include "cubes_gl_multi_draw.h"
 #include "mathlib.h"
-#include <assert.h>
-#include <stdint.h>
 
 Cubes_GL_MultiDraw::Cubes_GL_MultiDraw()
     : m_ib()

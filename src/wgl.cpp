@@ -1,7 +1,8 @@
+#include "pch.h"
+
 // Windows interface to OpenGL
 
 #include "gfx.h"
-
 #include "wgl.h"
 
 #pragma comment (lib, "opengl32.lib")

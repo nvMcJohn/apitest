@@ -1,6 +1,7 @@
+#include "pch.h"
+
 #include "console.h"
 
-#include <stdio.h>
 
 #ifdef _WIN32
 #   include <Windows.h>

@@ -1,7 +1,8 @@
+#include "pch.h"
+
 #include "cubes_gl_tex_coord.h"
 #include "mathlib.h"
-#include <assert.h>
-#include <stdint.h>
+
 
 Cubes_GL_TexCoord::Cubes_GL_TexCoord()
     : m_ib()

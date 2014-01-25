@@ -1,8 +1,8 @@
+#include "pch.h"
+
 #include "streaming_vb_dx11.h"
 #include "streaming_vb_dx11_ps.h"
 #include "streaming_vb_dx11_vs.h"
-
-#include <assert.h>
 
 StreamingVB_DX11::StreamingVB_DX11()
     : m_layout()

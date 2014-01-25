@@ -1,7 +1,7 @@
+#include "pch.h"
+
 #include "cubes_gl_buffer_storage.h"
 #include "mathlib.h"
-#include <assert.h>
-#include <stdint.h>
 
 Cubes_GL_BufferStorage::Cubes_GL_BufferStorage()
     : m_ib()
