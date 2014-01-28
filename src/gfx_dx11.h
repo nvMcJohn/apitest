@@ -40,3 +40,4 @@ extern IDXGIFactory* g_dxgi_factory;
 extern ID3D11Device* g_d3d_device;
 extern D3D_FEATURE_LEVEL g_d3d_feature_level;
 extern ID3D11DeviceContext* g_d3d_context;
+

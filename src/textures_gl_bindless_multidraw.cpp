@@ -200,9 +200,9 @@ bool Textures_GL_Bindless_MultiDraw::begin(GfxSwapChain* swap_chain, GfxFrameBuf
 
     // Then the VBs (SOA).
     glBindBuffer(GL_ARRAY_BUFFER, m_vb_pos);
-    glVertexAttribPointer(0, 3, GL_FLOAT, FALSE, 0, 0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glBindBuffer(GL_ARRAY_BUFFER, m_vb_tex);
-    glVertexAttribPointer(1, 2, GL_FLOAT, FALSE, 0, 0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);

@@ -945,6 +945,13 @@ elseif(APPLE)
     set(HAVE_SDL_FILESYSTEM TRUE)
   endif()
 
+  if(SDL_TIMERS)
+    set(SDL_TIMER_UNIX 1)
+    file(GLOB TIMER_SOURCES ${SDL2_SOURCE_DIR}/src/timer/unix/*.c)
+    set(SOURCE_FILES ${SOURCE_FILES} ${TIMER_SOURCES})
+    set(HAVE_SDL_TIMERS TRUE)
+  endif(SDL_TIMERS)
+
   # Actually load the frameworks at the end so we don't duplicate include.
   if(SDL_FRAMEWORK_COCOA)
     find_library(COCOA_LIBRARY Cocoa)

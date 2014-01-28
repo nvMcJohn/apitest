@@ -679,7 +679,7 @@ PFNGLUNIFORMHANDLEUI64ARBPROC glUniformHandleui64ARB;
 template<class T>
 void bind(T& x, const char* name)
 {
-    x = reinterpret_cast<T>(wglGetProcAddress(name));
+    x = reinterpret_cast<T>(SDL_GL_GetProcAddress(name));
 }
 
 void wgl::bind_gl()

@@ -67,24 +67,24 @@ bool Textures_GL_Sparse_Bindless_Texture_Array_MultiDraw::init()
         "texAddress[0].Page",
     };
 
-    GLuint uniindices[ARRAYSIZE(uninames)] = { 0 };
-    GLint offsets[ARRAYSIZE(uninames)] = { 0 };
-    GLint sizes[ARRAYSIZE(uninames)] = { 0 };
-    GLint arraystrides[ARRAYSIZE(uninames)] = { 0 };
+    GLuint uniindices[ArraySize(uninames)] = { 0 };
+    GLint offsets[ArraySize(uninames)] = { 0 };
+    GLint sizes[ArraySize(uninames)] = { 0 };
+    GLint arraystrides[ArraySize(uninames)] = { 0 };
 
-    for (int i = 0; i < ARRAYSIZE(uninames); ++i) {
+    for (int i = 0; i < ArraySize(uninames); ++i) {
         uniindices[i] = glGetProgramResourceIndex(m_prog, GL_BUFFER_VARIABLE, uninames[i]);
     }
 
-    for (int i = 0; i < ARRAYSIZE(uniindices); ++i) {
+    for (int i = 0; i < ArraySize(uniindices); ++i) {
         GLenum props[] = { GL_OFFSET, GL_TOP_LEVEL_ARRAY_STRIDE };
-        GLint results[ARRAYSIZE(props)] = { 0 };
-        glGetProgramResourceiv(m_prog, GL_BUFFER_VARIABLE, uniindices[i], ARRAYSIZE(props), props, ARRAYSIZE(props), NULL, results);
+        GLint results[ArraySize(props)] = { 0 };
+        glGetProgramResourceiv(m_prog, GL_BUFFER_VARIABLE, uniindices[i], ArraySize(props), props, ArraySize(props), NULL, results);
         offsets[i] = results[0];
         arraystrides[i] = results[1];
     }
 
-    glGetActiveUniformsiv(m_prog, ARRAYSIZE(uninames), uniindices, GL_UNIFORM_OFFSET, offsets);
+    glGetActiveUniformsiv(m_prog, ArraySize(uninames), uniindices, GL_UNIFORM_OFFSET, offsets);
 
     // Buffers
     Vec3 vertices_pos[] =
@@ -202,9 +202,9 @@ bool Textures_GL_Sparse_Bindless_Texture_Array_MultiDraw::begin(GfxSwapChain* sw
 
     // Then the VBs (SOA).
     glBindBuffer(GL_ARRAY_BUFFER, m_vb_pos);
-    glVertexAttribPointer(0, 3, GL_FLOAT, FALSE, 0, 0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glBindBuffer(GL_ARRAY_BUFFER, m_vb_tex);
-    glVertexAttribPointer(1, 2, GL_FLOAT, FALSE, 0, 0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);

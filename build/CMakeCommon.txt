@@ -4,16 +4,31 @@ set( apitest_MEDIA_DIR ${apitest_BIN_DIR}/Media )
 set( apitest_SHADER_DIR ${apitest_BIN_DIR}/Shader )
 
 set( SDL_INCLUDE_DIR "${apitest_SOURCE_DIR}/thirdparty/SDL2-2.0.1/include" )
-set( SDL_LIBRARY_DIR "\$(SolutionDir)/thirdparty/SDL2-2.0.1/\$(Configuration)" )
 
-set( CMAKE_CXX_FLAGS "/WX /W3 /MP /GR /EHa /arch:SSE2" )
-set( CMAKE_CXX_FLAGS_DEBUG "/ZI /Od" )
-set( CMAKE_CXX_FLAGS_RELEASE "/Zi /O2" )
 
-set( CMAKE_EXE_LINKER_FLAGS "/DEBUG" )
-set( CMAKE_SHARED_LINKER_FLAGS "/DEBUG" )
-set( CMAKE_MODULE_LINKER_FLAGS "/DEBUG" )
+if( MSVC )
+    set( SDL_LIBRARY_DIR "${CMAKE_BINARY_DIR}/thirdparty/SDL2-2.0.1/\$(Configuration)" )
 
+	set( CMAKE_CXX_FLAGS "/WX /W3 /MP /GR /EHa /arch:SSE2" )
+	set( CMAKE_CXX_FLAGS_DEBUG "/ZI /Od" )
+	set( CMAKE_CXX_FLAGS_RELEASE "/Zi /O2" )
+
+	set( CMAKE_EXE_LINKER_FLAGS "/DEBUG" )
+	set( CMAKE_SHARED_LINKER_FLAGS "/DEBUG" )
+	set( CMAKE_MODULE_LINKER_FLAGS "/DEBUG" )
+else()
+    set( SDL_LIBRARY_DIR "${CMAKE_BINARY_DIR}/thirdparty/SDL2-2.0.1/" )
+
+	set( CMAKE_CXX_FLAGS "-std=c++0x -stdlib=libc++ -g -O0" )
+    # set( CMAKE_CXX_FLAGS_DEBUG "-O0" )
+    # set( CMAKE_CXX_FLAGS_RELEASE "-O3" )
+
+    set( CMAKE_EXE_LINKER_FLAGS "-g" )
+    set( CMAKE_SHARED_LINKER_FLAGS "-g" )
+    set( CMAKE_MODULE_LINKER_FLAGS "-g" )
+endif( MSVC )
+
+set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${apitest_BIN_DIR} )
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${apitest_BIN_DIR} )
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${apitest_BIN_DIR} )
 

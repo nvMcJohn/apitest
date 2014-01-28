@@ -88,7 +88,7 @@ bool StreamingVB_GL::begin(GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buffe
     glEnableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
     glBindBuffer(GL_ARRAY_BUFFER, m_dyn_vb);
-    glVertexAttribPointer(0, 2, GL_FLOAT, FALSE, sizeof(VertexPos2), (void*)offsetof(VertexPos2, x));
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(VertexPos2), (void*)offsetof(VertexPos2, x));
 
     // Rasterizer State
     glDisable(GL_CULL_FACE);

@@ -124,8 +124,8 @@ bool Cubes_GL_BufferStorage::begin(GfxSwapChain* swap_chain, GfxFrameBuffer* fra
     // Input Layout
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ib);
     glBindBuffer(GL_ARRAY_BUFFER, m_vb);
-    glVertexAttribPointer(0, 3, GL_FLOAT, FALSE, sizeof(Vertex), (void*)offsetof(Vertex, pos));
-    glVertexAttribPointer(1, 3, GL_FLOAT, FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, pos));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
 
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);

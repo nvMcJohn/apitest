@@ -2,11 +2,12 @@
 
 #include "console.h"
 
+#ifndef OutputDebugString
+#   define OutputDebugString(_x) printf("%s\n", _x)
+#endif
 
-#ifdef _WIN32
-#   include <Windows.h>
-#else
-#   define OutputDebugString(_x) printf(_x)
+#ifndef _WINDEF_
+    #define vsprintf_s(_buf, _sizeofbuf, _fmt, _args) vsprintf(_buf, _fmt, _args) 
 #endif
 
 namespace console

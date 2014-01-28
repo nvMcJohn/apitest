@@ -1,6 +1,7 @@
 #include "pch.h"
 
 #include "sparse_bindless_texarray.h"
+#include <algorithm>
 
 
 // ------------------------------------------------------------------------------------------------
@@ -158,8 +159,8 @@ void Texture2DContainer::changeCommitment(GLsizei slice, GLboolean commit)
 
     for (int level = 0; level < mLevels; ++level) {
         glTexturePageCommitmentEXT(mTexId, level, 0, 0, slice, levelWidth, levelHeight, 1, commit);
-        levelWidth = max(levelWidth / 2, 1);
-        levelHeight = max(levelHeight / 2, 1);
+        levelWidth = std::max(levelWidth / 2, 1);
+        levelHeight = std::max(levelHeight / 2, 1);
     }
 
     err = glGetError();

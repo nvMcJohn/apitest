@@ -8,6 +8,11 @@
 
 #define SAFE_DELETE(x)         { delete x; x = nullptr; }
 
+#ifndef _WIN32
+    // This is not supported on !Windows.
+    GfxApi *create_gfx_dx11()       { return nullptr; }
+#endif
+
 // --------------------------------------------------------------------------------------------------------------------
 SDL_Window *s_window; /* Our window handle */
 
@@ -15,7 +20,7 @@ static GfxApi* s_api;
 static GfxSwapChain* s_swap_chain;
 static GfxFrameBuffer* s_frame_buffer;
 
-static TestId s_test_id = TestId::TexturesSparseBindlessTextureArrayMultiDraw;
+static TestId s_test_id = TestId::TexturesForward;
 static TestCase* s_test_case;
 
 // ------------------------------------------------------------------------------------------------
@@ -231,7 +236,7 @@ static void render()
 
 static bool sdl_init()
 {
-    return SDL_Init(SDL_INIT_EVERYTHING) >= 0;
+    return SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) >= 0;
 }
 
 // ------------------------------------------------------------------------------------------------

@@ -8,9 +8,32 @@
 
 // If Windows.h hasn't been included, or if we're on a non-Windows platform
 #ifndef _WINDEF_
-typedef unsigned long DWORD;
-typedef unsigned char BYTE;
+
+    #include <errno.h>
+
+    typedef unsigned char BYTE;
+    typedef unsigned int  UINT;
+    typedef unsigned long DWORD;
+    typedef int errno_t;
+
+    inline errno_t fopen_s(FILE** pFile, const char* filename, const char *mode)
+    {
+        (*pFile) = fopen(filename, mode);
+        if (!*pFile) {
+            return errno;
+        }
+
+        return 0;
+    }
+
+    inline size_t fread_s(void* buffer, size_t bufferSize, size_t elementSize, size_t count, FILE *stream)
+    {
+        return fread(buffer, elementSize, count, stream);
+    }
+    
 #endif
+
+#define dds_imax(_a, _b) (((_a) > (_b)) ? (_a) : (_b))
 
 #ifndef MAKEFOURCC
 #define MAKEFOURCC(a, b, c, d) \
@@ -42,8 +65,8 @@ struct TextureDetails
             free(pSizes);
     }
 
-    GLint MipMapHeight(GLint mipMap) { return max(1, dwHeight >> mipMap); }
-    GLint MipMapWidth(GLint mipMap) { return max(1, dwWidth >> mipMap); }
+    GLint MipMapHeight(GLint mipMap) { return dds_imax(1, dwHeight >> mipMap); }
+    GLint MipMapWidth(GLint mipMap) { return dds_imax(1, dwWidth >> mipMap); }
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -305,7 +328,7 @@ inline bool readDDSFromFile_DXT1(const DDS_HEADER& _header, FILE* _file, Texture
     const DWORD kRowsPerBlock = 4;
 
     size_t totalSize = 0;
-    DWORD mipmaps = max(1, _header.dwMipMapCount);
+    DWORD mipmaps = dds_imax(1, _header.dwMipMapCount);
 
     _outDetails->szMipMapCount = mipmaps;
     _outDetails->pSizes = (GLsizei*)malloc(mipmaps * sizeof(GLsizei));
@@ -322,8 +345,8 @@ inline bool readDDSFromFile_DXT1(const DDS_HEADER& _header, FILE* _file, Texture
         _outDetails->pSizes[mip] = mipmapSize;
 
         totalSize += mipmapSize;
-        mipWidth = max(1, mipWidth >> 1);
-        mipHeight = max(1, mipHeight >> 1);
+        mipWidth = dds_imax(1, mipWidth >> 1);
+        mipHeight = dds_imax(1, mipHeight >> 1);
     }
 
     BYTE* buffer = (BYTE*)malloc(totalSize);

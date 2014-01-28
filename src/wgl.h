@@ -3,60 +3,62 @@
 #pragma once
 
 #include "GL/glcorearb.h"
-#include "GL/wglext.h"
+#ifdef _WIN32
+#   include "GL/wglext.h"
+#endif
 #include "GL/glext.h"
 
 // --------------------------------------------------------------------------------------------------------------------
 // GL 1.0
 extern "C" {
-GLAPI void APIENTRY glCullFace (GLenum);
-GLAPI void APIENTRY glFrontFace (GLenum);
-GLAPI void APIENTRY glHint (GLenum, GLenum);
-GLAPI void APIENTRY glLineWidth (GLfloat);
-GLAPI void APIENTRY glPointSize (GLfloat);
-GLAPI void APIENTRY glPolygonMode (GLenum, GLenum);
-GLAPI void APIENTRY glScissor (GLint, GLint, GLsizei, GLsizei);
-GLAPI void APIENTRY glTexParameterf (GLenum, GLenum, GLfloat);
-GLAPI void APIENTRY glTexParameterfv (GLenum, GLenum, const GLfloat *);
-GLAPI void APIENTRY glTexParameteri (GLenum, GLenum, GLint);
-GLAPI void APIENTRY glTexParameteriv (GLenum, GLenum, const GLint *);
-GLAPI void APIENTRY glTexImage1D (GLenum, GLint, GLint, GLsizei, GLint, GLenum, GLenum, const GLvoid *);
-GLAPI void APIENTRY glTexImage2D (GLenum target, GLint level, GLint internalFormat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid *data);
-GLAPI void APIENTRY glDrawBuffer (GLenum);
-GLAPI void APIENTRY glClear (GLbitfield);
-GLAPI void APIENTRY glClearColor (GLclampf, GLclampf, GLclampf, GLclampf);
-GLAPI void APIENTRY glClearStencil (GLint);
-GLAPI void APIENTRY glClearDepth (GLclampd);
-GLAPI void APIENTRY glStencilMask (GLuint);
-GLAPI void APIENTRY glColorMask (GLboolean, GLboolean, GLboolean, GLboolean);
-GLAPI void APIENTRY glDepthMask (GLboolean);
-GLAPI void APIENTRY glDisable (GLenum);
-GLAPI void APIENTRY glEnable (GLenum);
-GLAPI void APIENTRY glFinish (void);
-GLAPI void APIENTRY glFlush (void);
-GLAPI void APIENTRY glBlendFunc (GLenum, GLenum);
-GLAPI void APIENTRY glLogicOp (GLenum);
-GLAPI void APIENTRY glStencilFunc (GLenum, GLint, GLuint);
-GLAPI void APIENTRY glStencilOp (GLenum, GLenum, GLenum);
-GLAPI void APIENTRY glDepthFunc (GLenum);
-GLAPI void APIENTRY glPixelStoref (GLenum, GLfloat);
-GLAPI void APIENTRY glPixelStorei (GLenum, GLint);
-GLAPI void APIENTRY glReadBuffer (GLenum);
-GLAPI void APIENTRY glReadPixels (GLint, GLint, GLsizei, GLsizei, GLenum, GLenum, GLvoid *);
-GLAPI void APIENTRY glGetBooleanv (GLenum, GLboolean *);
-GLAPI void APIENTRY glGetDoublev (GLenum, GLdouble *);
-GLAPI GLenum APIENTRY glGetError (void);
-GLAPI void APIENTRY glGetFloatv (GLenum, GLfloat *);
-GLAPI void APIENTRY glGetIntegerv (GLenum, GLint *);
-GLAPI const GLubyte * APIENTRY glGetString (GLenum);
-GLAPI void APIENTRY glGetTexImage (GLenum, GLint, GLenum, GLenum, GLvoid *);
-GLAPI void APIENTRY glGetTexParameterfv (GLenum, GLenum, GLfloat *);
-GLAPI void APIENTRY glGetTexParameteriv (GLenum, GLenum, GLint *);
-GLAPI void APIENTRY glGetTexLevelParameterfv (GLenum, GLint, GLenum, GLfloat *);
-GLAPI void APIENTRY glGetTexLevelParameteriv (GLenum, GLint, GLenum, GLint *);
-GLAPI GLboolean APIENTRY glIsEnabled (GLenum);
-GLAPI void APIENTRY glDepthRange (GLclampd, GLclampd);
-GLAPI void APIENTRY glViewport (GLint, GLint, GLsizei, GLsizei);
+    GLAPI void APIENTRY glCullFace (GLenum);
+    GLAPI void APIENTRY glFrontFace (GLenum);
+    GLAPI void APIENTRY glHint (GLenum, GLenum);
+    GLAPI void APIENTRY glLineWidth (GLfloat);
+    GLAPI void APIENTRY glPointSize (GLfloat);
+    GLAPI void APIENTRY glPolygonMode (GLenum, GLenum);
+    GLAPI void APIENTRY glScissor (GLint, GLint, GLsizei, GLsizei);
+    GLAPI void APIENTRY glTexParameterf (GLenum, GLenum, GLfloat);
+    GLAPI void APIENTRY glTexParameterfv (GLenum, GLenum, const GLfloat *);
+    GLAPI void APIENTRY glTexParameteri (GLenum, GLenum, GLint);
+    GLAPI void APIENTRY glTexParameteriv (GLenum, GLenum, const GLint *);
+    GLAPI void APIENTRY glTexImage1D (GLenum, GLint, GLint, GLsizei, GLint, GLenum, GLenum, const GLvoid *);
+    GLAPI void APIENTRY glTexImage2D (GLenum target, GLint level, GLint internalFormat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid *data);
+    GLAPI void APIENTRY glDrawBuffer (GLenum);
+    GLAPI void APIENTRY glClear (GLbitfield);
+    GLAPI void APIENTRY glClearColor (GLclampf, GLclampf, GLclampf, GLclampf);
+    GLAPI void APIENTRY glClearStencil (GLint);
+    GLAPI void APIENTRY glClearDepth (GLclampd);
+    GLAPI void APIENTRY glStencilMask (GLuint);
+    GLAPI void APIENTRY glColorMask (GLboolean, GLboolean, GLboolean, GLboolean);
+    GLAPI void APIENTRY glDepthMask (GLboolean);
+    GLAPI void APIENTRY glDisable (GLenum);
+    GLAPI void APIENTRY glEnable (GLenum);
+    GLAPI void APIENTRY glFinish (void);
+    GLAPI void APIENTRY glFlush (void);
+    GLAPI void APIENTRY glBlendFunc (GLenum, GLenum);
+    GLAPI void APIENTRY glLogicOp (GLenum);
+    GLAPI void APIENTRY glStencilFunc (GLenum, GLint, GLuint);
+    GLAPI void APIENTRY glStencilOp (GLenum, GLenum, GLenum);
+    GLAPI void APIENTRY glDepthFunc (GLenum);
+    GLAPI void APIENTRY glPixelStoref (GLenum, GLfloat);
+    GLAPI void APIENTRY glPixelStorei (GLenum, GLint);
+    GLAPI void APIENTRY glReadBuffer (GLenum);
+    GLAPI void APIENTRY glReadPixels (GLint, GLint, GLsizei, GLsizei, GLenum, GLenum, GLvoid *);
+    GLAPI void APIENTRY glGetBooleanv (GLenum, GLboolean *);
+    GLAPI void APIENTRY glGetDoublev (GLenum, GLdouble *);
+    GLAPI GLenum APIENTRY glGetError (void);
+    GLAPI void APIENTRY glGetFloatv (GLenum, GLfloat *);
+    GLAPI void APIENTRY glGetIntegerv (GLenum, GLint *);
+    GLAPI const GLubyte * APIENTRY glGetString (GLenum);
+    GLAPI void APIENTRY glGetTexImage (GLenum, GLint, GLenum, GLenum, GLvoid *);
+    GLAPI void APIENTRY glGetTexParameterfv (GLenum, GLenum, GLfloat *);
+    GLAPI void APIENTRY glGetTexParameteriv (GLenum, GLenum, GLint *);
+    GLAPI void APIENTRY glGetTexLevelParameterfv (GLenum, GLint, GLenum, GLfloat *);
+    GLAPI void APIENTRY glGetTexLevelParameteriv (GLenum, GLint, GLenum, GLint *);
+    GLAPI GLboolean APIENTRY glIsEnabled (GLenum);
+    GLAPI void APIENTRY glDepthRange (GLclampd, GLclampd);
+    GLAPI void APIENTRY glViewport (GLint, GLint, GLsizei, GLsizei);
 }
 
 // --------------------------------------------------------------------------------------------------------------------
