@@ -130,7 +130,10 @@ TestCase* GfxApi_GL::create_test(TestId id)
 
 bool create_shader(GLenum target, const char* path, GLuint* out_shader)
 {
-    FILE* fp = fopen(path, "rb");
+    std::string pathname = "Shaders/glsl/";
+    pathname += path;
+
+    FILE* fp = fopen(pathname.c_str(), "rb");
     if (!fp)
         return false;
 

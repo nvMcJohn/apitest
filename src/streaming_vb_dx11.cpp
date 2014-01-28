@@ -148,8 +148,8 @@ bool StreamingVB_DX11::init()
 
 bool StreamingVB_DX11::begin(GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buffer)
 {
-    int width = 0;
-    int height = 0;
+    int width = 1;
+    int height = 1;
 
 #if 0
     SDL_GetWindowSize(swap_chain->wnd, &width, &height);

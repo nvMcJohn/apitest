@@ -1,10 +1,6 @@
 
 include( ${apitest_SOURCE_DIR}/build/CMakeCommon.txt )
 
-set( SDL_INCLUDE_DIR ${apitest_SOURCE_DIR}/thirdparty/SDL2-2.0.1/include)
-
-find_package(SDL REQUIRED)
-
 set( SRCS
 		api_speed_test.cpp
 		console.cpp
@@ -37,8 +33,11 @@ include_directories( "${SDL_INCLUDE_DIR}" )
 # Build our executable
 add_executable( apitest ${SRCS} ${HDRS} )
 
-target_link_libraries( apitest ${SDL_LIBRARY}/Debug/SDL2 )
-target_link_libraries( apitest ${SDL_LIBRARY}/Debug/SDL2main )
+target_link_libraries( apitest ${SDL_LIBRARY_DIR}/SDL2.lib )
+target_link_libraries( apitest ${SDL_LIBRARY_DIR}/SDL2main.lib )
+
+# Don't know why these don't get picked up automatically. Don't care. 
+add_dependencies( apitest SDL2 SDL2main )
 
 # Change the debug executable name
 set_target_properties( apitest PROPERTIES RUNTIME_OUTPUT_NAME_DEBUG apitest_d )
