@@ -58,6 +58,8 @@ if( APPLE )
         set( EXTRA_LIBS ${LIB_CARBON} ${LIB_COCOA} ${LIB_COREAUDIO} ${LIB_FORCEFEEDBACK} ${LIB_IOKIT} ${LIB_OGL} ${EXTRA_LIBS} )
 
         target_link_libraries( apitest ${EXTRA_LIBS} )
+elseif( UNIX )
+        target_link_libraries( apitest GL pthread dl )
 endif( APPLE )
 
 # Don't know why these don't get picked up automatically. Don't care. 

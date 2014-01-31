@@ -10,10 +10,11 @@ class Texture2D;
 class Texture2DContainer;
 class TextureManager;
 
-struct __declspec(align(16)) TexAddress
+struct TexAddress
 {
     GLuint64 m_container_handle;
     GLfloat m_tex_page;
+    GLint reserved;
 };
 
 // ------------------------------------------------------------------------------------------------
