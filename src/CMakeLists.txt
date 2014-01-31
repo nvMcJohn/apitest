@@ -33,6 +33,9 @@ if( MSVC )
 endif( MSVC )
 
 
+# Setup PCH
+add_msvc_precompiled_header( "pch.h" "pch.cpp" SRCS )
+
 # Add include directories for third party software (SDL)
 include_directories( "${SDL_INCLUDE_DIR}" )
 

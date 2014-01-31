@@ -43,5 +43,26 @@ set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${apitest_BIN_DIR} )
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${apitest_BIN_DIR} )
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${apitest_BIN_DIR} )
 
+
+# http://stackoverflow.com/questions/148570/using-pre-compiled-headers-with-cmake
+macro( add_msvc_precompiled_header _precompiledHeader _precompiledSource _sourcesVar )
+  if( MSVC )
+    get_filename_component( PrecompiledBasename ${_precompiledHeader} NAME_WE)
+    set( PrecompiledBinary "${CMAKE_CURRENT_BINARY_DIR}/${PrecompiledBasename}.pch" )
+    set( Sources ${${_sourcesVar}})
+
+    set_source_files_properties( ${_precompiledSource}
+                                 PROPERTIES COMPILE_FLAGS "/Yc\"${_precompiledHeader}\" /Fp\"${PrecompiledBinary}\""
+                                            OBJECT_OUTPUTS "${PrecompiledBinary}" )
+
+    set_source_files_properties( ${Sources}
+                                 PROPERTIES COMPILE_FLAGS "/Yu\"${_precompiledHeader}\" /FI\"${_precompiledHeader}\" /Fp\"${PrecompiledBinary}\""
+                                            OBJECT_DEPENDS "${PrecompiledBinary}" )
+    # Add precompiled header to _sourcesVar
+    LIST( APPEND ${_sourcesVar} ${_precompiledSource} )
+  endif( MSVC )
+endmacro( add_msvc_precompiled_header )
+
+
 include_directories( ${apitest_SOURCE_DIR}/src )
 file( GLOB HDRS *.h )

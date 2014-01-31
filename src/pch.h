@@ -13,6 +13,7 @@
 #include <vector>
 
 #ifdef _WIN32
+#   define NOMINMAX 1
 #   include <Windows.h>
 #   include <d3d11.h>
 #endif
