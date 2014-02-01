@@ -48,7 +48,7 @@ set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${apitest_BIN_DIR} )
 macro( add_msvc_precompiled_header _precompiledHeader _precompiledSource _sourcesVar )
   if( MSVC )
     get_filename_component( PrecompiledBasename ${_precompiledHeader} NAME_WE)
-    set( PrecompiledBinary "${CMAKE_CURRENT_BINARY_DIR}/${PrecompiledBasename}.pch" )
+    set( PrecompiledBinary "${CMAKE_CFG_INTDIR}/${PrecompiledBasename}.pch" )
     set( Sources ${${_sourcesVar}})
 
     set_source_files_properties( ${_precompiledSource}
