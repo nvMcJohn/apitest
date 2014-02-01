@@ -7,28 +7,28 @@ namespace timer
     static Uint64 s_freq;
 }
 
-bool timer::init()
+bool timer::Init()
 {
     s_freq = SDL_GetPerformanceFrequency();
     return true;
 }
 
-Uint64 timer::read()
+Uint64 timer::Read()
 {
     return SDL_GetPerformanceCounter();
 }
 
-Uint64 timer::to_usec(Uint64 x)
+Uint64 timer::TouSec(Uint64 x)
 {
     return x * 1000000 / s_freq;
 }
 
-Uint64 timer::to_msec(Uint64 x)
+Uint64 timer::ToMSec(Uint64 x)
 {
     return x * 1000 / s_freq;
 }
 
-double timer::to_sec(Uint64 x)
+double timer::ToSec(Uint64 x)
 {
     return (double)x / (double)s_freq;
 }

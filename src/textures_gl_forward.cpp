@@ -28,16 +28,16 @@ Textures_GL_Forward::~Textures_GL_Forward()
     glDeleteProgram(m_prog);
 }
 
-bool Textures_GL_Forward::init()
+bool Textures_GL_Forward::Init()
 {
     // Shaders
-    if (!create_shader(GL_VERTEX_SHADER, "textures_gl_forward_vs.glsl", &m_vs))
+    if (!CreateShader(GL_VERTEX_SHADER, "textures_gl_forward_vs.glsl", &m_vs))
         return false;
 
-    if (!create_shader(GL_FRAGMENT_SHADER, "textures_gl_forward_fs.glsl", &m_fs))
+    if (!CreateShader(GL_FRAGMENT_SHADER, "textures_gl_forward_fs.glsl", &m_fs))
         return false;
 
-    if (!compile_program(&m_prog, m_vs, m_fs, 0))
+    if (!CompileProgram(&m_prog, m_vs, m_fs, 0))
         return false;
 
     // Buffers
@@ -132,17 +132,13 @@ bool Textures_GL_Forward::init()
     return glGetError() == GL_NO_ERROR;
 }
 
-bool Textures_GL_Forward::begin(GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buffer)
+bool Textures_GL_Forward::Begin(GfxBaseApi* _activeAPI)
 {
-    int width = 0;
-    int height = 0;
-    SDL_GetWindowSize(swap_chain->wnd, &width, &height);
+    int width = _activeAPI->GetWidth();
+    int height = _activeAPI->GetHeight();
 
-    // Bind and clear frame buffer
-    int fbo = PTR_AS_INT(frame_buffer);
     float c[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
     float d = 1.0f;
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
     glClearBufferfv(GL_COLOR, 0, c);
     glClearBufferfv(GL_DEPTH, 0, &d);
 
@@ -192,16 +188,7 @@ bool Textures_GL_Forward::begin(GfxSwapChain* swap_chain, GfxFrameBuffer* frame_
     return true;
 }
 
-void Textures_GL_Forward::end(GfxSwapChain* swap_chain)
-{
-    SDL_GL_SwapWindow(swap_chain->wnd);
-#if defined(_DEBUG)
-    GLenum error = glGetError();
-    assert(error == GL_NO_ERROR);
-#endif
-}
-
-void Textures_GL_Forward::draw(Matrix* transforms, int count)
+void Textures_GL_Forward::Draw(Matrix* transforms, int count)
 {
     assert(count <= TEXTURES_COUNT);
 
@@ -209,7 +196,7 @@ void Textures_GL_Forward::draw(Matrix* transforms, int count)
     glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Matrix) * count, transforms, GL_DYNAMIC_DRAW);
 
     for (int i = 0; i < count; ++i) {
-        // Update the draw ID (since we cannot use multi_draw here
+        // Update the Draw ID (since we cannot use multi_draw here
         glUniform1i(1, i); 
 
         // And update our texture via binding.

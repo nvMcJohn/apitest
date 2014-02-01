@@ -20,8 +20,20 @@
 
 #include "streaming_vb_gl.h"
 
-GfxApi *create_gfx_gl() { return new GfxApi_GL; }
+GfxBaseApi *CreateGfxOpenGLGeneric() { return new GfxApiOpenGLGeneric; }
 
+// --------------------------------------------------------------------------------------------------------------------
+static SDL_Window* CreateGLWindow(const char* _title, int _x, int _y, int _width, int _height)
+{
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+
+    SDL_Window* retWnd = SDL_CreateWindow(_title, _x, _y, _width, _height, SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN);
+
+    return retWnd;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
 static void APIENTRY ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char* message, const void* userParam)
 {
     if (source == GL_DEBUG_SOURCE_API && type == GL_DEBUG_TYPE_OTHER && severity == GL_DEBUG_SEVERITY_LOW && strstr(message, "DRAW_INDIRECT_BUFFER") == nullptr) {
@@ -31,35 +43,41 @@ static void APIENTRY ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum
     console::debug("%s\n", message);
 }
 
-GfxApi_GL::GfxApi_GL()
-{}
+// --------------------------------------------------------------------------------------------------------------------
+GfxApiOpenGLGeneric::GfxApiOpenGLGeneric()
+: mWnd()
+, mGLrc()
+{ }
 
-GfxApi_GL::~GfxApi_GL()
-{}
+// --------------------------------------------------------------------------------------------------------------------
+GfxApiOpenGLGeneric::~GfxApiOpenGLGeneric()
+{ }
 
-bool GfxApi_GL::init()
+// --------------------------------------------------------------------------------------------------------------------
+bool GfxApiOpenGLGeneric::Init(const std::string& _title, int _x, int _y, int _width, int _height)
 {
-    return true;
-}
+    if (!GfxBaseApi::Init(_title, _x, _y, _width, _height)) {
+        return false;
+    }
 
-bool GfxApi_GL::create_swap_chain(void* _wnd,
-    GfxSwapChain** out_swap_chain,
-    GfxFrameBuffer** out_frame_buffer)
-{
-    SDL_Window* wnd = (SDL_Window*)_wnd;
+    mWnd = CreateGLWindow(_title.c_str(), _x, _y, _width, _height);
+    if (!mWnd) {
+        console::debug("Unable to create SDL Window, which is required for GL.");
+        return false;
+    }
 
-    GfxSwapChain* swap_chain = new GfxSwapChain;
-    swap_chain->wnd = nullptr;
-    swap_chain->glrc = nullptr;
+    mGLrc = SDL_GL_CreateContext(mWnd);
+    if (mGLrc == 0) {
+        console::debug("Unable to create a GL context, which is required for GL.");
+        return false;
+    }
 
-    *out_swap_chain = swap_chain;
-    *out_frame_buffer = nullptr;
-
-    swap_chain->wnd = wnd;
-    swap_chain->glrc = SDL_GL_CreateContext(wnd);
-
-    SDL_GL_MakeCurrent(swap_chain->wnd, swap_chain->glrc);
-
+    if (SDL_GL_MakeCurrent(mWnd, mGLrc) != 0) {
+        console::debug("Unable to MakeCurrent on GL context.");
+        return false;
+    }
+    
+    // TODO: Redo how this is done, needs fallbacks, should use 
     wgl::bind_gl();
 
     SDL_GL_SetSwapInterval(0);
@@ -79,32 +97,44 @@ bool GfxApi_GL::create_swap_chain(void* _wnd,
     // glDebugMessageControl(GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_OTHER, GL_DEBUG_SEVERITY_LOW, 0, nullptr, GL_FALSE);
     glDebugMessageCallback(ErrorCallback, nullptr);
     glEnable(GL_DEBUG_OUTPUT);
-    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-
-    GLenum err = glGetError();
 #endif
 
     return true;
 }
 
-void GfxApi_GL::destroy_swap_chain(GfxSwapChain* swap_chain)
+// --------------------------------------------------------------------------------------------------------------------
+void GfxApiOpenGLGeneric::Shutdown()
 {
-    if (swap_chain)
-    {
-        SDL_GL_MakeCurrent(nullptr, nullptr);
+    SDL_GL_MakeCurrent(nullptr, nullptr);
 
-        if (swap_chain->glrc) {
-            SDL_GL_DeleteContext(swap_chain->glrc);
-        }
+    if (mGLrc) {
+        SDL_GL_DeleteContext(mGLrc);
+        mGLrc = 0;
+    }
 
-        delete swap_chain;
+    if (mWnd) {
+        SDL_DestroyWindow(mWnd);
+        mWnd = nullptr;
     }
 }
 
-void GfxApi_GL::destroy_frame_buffer(GfxFrameBuffer* frame_buffer)
-{}
+// --------------------------------------------------------------------------------------------------------------------
+void GfxApiOpenGLGeneric::Activate()
+{
+    assert(mWnd);
+    SDL_ShowWindow(mWnd);
+}
 
-TestCase* GfxApi_GL::create_test(TestId id)
+// --------------------------------------------------------------------------------------------------------------------
+void GfxApiOpenGLGeneric::Deactivate()
+{
+    assert(mWnd);
+    SDL_HideWindow(mWnd);
+}
+
+#if 0
+// --------------------------------------------------------------------------------------------------------------------
+TestCase* GfxApiOpenGLGeneric::create_test(TestId id)
 {
     switch (id)
     {
@@ -127,8 +157,18 @@ TestCase* GfxApi_GL::create_test(TestId id)
 
     return nullptr;
 }
+#endif
 
-bool create_shader(GLenum target, const char* path, GLuint* out_shader)
+// --------------------------------------------------------------------------------------------------------------------
+void GfxApiOpenGLGeneric::SwapBuffers()
+{
+    assert(mWnd);
+
+    SDL_GL_SwapWindow(mWnd);
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+bool CreateShader(GLenum target, const char* path, GLuint* out_shader)
 {
     std::string pathname = "Shaders/glsl/";
     pathname += path;
@@ -174,15 +214,17 @@ bool create_shader(GLenum target, const char* path, GLuint* out_shader)
     return true;
 }
 
-bool compile_program(GLuint* out_program, ...)
+// --------------------------------------------------------------------------------------------------------------------
+bool CompileProgram(GLuint* out_program, ...)
 {
     GLuint p = glCreateProgram();
 
     va_list args;
     va_start(args, out_program);
 
-    while (GLuint sh = va_arg(args, GLuint))
+    while (GLuint sh = va_arg(args, GLuint)) {
         glAttachShader(p, sh);
+    }
 
     va_end(args);
 

@@ -41,7 +41,7 @@ Textures_GL_Bindless::~Textures_GL_Bindless()
     glDeleteProgram(m_prog);
 }
 
-bool Textures_GL_Bindless::init()
+bool Textures_GL_Bindless::Init()
 {
     if (glGetTextureHandleARB == nullptr) {
         console::debug("Textures_GL_Bindless requires support for bindless textures (duh?). Cannot start this test.");
@@ -49,13 +49,13 @@ bool Textures_GL_Bindless::init()
     }
 
     // Shaders
-    if (!create_shader(GL_VERTEX_SHADER, "textures_gl_bindless_vs.glsl", &m_vs))
+    if (!CreateShader(GL_VERTEX_SHADER, "textures_gl_bindless_vs.glsl", &m_vs))
         return false;
 
-    if (!create_shader(GL_FRAGMENT_SHADER, "textures_gl_bindless_fs.glsl", &m_fs))
+    if (!CreateShader(GL_FRAGMENT_SHADER, "textures_gl_bindless_fs.glsl", &m_fs))
         return false;
 
-    if (!compile_program(&m_prog, m_vs, m_fs, 0))
+    if (!CompileProgram(&m_prog, m_vs, m_fs, 0))
         return false;
 
     // Buffers
@@ -170,17 +170,13 @@ bool Textures_GL_Bindless::init()
     return glGetError() == GL_NO_ERROR;
 }
 
-bool Textures_GL_Bindless::begin(GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buffer)
+bool Textures_GL_Bindless::Begin(GfxBaseApi* _activeAPI)
 {
-    int width = 0;
-    int height = 0;
-    SDL_GetWindowSize(swap_chain->wnd, &width, &height);
+    int width = _activeAPI->GetWidth();
+    int height = _activeAPI->GetHeight();
 
-    // Bind and clear frame buffer
-    int fbo = PTR_AS_INT(frame_buffer);
     float c[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
     float d = 1.0f;
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
     glClearBufferfv(GL_COLOR, 0, c);
     glClearBufferfv(GL_DEPTH, 0, &d);
 
@@ -233,21 +229,15 @@ bool Textures_GL_Bindless::begin(GfxSwapChain* swap_chain, GfxFrameBuffer* frame
     return true;
 }
 
-void Textures_GL_Bindless::end(GfxSwapChain* swap_chain)
+void Textures_GL_Bindless::End()
 {
 #if !GL_TEXTURE_BINDLESS_RESIDENCY_ONCE_EVER
     glMakeTextureHandleNonResidentARB(m_tex1_handle);
     glMakeTextureHandleNonResidentARB(m_tex2_handle);
 #endif
-
-    SDL_GL_SwapWindow(swap_chain->wnd);
-#if defined(_DEBUG)
-    GLenum error = glGetError();
-    assert(error == GL_NO_ERROR);
-#endif
 }
 
-void Textures_GL_Bindless::draw(Matrix* transforms, int count)
+void Textures_GL_Bindless::Draw(Matrix* transforms, int count)
 {
     assert(count <= TEXTURES_COUNT);
 
@@ -255,7 +245,7 @@ void Textures_GL_Bindless::draw(Matrix* transforms, int count)
     glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Matrix) * count, transforms, GL_DYNAMIC_DRAW);
 
     for (int i = 0; i < count; ++i) {
-        // Update the draw ID (since we cannot use multi_draw here
+        // Update the Draw ID (since we cannot use multi_draw here
         glUniform1i(1, i); 
 
         // And update our texture via bindless

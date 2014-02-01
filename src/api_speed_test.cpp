@@ -6,63 +6,58 @@
 
 #include "wgl.h"
 
-#define SAFE_DELETE(x)         { delete x; x = nullptr; }
+// TODO: Shouldn't need to include this here.
+#include "textures_gl_bindless.h"
 
-#ifndef _WIN32
+#define NAME_OPENGLGENERIC      "OpenGL (Generic)"
+#define NAME_DIRECT3D11         "Direct3D 11"
+
+#ifdef _WIN32
+#   pragma comment(lib, "imm32.lib")
+#   pragma comment(lib, "version.lib")
+#   pragma comment(lib, "winmm.lib")
+#else _WIN32
     // This is not supported on !Windows.
-    GfxApi *create_gfx_dx11()       { return nullptr; }
+    GfxBaseApi *CreateGfxDirect3D11()       { return nullptr; }
 #endif
 
-// --------------------------------------------------------------------------------------------------------------------
-SDL_Window *s_window; /* Our window handle */
-
-static GfxApi* s_api;
-static GfxSwapChain* s_swap_chain;
-static GfxFrameBuffer* s_frame_buffer;
-
-static TestId s_test_id = TestId::TexturesForward;
-static TestCase* s_test_case;
-
 // ------------------------------------------------------------------------------------------------
-static bool set_test(TestId id)
+std::map<std::string, GfxBaseApi*> CreateGfxApis()
 {
-    SAFE_DELETE(s_test_case);
+    std::map<std::string, GfxBaseApi*> retMap;
+    GfxBaseApi* tmpApi = nullptr;
+    
+    tmpApi = CreateGfxOpenGLGeneric();
+    if (tmpApi) { 
+        if (tmpApi->Init("apitest - OpenGL", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 768)) {
+            retMap[NAME_OPENGLGENERIC] = tmpApi;
+        } else {
+            SafeDelete(tmpApi);
+        }
+    }
 
-    s_test_id = id;
+    tmpApi = CreateGfxDirect3D11();
+    if (tmpApi) { 
+        if (tmpApi->Init("apitest - Direct3D11", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 768)) {
+            retMap[NAME_DIRECT3D11] = tmpApi;
+        }
+        else {
+            SafeDelete(tmpApi);
+        }
+    }
 
-    s_test_case = s_api->create_test(s_test_id);
-    if (!s_test_case)
-        return false;
-
-    return s_test_case->init();
+    return retMap;
 }
 
 // ------------------------------------------------------------------------------------------------
-
-static bool set_api(GfxApi *api)
+void DestroyGfxApis(std::map<std::string, GfxBaseApi*>* _apis)
 {
-    if (s_api)
-    {
-        s_api->destroy_frame_buffer(s_frame_buffer);
-        s_api->destroy_swap_chain(s_swap_chain);
-        delete s_api;
+    assert(_apis);
+    for (auto it = _apis->begin(); it != _apis->end(); ++it) {
+        SafeDelete(it->second);
     }
 
-    s_api = api;
-
-    if (s_api)
-    {
-        if (!s_api->init())
-            return false;
-
-        if (!s_api->create_swap_chain(s_window, &s_swap_chain, &s_frame_buffer))
-            return false;
-
-        if (!set_test(s_test_id))
-            return false;
-    }
-
-    return true;
+    _apis->clear();
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -74,55 +69,37 @@ void PostQuitEvent()
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-void on_event(SDL_Event* _event)
+void OnEvent(SDL_Event* _event)
 {
     assert(_event);
 
     switch (_event->type)
     {
-#if 0
-        case WM_CLOSE:
-            PostQuitMessage(0);
-            break;
-
-        case WM_ERASEBKGND:
-            break;
-
-        case WM_PAINT:
+        case SDL_WINDOWEVENT:
+        {
+            switch (_event->window.event) 
             {
-                PAINTSTRUCT ps;
-                HDC hdc = BeginPaint(hWnd, &ps);
-                EndPaint(hWnd, &ps);
+                // TODO: Need to deal with moving (to keep windows together).
+                // TODO: Need to deal with resizing (to keep windows together, and to resize BB).
+                case SDL_WINDOWEVENT_CLOSE:
+                {
+                    PostQuitEvent();
+                    break;
+
+                }
+
+                default:
+                {
+                    break;
+                }
             }
             break;
-#endif
+        }
 
-    case SDL_KEYDOWN:
+        case SDL_KEYUP:
         {
-            bool handled = true;
             switch (_event->key.keysym.sym)
             {
-            case 'd':
-                console::debug("Initializing DX11 backend\n");
-                set_api(create_gfx_dx11());
-                break;
-            case 'g':
-                console::debug("Initializing GL backend\n");
-                set_api(create_gfx_gl());
-                break;
-
-            case SDLK_F1:
-                set_test(TestId::StreamingVB);
-                break;
-
-            case SDLK_F2:
-                set_test(TestId::CubesUniform);
-                break;
-
-            case SDLK_F3:
-                set_test(TestId::CubesDynamicBuffer);
-                break;
-
             case SDLK_F4:
                 #ifdef _WIN32
                     if (_event->key.keysym.mod & KMOD_ALT) {
@@ -130,76 +107,16 @@ void on_event(SDL_Event* _event)
                         break;
                     }
                 #endif
-                set_test(TestId::CubesBufferRange);
-                break;
-
-            case SDLK_F5:
-                set_test(TestId::CubesTexCoord);
-                break;
-
-            case SDLK_F6:
-                set_test(TestId::CubesMultiDraw);
-                break;
-
-            case SDLK_F7:
-                set_test(TestId::CubesBufferStorage);
-                break;
-
-            case SDLK_F8:
-                set_test(TestId::CubesBindless);
-                break;
-
-            case SDLK_F9:
-                set_test(TestId::CubesBindlessIndirect);
-                break;
-
-            case SDLK_F10:
-                set_test(TestId::TexturesNoTex);
-                break;
-
-            case SDLK_F11:
-                set_test(TestId::TexturesForward);
-                break;
-
-            case '1':
-                set_test(TestId::TexturesBindless);
-                break;
-
-            case '2':
-                set_test(TestId::TexturesBindlessMultiDraw);
-                break;
-
-            case '3':
-                set_test(TestId::TexturesSparseBindlessTextureArray);
-                break;
-
-            case '4':
-                set_test(TestId::TexturesSparseBindlessTextureArrayMultiDraw);
                 break;
 
             default:
-                handled = false;
                 break;
             }
 
+            break;
         }
-        // else drop through to DefWindowProc
-        break;
-    }
+    };
 }
-
-// ------------------------------------------------------------------------------------------------
-static SDL_Window* create_window(const char* title, int x, int y, int width, int height)
-{
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-
-    SDL_Window* retWnd = SDL_CreateWindow(title, x, y, width, height, 
-                                          SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
-
-    return retWnd;
-}
-
 
 // ------------------------------------------------------------------------------------------------
 static void update_fps()
@@ -208,8 +125,8 @@ static void update_fps()
     static unsigned long long s_last_frame_time;
 
     ++s_frame_count;
-    unsigned long long now = timer::read();
-    double dt = timer::to_sec(now - s_last_frame_time);
+    unsigned long long now = timer::Read();
+    double dt = timer::ToSec(now - s_last_frame_time);
     if (dt >= 1.0)
     {
         console::debug("FPS: %g\n", s_frame_count / dt);
@@ -219,64 +136,76 @@ static void update_fps()
 }
 
 // ------------------------------------------------------------------------------------------------
-static void render()
+static void Render(TestCase* _activeTestCase, GfxBaseApi* _activeAPI)
 {
-    if (!s_test_case)
+    assert(_activeTestCase);
+    assert(_activeAPI);
+    
+    if (!_activeTestCase->Begin(_activeAPI)) {
         return;
-
-    if (!s_test_case->begin(s_swap_chain, s_frame_buffer))
-        return;
+    }
 
     // This is the main entry point shared by all tests. 
-    s_test_case->render();
+    _activeTestCase->Render();
     
-    s_test_case->end(s_swap_chain);
+    _activeTestCase->End();
+
+    // Present the results.
+    _activeAPI->SwapBuffers();
+    
     update_fps();
 }
 
-static bool sdl_init()
+static bool InitSDL()
 {
     return SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) >= 0;
 }
 
 // ------------------------------------------------------------------------------------------------
-static bool init()
+static bool Init()
 {
-    if (!sdl_init())
-        return false;
-
-    timer::init();
-
-    s_window = create_window("Test Window", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 768);
-    if (!s_window)
-        return false;
-    
-    if (!set_api(create_gfx_gl())) {
+    if (!InitSDL())
+    {
+        console::error("Unable to initialize SDL -- required -- so exiting.");
         return false;
     }
-        
+
+    if (!timer::Init())
+    {
+        console::error("Unable to initialize timer facilities -- required -- so exiting.");
+        return false;
+    }
+
     return true;
 }
 
 // ------------------------------------------------------------------------------------------------
-static void cleanup()
+static void Cleanup()
 {
-    set_api(nullptr);
-
-    SDL_DestroyWindow(s_window);
     SDL_Quit();
 }
 
 // ------------------------------------------------------------------------------------------------
 int main(int argv, char* argc[])
 {
-    if (!init()) {
+    if (!Init()) {
+        // Technically shouldn't get here--error should exit() if called, and all false cases
+        // should emit a message as to why they are exiting. But better safe than sorry.
         return -1;
     }
 
-    if (!s_window) {
-        console::error("Unable to create window");
+    auto allGfxApis = CreateGfxApis();
+    if (allGfxApis.find(NAME_OPENGLGENERIC) == allGfxApis.cend()) {
+        console::error("Unable to create at least an OpenGL renderer--exiting");
     }
+
+    TestCase* activeTestCase = new Textures_GL_Bindless();
+    if (!activeTestCase->Init()) {
+        console::error("Unable to initialize test case '%s'--exiting.", "Textures_GL_Bindless");
+    }
+
+    GfxBaseApi* activeApi = allGfxApis[NAME_OPENGLGENERIC];
+    activeApi->Activate();
 
     for (;;) {
         SDL_Event sdl_event;
@@ -285,20 +214,24 @@ int main(int argv, char* argc[])
                 break;
             }
 
-            on_event(&sdl_event);
+            OnEvent(&sdl_event);
         } else {
-            render();
+            Render(activeTestCase, activeApi);
         }
     }
 
-    cleanup();
+    activeApi->Deactivate();
+
+    DestroyGfxApis(&allGfxApis);
+
+    Cleanup();
 
     return 0;
 }
 
 
 // ------------------------------------------------------------------------------------------------
-void StreamingVB::render()
+void StreamingVB::Render()
 {
     float spacing = 1.0f;
     float x = spacing;
@@ -320,7 +253,7 @@ void StreamingVB::render()
 
         // TODO: It'd be ideal to get rid of this virtual call--it's 160,000 per frame. Or at least
         // make sure it's not really virtual in release builds.
-        draw(verts, 6);
+        Draw(verts, 6);
 
         x += w + spacing;
         if (x > 1000)
@@ -332,7 +265,7 @@ void StreamingVB::render()
 }
 
 // ------------------------------------------------------------------------------------------------
-void Cubes::render()
+void Cubes::Render()
 {
     static float angle = 0.0f;
     static Matrix* transforms;
@@ -355,12 +288,12 @@ void Cubes::render()
         }
     }
 
-    draw(transforms, CUBES_COUNT);
+    Draw(transforms, CUBES_COUNT);
     angle += 0.01f;
 }
 
 // ------------------------------------------------------------------------------------------------
-void Textures::render()
+void Textures::Render()
 {
     static float angle = 0.0f;
     static Matrix* transforms;
@@ -380,6 +313,6 @@ void Textures::render()
         }
     }
 
-    draw(transforms, TEXTURES_COUNT);
+    Draw(transforms, TEXTURES_COUNT);
     angle += 0.01f;
 }

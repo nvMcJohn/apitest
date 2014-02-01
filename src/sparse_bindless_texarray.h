@@ -92,7 +92,7 @@ public:
     Texture2D* newTexture2D(GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
     void free(Texture2D* _tex);
 
-    bool init();
+    bool Init();
 private:
 
     std::map<std::tuple<GLsizei, GLenum, GLsizei, GLsizei>, std::vector<Texture2DContainer*>> mTexArrays2D;

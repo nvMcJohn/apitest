@@ -4,6 +4,8 @@
 #include "streaming_vb_dx11_ps.h"
 #include "streaming_vb_dx11_vs.h"
 
+#include "gfx_dx11.h"
+
 StreamingVB_DX11::StreamingVB_DX11()
     : m_layout()
     , m_cb()
@@ -19,22 +21,22 @@ StreamingVB_DX11::StreamingVB_DX11()
 
 StreamingVB_DX11::~StreamingVB_DX11()
 {
-    SAFE_RELEASE(m_dyn_vb);
+    SafeRelease(m_dyn_vb);
 
-    SAFE_RELEASE(m_layout);
-    SAFE_RELEASE(m_cb);
-    SAFE_RELEASE(m_vs);
-    SAFE_RELEASE(m_ps);
-    SAFE_RELEASE(m_rs);
-    SAFE_RELEASE(m_bs);
-    SAFE_RELEASE(m_dss);
-    SAFE_RELEASE(m_sampler);
+    SafeRelease(m_layout);
+    SafeRelease(m_cb);
+    SafeRelease(m_vs);
+    SafeRelease(m_ps);
+    SafeRelease(m_rs);
+    SafeRelease(m_bs);
+    SafeRelease(m_dss);
+    SafeRelease(m_sampler);
 }
 
-bool StreamingVB_DX11::init()
+bool StreamingVB_DX11::Init()
 {
     // Constant Buffer
-    HRESULT hr = create_constant_buffer(sizeof(Constants), nullptr, &m_cb);
+    HRESULT hr = CreateConstantBuffer(sizeof(Constants), nullptr, &m_cb);
     if (FAILED(hr))
         return false;
 
@@ -139,32 +141,25 @@ bool StreamingVB_DX11::init()
     }
 
     // Dynamic vertex buffer
-    hr = create_dynamic_vertex_buffer(DYN_VB_SIZE, nullptr, &m_dyn_vb);
+    hr = CreateDynamicVertexBuffer(DYN_VB_SIZE, nullptr, &m_dyn_vb);
     if (FAILED(hr))
         return false;
 
     return true;
 }
 
-bool StreamingVB_DX11::begin(GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buffer)
-{
-    int width = 1;
-    int height = 1;
+bool StreamingVB_DX11::Begin(GfxBaseApi* _activeAPI)
+{    
+    int width = _activeAPI->GetWidth();
+    int height = _activeAPI->GetHeight();
 
 #if 0
-    SDL_GetWindowSize(swap_chain->wnd, &width, &height);
-#else
-    assert(0);
-#endif
-
-    if (!resize_swap_chain(swap_chain, frame_buffer, width, height))
-        return false;
-
+    // TODO: Problem should clear the buffer (because problems should also clear to a specific color)
     // Bind and clear frame buffer
     float c[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
-    g_d3d_context->OMSetRenderTargets(1, &frame_buffer->render_target_view, frame_buffer->depth_stencil_view);
-    g_d3d_context->ClearRenderTargetView(frame_buffer->render_target_view, c);
-    g_d3d_context->ClearDepthStencilView(frame_buffer->depth_stencil_view, D3D11_CLEAR_DEPTH, 1.0f, 0);
+    g_d3d_context->ClearRenderTargetView(mColorRTV, c);
+    g_d3d_context->ClearDepthStencilView(mFrameBuffer->depth_stencil_view, D3D11_CLEAR_DEPTH, 1.0f, 0);
+#endif
 
     // Setup pipeline state
     D3D11_VIEWPORT vp;
@@ -202,14 +197,7 @@ bool StreamingVB_DX11::begin(GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buf
     return true;
 }
 
-void StreamingVB_DX11::end(GfxSwapChain* swap_chain)
-{
-    IDXGISwapChain* dxgi_swap_chain = reinterpret_cast<IDXGISwapChain*>(swap_chain);
-
-    dxgi_swap_chain->Present(0, 0);
-}
-
-void StreamingVB_DX11::draw(VertexPos2* vertices, int count)
+void StreamingVB_DX11::Draw(VertexPos2* vertices, int count)
 {
     int stride = sizeof(VertexPos2);
     int vertex_offset = (m_dyn_offset + stride - 1) / stride;

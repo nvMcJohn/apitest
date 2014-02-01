@@ -1,36 +1,31 @@
 #pragma once
 
 #include "gfx.h"
-
 #include "wgl.h"
 
-#define PTR_AS_INT(x)           static_cast<int>(reinterpret_cast<intptr_t>(x))
-
-#define GL_USE_DIRECT_STATE_ACCESS 1
-
-struct GfxSwapChain
-{
-    SDL_Window* wnd;
-    SDL_GLContext glrc;
-};
-
-class GfxApi_GL : public GfxApi
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
+class GfxApiOpenGLGeneric : public GfxBaseApi
 {
 public:
-    GfxApi_GL();
-    virtual ~GfxApi_GL();
+    GfxApiOpenGLGeneric();
+    virtual ~GfxApiOpenGLGeneric(); 
 
-    virtual bool init() override;
-    virtual bool create_swap_chain(void* wnd,
-        GfxSwapChain** out_swap_chain,
-        GfxFrameBuffer** out_frame_buffer) override;
+    virtual bool Init(const std::string& _title, int _x, int _y, int _width, int _height) override;
+    virtual void Shutdown() override;
 
-    virtual void destroy_swap_chain(GfxSwapChain* swap_chain) override;
-    virtual void destroy_frame_buffer(GfxFrameBuffer* frame_buffer) override;
+    virtual void Activate() override;
+    virtual void Deactivate() override;
+    virtual void SwapBuffers() override;
 
-    virtual TestCase* create_test(TestId id) override;
+    virtual EGfxApi GetApiType() const { return EGfxApi::OpenGLGeneric; }
+
+protected:
+    SDL_Window* mWnd;
+    SDL_GLContext mGLrc;
 };
 
 // GL Utilities
-bool create_shader(GLenum target, const char* path, GLuint* out_shader);
-bool compile_program(GLuint* out_program, ...);
+bool CreateShader(GLenum _target, const char* _path, GLuint* _outShader);
+bool CompileProgram(GLuint* _outProgram, ...);

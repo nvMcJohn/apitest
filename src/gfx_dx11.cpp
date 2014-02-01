@@ -13,23 +13,41 @@ ID3D11Device* g_d3d_device;
 D3D_FEATURE_LEVEL g_d3d_feature_level;
 ID3D11DeviceContext* g_d3d_context;
 
-GfxApi *create_gfx_dx11() { return new GfxApi_DX11; }
+GfxBaseApi *CreateGfxDirect3D11() { return new GfxApiDirect3D11; }
 
-GfxApi_DX11::GfxApi_DX11()
-{}
+HWND GetHwnd(SDL_Window* _wnd);
 
-GfxApi_DX11::~GfxApi_DX11()
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
+GfxApiDirect3D11::GfxApiDirect3D11()
+: mWnd()
+, mSwapChain()
+, mColorView()
+, mDepthStencilView()
+{ }
+
+// --------------------------------------------------------------------------------------------------------------------
+GfxApiDirect3D11::~GfxApiDirect3D11()
 {
-    if (g_d3d_context)
+    if (g_d3d_context) {
         g_d3d_context->ClearState();
+    }
 
-    SAFE_RELEASE(g_d3d_context);
-    SAFE_RELEASE(g_d3d_device);
-    SAFE_RELEASE(g_dxgi_factory);
+    SafeRelease(g_d3d_context);
+    SafeRelease(g_d3d_device);
+    SafeRelease(g_dxgi_factory);
 }
 
-bool GfxApi_DX11::init()
+// --------------------------------------------------------------------------------------------------------------------
+bool GfxApiDirect3D11::Init(const std::string& _title, int _x, int _y, int _width, int _height)
 {
+    if (!GfxBaseApi::Init(_title, _x, _y, _width, _height)) {
+        return false;
+    }
+
+    SDL_CreateWindow(_title.c_str(), _x, _y, _width, _height, SDL_WINDOW_HIDDEN);
+
     HRESULT hr = CreateDXGIFactory(__uuidof(IDXGIFactory), reinterpret_cast<void**>(&g_dxgi_factory));
     if (FAILED(hr))
         return false;
@@ -69,18 +87,46 @@ bool GfxApi_DX11::init()
     if (FAILED(hr))
         return false;
 
+    if (!CreateSwapChain()) {
+        return false;
+    }
+
     return true;
 }
 
-
-bool GfxApi_DX11::create_swap_chain(void* window,
-    GfxSwapChain** out_swap_chain,
-    GfxFrameBuffer** out_frame_buffer)
+// --------------------------------------------------------------------------------------------------------------------
+void GfxApiDirect3D11::Shutdown()
 {
-    HWND hWnd = reinterpret_cast<HWND>(window);
+    SafeRelease(mColorView);
+    SafeRelease(mDepthStencilView);
 
-    *out_swap_chain = nullptr;
-    *out_frame_buffer = nullptr;
+    SafeRelease(mSwapChain);
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+void GfxApiDirect3D11::Activate()
+{
+    assert(mWnd);
+    SDL_ShowWindow(mWnd);
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+void GfxApiDirect3D11::Deactivate()
+{
+    assert(mWnd);
+    SDL_HideWindow(mWnd);
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+void GfxApiDirect3D11::SwapBuffers()
+{
+    mSwapChain->Present(0, 0);
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+bool GfxApiDirect3D11::CreateSwapChain()
+{
+    HWND hWnd = GetHwnd(mWnd);
 
     RECT rc;
     GetClientRect(hWnd, &rc);
@@ -101,48 +147,24 @@ bool GfxApi_DX11::create_swap_chain(void* window,
     swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
     swap_chain_desc.Flags = 0;
 
-    IDXGISwapChain* dxgi_swap_chain;
-    HRESULT hr = g_dxgi_factory->CreateSwapChain(g_d3d_device, &swap_chain_desc, &dxgi_swap_chain);
-
-    if (FAILED(hr))
+    HRESULT hr = S_OK;
+    if (FAILED(hr = g_dxgi_factory->CreateSwapChain(g_d3d_device, &swap_chain_desc, &mSwapChain))) {
         return false;
+    }
 
-    *out_swap_chain = reinterpret_cast<GfxSwapChain*>(dxgi_swap_chain);
-
-    GfxFrameBuffer* frame_buffer = new GfxFrameBuffer;
-    frame_buffer->render_target_view = nullptr;
-    frame_buffer->depth_stencil_view = nullptr;
-    *out_frame_buffer = frame_buffer;
-
-    hr = create_render_target(dxgi_swap_chain, &frame_buffer->render_target_view);
-    if (FAILED(hr))
+    if (FAILED(hr = CreateRenderTarget(mSwapChain, &mColorView))) {
         return false;
+    }
 
-    hr = create_depth_buffer(dxgi_swap_chain, &frame_buffer->depth_stencil_view);
-    if (FAILED(hr))
+    if (FAILED(hr = CreateDepthBuffer(mSwapChain, &mDepthStencilView))) {
         return false;
+    }
 
     return true;
 }
 
-void GfxApi_DX11::destroy_swap_chain(GfxSwapChain* swap_chain)
-{
-    IDXGISwapChain* dxgi_swap_chain = reinterpret_cast<IDXGISwapChain*>(swap_chain);
-
-    SAFE_RELEASE(dxgi_swap_chain);
-}
-
-void GfxApi_DX11::destroy_frame_buffer(GfxFrameBuffer* frame_buffer)
-{
-    if (frame_buffer)
-    {
-        SAFE_RELEASE(frame_buffer->render_target_view);
-        SAFE_RELEASE(frame_buffer->depth_stencil_view);
-        delete frame_buffer;
-    }
-}
-
-TestCase* GfxApi_DX11::create_test(TestId id)
+#if 0
+TestCase* GfxApiDirect3D11::create_test(TestId id)
 {
     switch (id)
     {
@@ -151,36 +173,9 @@ TestCase* GfxApi_DX11::create_test(TestId id)
 
     return nullptr;
 }
+#endif
 
-HRESULT create_constant_buffer(int size, const void* data, ID3D11Buffer** out_buffer)
-{
-    D3D11_BUFFER_DESC desc = { 0 };
-    desc.Usage = D3D11_USAGE_DEFAULT;
-    desc.ByteWidth = size;
-    desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    desc.CPUAccessFlags = 0;
-
-    D3D11_SUBRESOURCE_DATA initialData = { 0 };
-    initialData.pSysMem = data;
-
-    return g_d3d_device->CreateBuffer(&desc, data ? &initialData : nullptr, out_buffer);
-}
-
-HRESULT create_dynamic_vertex_buffer(int size, const void* data, ID3D11Buffer** out_buffer)
-{
-    D3D11_BUFFER_DESC desc = { 0 };
-    desc.Usage = D3D11_USAGE_DYNAMIC;
-    desc.ByteWidth = size;
-    desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-
-    D3D11_SUBRESOURCE_DATA initialData = { 0 };
-    initialData.pSysMem = data;
-
-    return g_d3d_device->CreateBuffer(&desc, data ? &initialData : nullptr, out_buffer);
-}
-
-HRESULT create_render_target(IDXGISwapChain* dxgi_swap_chain, ID3D11RenderTargetView** out_render_target_view)
+HRESULT CreateRenderTarget(IDXGISwapChain* dxgi_swap_chain, ID3D11RenderTargetView** out_render_target_view)
 {
     // Get the back buffer from the swap chain
     ID3D11Texture2D* back_buffer;
@@ -188,7 +183,7 @@ HRESULT create_render_target(IDXGISwapChain* dxgi_swap_chain, ID3D11RenderTarget
     if (FAILED(hr))
         return hr;
 
-    // Create a render target view
+    // Create a Render target view
     ID3D11RenderTargetView* render_target_view;
     hr = g_d3d_device->CreateRenderTargetView(back_buffer, nullptr, &render_target_view);
     back_buffer->Release();
@@ -200,7 +195,7 @@ HRESULT create_render_target(IDXGISwapChain* dxgi_swap_chain, ID3D11RenderTarget
     return S_OK;
 }
 
-HRESULT create_depth_buffer(IDXGISwapChain* dxgi_swap_chain, ID3D11DepthStencilView** out_depth_stencil_view)
+HRESULT CreateDepthBuffer(IDXGISwapChain* dxgi_swap_chain, ID3D11DepthStencilView** out_depth_stencil_view)
 {
     // Get the back buffer from the swap chain
     ID3D11Texture2D* back_buffer;
@@ -257,7 +252,36 @@ HRESULT create_depth_buffer(IDXGISwapChain* dxgi_swap_chain, ID3D11DepthStencilV
     return S_OK;
 }
 
-bool resize_swap_chain(GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buffer, int width, int height)
+HRESULT CreateConstantBuffer(int size, const void* data, ID3D11Buffer** out_buffer)
+{
+    D3D11_BUFFER_DESC desc = { 0 };
+    desc.Usage = D3D11_USAGE_DEFAULT;
+    desc.ByteWidth = size;
+    desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    desc.CPUAccessFlags = 0;
+
+    D3D11_SUBRESOURCE_DATA initialData = { 0 };
+    initialData.pSysMem = data;
+
+    return g_d3d_device->CreateBuffer(&desc, data ? &initialData : nullptr, out_buffer);
+}
+
+HRESULT CreateDynamicVertexBuffer(int size, const void* data, ID3D11Buffer** out_buffer)
+{
+    D3D11_BUFFER_DESC desc = { 0 };
+    desc.Usage = D3D11_USAGE_DYNAMIC;
+    desc.ByteWidth = size;
+    desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+    D3D11_SUBRESOURCE_DATA initialData = { 0 };
+    initialData.pSysMem = data;
+
+    return g_d3d_device->CreateBuffer(&desc, data ? &initialData : nullptr, out_buffer);
+}
+
+#if 0
+bool resize_swap_chain(, int width, int height)
 {
     IDXGISwapChain* dxgi_swap_chain = reinterpret_cast<IDXGISwapChain*>(swap_chain);
 
@@ -303,4 +327,23 @@ bool resize_swap_chain(GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buffer, i
     }
 
     return true;
+}
+#endif
+
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
+#include "SDL_syswm.h"
+
+HWND GetHwnd(SDL_Window* _wnd)
+{
+#ifdef _WIN32
+    SDL_SysWMinfo info;
+    SDL_VERSION(&info.version);
+
+    if (SDL_GetWindowWMInfo(_wnd, &info)) {
+        return info.info.win.window;
+    }
+#endif
+    return 0;
 }

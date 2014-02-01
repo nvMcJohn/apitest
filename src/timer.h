@@ -4,11 +4,11 @@
 
 namespace timer
 {
-    bool init();
+    bool Init();
 
-    Uint64 read();
+    Uint64 Read();
 
-    Uint64 to_usec(Uint64 x);
-    Uint64 to_msec(Uint64 x);
-    double to_sec(Uint64 x);
+    Uint64 TouSec(Uint64 x);
+    Uint64 ToMSec(Uint64 x);
+    double ToSec(Uint64 x);
 }

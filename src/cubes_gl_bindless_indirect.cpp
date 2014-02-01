@@ -51,21 +51,21 @@ Cubes_GL_BindlessIndirect::~Cubes_GL_BindlessIndirect()
     glDeleteShader(m_fs);
     glDeleteProgram(m_prog);
 
-    // TODO: These could also go in ::end. 
+    // TODO: These could also go in ::End. 
     glDisableClientState(GL_ELEMENT_ARRAY_UNIFIED_NV);
     glDisableClientState(GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV);
 }
 
-bool Cubes_GL_BindlessIndirect::init()
+bool Cubes_GL_BindlessIndirect::Init()
 {
     // Shaders
-    if (!create_shader(GL_VERTEX_SHADER, "cubes_gl_bindless_indirect_vs.glsl", &m_vs))
+    if (!CreateShader(GL_VERTEX_SHADER, "cubes_gl_bindless_indirect_vs.glsl", &m_vs))
         return false;
 
-    if (!create_shader(GL_FRAGMENT_SHADER, "cubes_gl_bindless_indirect_fs.glsl", &m_fs))
+    if (!CreateShader(GL_FRAGMENT_SHADER, "cubes_gl_bindless_indirect_fs.glsl", &m_fs))
         return false;
 
-    if (!compile_program(&m_prog, m_vs, m_fs, 0))
+    if (!CompileProgram(&m_prog, m_vs, m_fs, 0))
         return false;
 
     // Buffers
@@ -129,17 +129,13 @@ bool Cubes_GL_BindlessIndirect::init()
     return glGetError() == GL_NO_ERROR;
 }
 
-bool Cubes_GL_BindlessIndirect::begin(GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buffer)
+bool Cubes_GL_BindlessIndirect::Begin(GfxBaseApi* _activeAPI)
 {
-    int width = 0;
-    int height = 0;
-    SDL_GetWindowSize(swap_chain->wnd, &width, &height);
+    int width = _activeAPI->GetWidth();
+    int height = _activeAPI->GetHeight();
 
-    // Bind and clear frame buffer
-    int fbo = PTR_AS_INT(frame_buffer);
     float c[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
     float d = 1.0f;
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
     glClearBufferfv(GL_COLOR, 0, c);
     glClearBufferfv(GL_DEPTH, 0, &d);
 
@@ -182,16 +178,7 @@ bool Cubes_GL_BindlessIndirect::begin(GfxSwapChain* swap_chain, GfxFrameBuffer* 
     return true;
 }
 
-void Cubes_GL_BindlessIndirect::end(GfxSwapChain* swap_chain)
-{
-    SDL_GL_SwapWindow(swap_chain->wnd);
-#if defined(_DEBUG)
-    GLenum error = glGetError();
-    assert(error == GL_NO_ERROR);
-#endif
-}
-
-void Cubes_GL_BindlessIndirect::draw(Matrix* transforms, int count)
+void Cubes_GL_BindlessIndirect::Draw(Matrix* transforms, int count)
 {
     // TODO: Consider multithreaded generation here?
     assert(count <= CUBES_COUNT);
@@ -199,11 +186,11 @@ void Cubes_GL_BindlessIndirect::draw(Matrix* transforms, int count)
     for (int i = 0; i < count; ++i)
     {
         Command *cmd = &m_commands[i];
-        cmd->draw.count = 36;
-        cmd->draw.instanceCount = 1;
-        cmd->draw.firstIndex = 0;
-        cmd->draw.baseVertex = 0;
-        cmd->draw.baseInstance = 0;
+        cmd->Draw.count = 36;
+        cmd->Draw.instanceCount = 1;
+        cmd->Draw.firstIndex = 0;
+        cmd->Draw.baseVertex = 0;
+        cmd->Draw.baseInstance = 0;
         cmd->reserved = 0;
         cmd->indexBuffer.index = 0;
         cmd->indexBuffer.reserved = 0;

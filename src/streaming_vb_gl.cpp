@@ -29,19 +29,19 @@ StreamingVB_GL::~StreamingVB_GL()
     glDeleteProgram(m_prog);
 }
 
-bool StreamingVB_GL::init()
+bool StreamingVB_GL::Init()
 {
     // Uniform Buffer
     glGenBuffers(1, &m_ub);
 
     // Shaders
-    if (!create_shader(GL_VERTEX_SHADER, "streaming_vb_gl_vs.glsl", &m_vs))
+    if (!CreateShader(GL_VERTEX_SHADER, "streaming_vb_gl_vs.glsl", &m_vs))
         return false;
 
-    if (!create_shader(GL_FRAGMENT_SHADER, "streaming_vb_gl_fs.glsl", &m_fs))
+    if (!CreateShader(GL_FRAGMENT_SHADER, "streaming_vb_gl_fs.glsl", &m_fs))
         return false;
 
-    if (!compile_program(&m_prog, m_vs, m_fs, 0))
+    if (!CompileProgram(&m_prog, m_vs, m_fs, 0))
         return false;
 
     // Dynamic vertex buffer
@@ -58,17 +58,13 @@ bool StreamingVB_GL::init()
     return glGetError() == GL_NO_ERROR;
 }
 
-bool StreamingVB_GL::begin(GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buffer)
+bool StreamingVB_GL::Begin(GfxBaseApi* _activeAPI)
 {
-    int width = 0;
-    int height = 0;
-    SDL_GetWindowSize(swap_chain->wnd, &width, &height);
+    int width = _activeAPI->GetWidth();
+    int height = _activeAPI->GetHeight();
 
-    // Bind and clear frame buffer
-    int fbo = PTR_AS_INT(frame_buffer);
     float c[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
     float d = 1.0f;
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
     glClearBufferfv(GL_COLOR, 0, c);
     glClearBufferfv(GL_DEPTH, 0, &d);
 
@@ -107,16 +103,7 @@ bool StreamingVB_GL::begin(GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buffe
     return true;
 }
 
-void StreamingVB_GL::end(GfxSwapChain* swap_chain)
-{
-    SDL_GL_SwapWindow(swap_chain->wnd);
-#if defined(_DEBUG)
-    GLenum error = glGetError();
-    assert(error == GL_NO_ERROR);
-#endif
-}
-
-void StreamingVB_GL::draw(VertexPos2* vertices, int count)
+void StreamingVB_GL::Draw(VertexPos2* vertices, int count)
 {
     int stride = sizeof(VertexPos2);
     int vertex_offset = (m_dyn_offset + stride - 1) / stride;

@@ -8,12 +8,11 @@ public:
     StreamingVB_DX11();
     virtual ~StreamingVB_DX11();
 
-    virtual bool init() override;
+    virtual bool Init() override;
 
-    virtual bool begin(GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buffer) override;
-    virtual void end(GfxSwapChain* swap_chain) override;
+    virtual bool Begin(GfxBaseApi* _activeAPI) override;
 
-    virtual void draw(VertexPos2* vertices, int count) override;
+    virtual void Draw(VertexPos2* vertices, int count) override;
 
 private:
     struct Constants

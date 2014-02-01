@@ -5,8 +5,7 @@
 
 #include "mathlib.h"
 
-struct GfxSwapChain;
-struct GfxFrameBuffer;
+class GfxBaseApi;
 
 // --------------------------------------------------------------------------------------------------------------------
 // Test Case
@@ -30,16 +29,19 @@ enum class TestId
     TexturesSparseBindlessTextureArrayMultiDraw
 };
 
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 class TestCase
 {
 public:
     virtual ~TestCase() {}
 
-    virtual bool init() = 0;
+    virtual bool Init() = 0;
 
-    virtual bool begin(GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buffer) = 0;
-    virtual void render() = 0;
-    virtual void end(GfxSwapChain* swap_chain) = 0;
+    virtual bool Begin(GfxBaseApi* _activeAPI) { return true; }
+    virtual void Render() = 0;
+    virtual void End() { }
 };
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -56,8 +58,8 @@ struct VertexPos2
 class StreamingVB : public TestCase
 {
 public:
-    virtual void draw(VertexPos2* vertices, int count) = 0;
-    virtual void render();
+    virtual void Draw(VertexPos2* vertices, int count) = 0;
+    virtual void Render();
 };
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -71,41 +73,72 @@ public:
 class Cubes : public TestCase
 {
 public:
-    virtual void draw(Matrix* transforms, int count) = 0;
-    virtual void render();
+    virtual void Draw(Matrix* transforms, int count) = 0;
+    virtual void Render();
 };
 
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // Textures test
 #define TEXTURES_X 100
 #define TEXTURES_Y 100
 #define TEXTURES_COUNT (TEXTURES_X * TEXTURES_Y)
 
+// --------------------------------------------------------------------------------------------------------------------
 class Textures : public TestCase
 {
 public:
-    virtual void draw(Matrix* transforms, int count) = 0;
-    virtual void render();
+    virtual void Draw(Matrix* transforms, int count) = 0;
+    virtual void Render();
 };
 
 // --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 // API Abstraction
 
-class GfxApi
+enum class EGfxApi
 {
-public:
-    virtual ~GfxApi() {}
-
-    virtual bool init() = 0;
-    virtual bool create_swap_chain(void* wnd,
-        GfxSwapChain** out_swap_chain,
-        GfxFrameBuffer** out_frame_buffer) = 0;
-
-    virtual void destroy_swap_chain(GfxSwapChain* swap_chain) = 0;
-    virtual void destroy_frame_buffer(GfxFrameBuffer* frame_buffer) = 0;
-
-    virtual TestCase* create_test(TestId id) = 0;
+    Direct3D11,
+    OpenGLGeneric
 };
 
-GfxApi *create_gfx_gl();
-GfxApi *create_gfx_dx11();
+// --------------------------------------------------------------------------------------------------------------------
+class GfxBaseApi
+{
+public:
+    GfxBaseApi() : mWidth(1), mHeight(1) { }
+    virtual ~GfxBaseApi() { }
+
+    virtual bool Init(const std::string& _title, int _x, int _y, int _width, int _height)
+    {
+        mWidth = _width;
+        mHeight = _height;
+        return true;
+    }
+
+    virtual void Shutdown() = 0;
+
+    virtual void Activate() = 0;
+    virtual void Deactivate() = 0;
+    virtual void SwapBuffers() = 0;
+
+    virtual EGfxApi GetApiType() const = 0;
+
+    inline size_t GetWidth() const     { return mWidth; }
+    inline size_t GetHeight() const    { return mHeight; }
+
+    inline void OnResize(size_t _newWidth, size_t _newHeight)
+    {
+        mWidth = _newWidth;
+        mHeight = _newHeight;
+    }
+
+private:
+    size_t mWidth;
+    size_t mHeight;
+};
+
+GfxBaseApi *CreateGfxOpenGLGeneric();
+GfxBaseApi *CreateGfxDirect3D11();

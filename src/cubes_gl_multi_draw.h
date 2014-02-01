@@ -8,12 +8,11 @@ public:
     Cubes_GL_MultiDraw();
     virtual ~Cubes_GL_MultiDraw();
 
-    virtual bool init() override;
+    virtual bool Init() override;
 
-    virtual bool begin(GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buffer) override;
-    virtual void end(GfxSwapChain* swap_chain) override;
+    virtual bool Begin(GfxBaseApi* _activeAPI) override;
 
-    virtual void draw(Matrix* transforms, int count) override;
+    virtual void Draw(Matrix* transforms, int count) override;
 
 private:
     struct Vertex

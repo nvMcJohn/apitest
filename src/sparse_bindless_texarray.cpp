@@ -194,7 +194,7 @@ void TextureManager::free(Texture2D* _tex)
 }
 
 // ------------------------------------------------------------------------------------------------
-bool TextureManager::init()
+bool TextureManager::Init()
 {
     glGetIntegerv(GL_MAX_SPARSE_ARRAY_TEXTURE_LAYERS_ARB, &mMaxTextureArrayLevels);
 

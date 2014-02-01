@@ -2,39 +2,44 @@
 
 #include "gfx.h"
 
-#define SAFE_RELEASE(x)         { if (x != nullptr) { x->Release(); x = nullptr; } }
-
-struct GfxFrameBuffer
-{
-    ID3D11RenderTargetView* render_target_view;
-    ID3D11DepthStencilView* depth_stencil_view;
-};
-
-class GfxApi_DX11 : public GfxApi
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
+class GfxApiDirect3D11 : public GfxBaseApi
 {
 public:
-    GfxApi_DX11();
-    virtual ~GfxApi_DX11();
+    GfxApiDirect3D11();
+    virtual ~GfxApiDirect3D11();
 
-    virtual bool init() override;
-    virtual bool create_swap_chain(void* hwnd,
-        GfxSwapChain** out_swap_chain,
-        GfxFrameBuffer** out_frame_buffer) override;
+    virtual bool Init(const std::string& _title, int _x, int _y, int _width, int _height) override;
+    virtual void Shutdown() override;
 
-    virtual void destroy_swap_chain(GfxSwapChain* swap_chain) override;
-    virtual void destroy_frame_buffer(GfxFrameBuffer* frame_buffer) override;
+    virtual void Activate() override;
+    virtual void Deactivate() override;
+    virtual void SwapBuffers() override;
 
-    virtual TestCase* create_test(TestId id) override;
+    virtual EGfxApi GetApiType() const { return EGfxApi::Direct3D11; }
+
+protected:
+    SDL_Window* mWnd;
+    IDXGISwapChain* mSwapChain;
+    ID3D11RenderTargetView* mColorView; 
+    ID3D11DepthStencilView* mDepthStencilView;
+
+    virtual bool CreateSwapChain();
 };
 
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 // DX11 Utilities
-HRESULT create_render_target(IDXGISwapChain* dxgi_swap_chain, ID3D11RenderTargetView** out_render_target_view);
-HRESULT create_depth_buffer(IDXGISwapChain* dxgi_swap_chain, ID3D11DepthStencilView** out_depth_stencil_view);
+HRESULT CreateRenderTarget(IDXGISwapChain* dxgi_swap_chain, ID3D11RenderTargetView** out_render_target_view);
+HRESULT CreateDepthBuffer(IDXGISwapChain* dxgi_swap_chain, ID3D11DepthStencilView** out_depth_stencil_view);
 
-bool resize_swap_chain(GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buffer, int width, int height);
-HRESULT create_constant_buffer(int size, const void* data, ID3D11Buffer** out_buffer);
-HRESULT create_dynamic_vertex_buffer(int size, const void* data, ID3D11Buffer** out_buffer);
+HRESULT CreateConstantBuffer(int size, const void* data, ID3D11Buffer** out_buffer);
+HRESULT CreateDynamicVertexBuffer(int size, const void* data, ID3D11Buffer** out_buffer);
 
+// TODO: Cleanup formatting
 // DX11 Globals
 extern IDXGIFactory* g_dxgi_factory;
 extern ID3D11Device* g_d3d_device;

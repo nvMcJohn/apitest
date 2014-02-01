@@ -21,16 +21,16 @@ Cubes_GL_Uniform::~Cubes_GL_Uniform()
     glDeleteProgram(m_prog);
 }
 
-bool Cubes_GL_Uniform::init()
+bool Cubes_GL_Uniform::Init()
 {
     // Shaders
-    if (!create_shader(GL_VERTEX_SHADER, "cubes_gl_uniform_vs.glsl", &m_vs))
+    if (!CreateShader(GL_VERTEX_SHADER, "cubes_gl_uniform_vs.glsl", &m_vs))
         return false;
 
-    if (!create_shader(GL_FRAGMENT_SHADER, "cubes_gl_uniform_fs.glsl", &m_fs))
+    if (!CreateShader(GL_FRAGMENT_SHADER, "cubes_gl_uniform_fs.glsl", &m_fs))
         return false;
 
-    if (!compile_program(&m_prog, m_vs, m_fs, 0))
+    if (!CompileProgram(&m_prog, m_vs, m_fs, 0))
         return false;
 
     // Buffers
@@ -67,17 +67,13 @@ bool Cubes_GL_Uniform::init()
     return glGetError() == GL_NO_ERROR;
 }
 
-bool Cubes_GL_Uniform::begin(GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buffer)
+bool Cubes_GL_Uniform::Begin(GfxBaseApi* _activeAPI)
 {
-    int width = 0;
-    int height = 0;
-    SDL_GetWindowSize(swap_chain->wnd, &width, &height);
+    int width = _activeAPI->GetWidth();
+    int height = _activeAPI->GetHeight();
 
-    // Bind and clear frame buffer
-    int fbo = PTR_AS_INT(frame_buffer);
     float c[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
     float d = 1.0f;
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
     glClearBufferfv(GL_COLOR, 0, c);
     glClearBufferfv(GL_DEPTH, 0, &d);
 
@@ -120,16 +116,7 @@ bool Cubes_GL_Uniform::begin(GfxSwapChain* swap_chain, GfxFrameBuffer* frame_buf
     return true;
 }
 
-void Cubes_GL_Uniform::end(GfxSwapChain* swap_chain)
-{
-    SDL_GL_SwapWindow(swap_chain->wnd);
-#if defined(_DEBUG)
-    GLenum error = glGetError();
-    assert(error == GL_NO_ERROR);
-#endif
-}
-
-void Cubes_GL_Uniform::draw(Matrix* transforms, int count)
+void Cubes_GL_Uniform::Draw(Matrix* transforms, int count)
 {
     for (int i = 0; i < count; ++i)
     {
