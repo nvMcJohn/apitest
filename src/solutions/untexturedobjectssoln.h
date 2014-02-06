@@ -13,7 +13,8 @@ public:
     virtual ~UntexturedObjectsSolution() { }
 
     virtual bool Init(const std::vector<UntexturedObjectsProblem::Vertex>& _vertices, 
-                      const std::vector<UntexturedObjectsProblem::Index>& _indices);
+                      const std::vector<UntexturedObjectsProblem::Index>& _indices,
+                      size_t _objectCount) = 0;
 
     virtual void Render(const std::vector<Matrix>& _transforms) = 0;
     virtual void Shutdown() = 0;

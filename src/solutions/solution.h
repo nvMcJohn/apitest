@@ -19,5 +19,8 @@ public:
     // The name of the problem this solution addresses.
     virtual std::string GetProblemName() const = 0;
 
+    inline void SetProjectionMatrix(const Matrix& _proj) { mProj = _proj; }
+
 protected:
+    Matrix mProj;
 };

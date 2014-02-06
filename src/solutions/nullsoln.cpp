@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------------------------------------------------
 bool NullSolution::Init()
 {
-    console::debug("NullSolution::Init\n");
+    console::debug("NullSolution::Init");
     return true;
 }
 
@@ -20,6 +20,6 @@ void NullSolution::Render()
 // --------------------------------------------------------------------------------------------------------------------
 void NullSolution::Shutdown()
 {
-    console::debug("NullSolution::Shutdown\n");
+    console::debug("NullSolution::Shutdown");
 
 }

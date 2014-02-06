@@ -6,6 +6,7 @@ set( SRCS
     framework/console.cpp
     framework/factory.cpp
     framework/gfx_gl.cpp
+    framework/os.cpp
     framework/sparse_bindless_texarray.cpp
     framework/timer.cpp
     framework/wgl.cpp
@@ -21,6 +22,9 @@ set( SRCS
     solutions/solution.cpp
     solutions/texturedquadssoln.cpp
     solutions/untexturedobjectssoln.cpp
+
+    solutions/untexturedobjects/gl/bindless.cpp
+    solutions/untexturedobjects/gl/multidraw.cpp
 )
 
 if( MSVC )
@@ -53,6 +57,8 @@ source_group( "Framework" FILES
     framework/gfx_gl.cpp
     framework/gfx_gl.h
     framework/mathlib.h
+    framework/os.cpp
+    framework/os.h
     framework/sparse_bindless_texarray.cpp
     framework/sparse_bindless_texarray.h
     framework/timer.cpp
@@ -97,6 +103,16 @@ source_group( "Solutions\\TexturedQuads" FILES
 source_group( "Solutions\\UntexturedObjects" FILES 
     solutions/untexturedobjectssoln.cpp
     solutions/untexturedobjectssoln.h
+)
+
+source_group( "Solutions\\UntexturedObjects\\GL\\Bindless" FILES 
+    solutions/untexturedobjects/gl/bindless.cpp
+    solutions/untexturedobjects/gl/bindless.h
+)
+
+source_group( "Solutions\\UntexturedObjects\\GL\\MultiDraw" FILES 
+    solutions/untexturedobjects/gl/multidraw.cpp
+    solutions/untexturedobjects/gl/multidraw.h
 )
 
 if( MSVC )

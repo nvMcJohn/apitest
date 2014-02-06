@@ -48,7 +48,7 @@ bool UntexturedObjectsProblem::SetSolution(Solution* _solution)
     }
 
     if (mActiveSolution) {
-        return reinterpret_cast<UntexturedObjectsSolution*>(mActiveSolution)->Init(mVertices, mIndices);
+        return reinterpret_cast<UntexturedObjectsSolution*>(mActiveSolution)->Init(mVertices, mIndices, kObjectCount);
     }
 
     return true;

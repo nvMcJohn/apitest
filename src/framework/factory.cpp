@@ -7,6 +7,7 @@
 #include "problems/untexturedobjects.h"
 
 #include "solutions/nullsoln.h"
+#include "solutions/untexturedobjects/gl/bindless.h"
 
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
@@ -21,10 +22,19 @@ ProblemFactory::ProblemFactory()
         mSolutions[mProblems.back()->GetName()].push_back(new NullSolution());
     } else {
         SafeDelete(newProb);
+        console::error("Unable to create the Null Problem--exiting.");
     }
 
     // DynamicStreaming
     // UntexturedObjects
+    newProb = new UntexturedObjectsProblem();
+    if (newProb->Init()) {
+        mProblems.push_back(newProb);
+        mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLBindless());
+    }
+    else {
+        SafeDelete(newProb);
+    }
     // Textured Quads
 }
 

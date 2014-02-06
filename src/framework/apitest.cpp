@@ -4,6 +4,8 @@
 #include "factory.h"
 #include "gfx.h"
 #include "problems/problem.h"
+#include "solutions/solution.h"
+#include "os.h"
 #include "timer.h"
 #include "wgl.h"
 
@@ -19,6 +21,224 @@
     GfxBaseApi *CreateGfxDirect3D11()       { return nullptr; }
 #endif
 
+// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
+class ApplicationState
+{
+public:
+    ApplicationState(GfxBaseApi* _activeApi)
+    : mActiveProblem()
+    , mActiveSolution()
+    , mActiveApi(_activeApi)
+    {
+        mProblems = mFactory.GetProblems();
+        assert(GetProblemCount() > 0);
+
+        setProblemByIndex(0);
+    }
+
+    ~ApplicationState()
+    {
+        mActiveProblem->SetSolution(nullptr);
+        mActiveProblem->Shutdown();
+
+        mActiveSolution = nullptr;
+        mActiveProblem = nullptr;
+    }
+
+    Problem* GetActiveProblem() const { return mActiveProblem; }
+
+    size_t GetProblemCount() const { return mProblems.size(); }
+
+    void NextProblem() 
+    { 
+        assert(mActiveProblem);
+        Problem* prevProblem = mActiveProblem;
+        mActiveProblem->SetSolution(nullptr);
+        mActiveSolution = nullptr;
+
+        mActiveProblem = setNextProblem(mProblems.begin(), mProblems.end(), prevProblem, true);
+        if (!mActiveProblem) {
+            mActiveProblem = setNextProblem(mProblems.begin(), mProblems.end(), prevProblem, false);
+        }
+
+        // Must have a valid problem now.
+        assert(mActiveProblem);
+
+        // Get the list of possible solutions.
+        mSolutions = mFactory.GetSolutions(mActiveProblem);
+
+        // And set one as active
+        mActiveSolution = findFirstValidSolution();
+
+        assert(mActiveApi);
+        mActiveApi->OnProblemOrSolutionSet(mActiveProblem->GetName(), mActiveSolution ? mActiveSolution->GetName() : std::string(""));
+    }
+
+    void PrevProblem() 
+    { 
+        assert(mActiveProblem);
+        Problem* prevProblem = mActiveProblem;
+        mActiveProblem->SetSolution(nullptr);
+        mActiveSolution = nullptr;
+
+        mActiveProblem = setNextProblem(mProblems.rbegin(), mProblems.rend(), prevProblem, true);
+        if (!mActiveProblem) {
+            mActiveProblem = setNextProblem(mProblems.rbegin(), mProblems.rend(), prevProblem, false);
+        }
+
+        // Must have a valid problem now.
+        assert(mActiveProblem);
+
+        // Get the list of possible solutions.
+        mSolutions = mFactory.GetSolutions(mActiveProblem);
+
+        // And set one as active
+        mActiveSolution = findFirstValidSolution();
+
+        assert(mActiveApi);
+        mActiveApi->OnProblemOrSolutionSet(mActiveProblem->GetName(), mActiveSolution ? mActiveSolution->GetName() : std::string(""));
+    }
+
+    size_t GetSolutionCount() const { return mSolutions.size(); }
+
+    void NextSolution() 
+    { 
+        assert(mActiveProblem);
+        Solution* prevSolution = mActiveSolution;
+        
+
+        mActiveSolution = setNextSolution(mSolutions.begin(), mSolutions.end(), prevSolution, true);
+        if (!mActiveSolution) {
+            mActiveSolution = setNextSolution(mSolutions.begin(), mSolutions.end(), prevSolution, false);
+        }
+
+        assert(mActiveApi);
+        mActiveApi->OnProblemOrSolutionSet(mActiveProblem->GetName(), mActiveSolution ? mActiveSolution->GetName() : std::string(""));
+    }
+
+    void PrevSolution() 
+    {
+        assert(mActiveProblem);
+        Solution* prevSolution = mActiveSolution;
+
+        mActiveSolution = setNextSolution(mSolutions.rbegin(), mSolutions.rend(), prevSolution, true);
+        if (!mActiveSolution) {
+            mActiveSolution = setNextSolution(mSolutions.rbegin(), mSolutions.rend(), prevSolution, false);
+        }
+
+        assert(mActiveApi);
+        mActiveApi->OnProblemOrSolutionSet(mActiveProblem->GetName(), mActiveSolution ? mActiveSolution->GetName() : std::string(""));
+    }
+    
+    void SetActiveApi(GfxBaseApi* _activeApi)
+    {
+        mActiveApi = _activeApi;
+    }
+
+    void BenchmarkAllProblemsAndSolutions();
+    void BenchmarkThisProblem();
+
+    void Update()
+    {
+
+    }
+
+private:
+    void setProblemByIndex(size_t _index)
+    {
+        // Turn off the existing solution, if running one.
+        if (mActiveProblem) {
+            mActiveProblem->SetSolution(nullptr);
+        }
+
+        // null it out, we're not running one now.
+        mActiveSolution = nullptr;
+        
+        // Set the new active problem
+        mActiveProblem = mProblems[_index];
+
+        // Get the list of possible solutions.
+        mSolutions = mFactory.GetSolutions(mActiveProblem);
+
+        // And set one as active
+        mActiveSolution = findFirstValidSolution();
+
+        assert(mActiveApi);
+        mActiveApi->OnProblemOrSolutionSet(mActiveProblem->GetName(), mActiveSolution ? mActiveSolution->GetName() : std::string(""));
+    }
+
+    template<typename ItType>
+    Problem* setNextProblem(ItType _beginIt, ItType _endIt, Problem* _curProblem, bool _after)
+    {
+        bool processing = !_after;
+        for (auto it = _beginIt; it != _endIt; ++it) {
+            if (*it == _curProblem) {
+                processing = !processing;
+                continue;
+            }
+
+            if (!processing) {
+                continue;
+            }
+
+            if ((*it)->Init()) {
+                return *it;
+            } else {
+                (*it)->Shutdown();
+            }
+        }
+
+        return nullptr;
+    }
+
+    template<typename ItType>
+    Solution* setNextSolution(ItType _beginIt, ItType _endIt, Solution* _curProblem, bool _after)
+    {
+        bool processing = !_after;
+        for (auto it = _beginIt; it != _endIt; ++it) {
+            if (*it == _curProblem) {
+                processing = !processing;
+                continue;
+            }
+
+            if (!processing) {
+                continue;
+            }
+
+            if (mActiveProblem->SetSolution(*it)) {
+                return *it;
+            } 
+        }
+
+        return nullptr;
+    }
+
+    Solution* findFirstValidSolution()
+    {
+        for (auto it = mSolutions.begin(); it != mSolutions.end(); ++it) {
+            if (mActiveProblem->SetSolution(*it)) {
+                return *it;
+            }
+        }
+
+        return nullptr;
+    }
+
+    ProblemFactory mFactory;
+
+    std::vector<Problem*> mProblems;
+    std::vector<Solution*> mSolutions;
+
+    Problem* mActiveProblem;
+    Solution* mActiveSolution;
+
+    GfxBaseApi* mActiveApi;
+};
+
+// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------
 std::map<std::string, GfxBaseApi*> CreateGfxApis()
 {
@@ -67,7 +287,7 @@ void PostQuitEvent()
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-void OnEvent(SDL_Event* _event)
+void OnEvent(SDL_Event* _event, ApplicationState* _appState)
 {
     assert(_event);
 
@@ -107,6 +327,22 @@ void OnEvent(SDL_Event* _event)
                 #endif
                 break;
 
+            case SDLK_LEFT:
+                _appState->PrevProblem();
+                break;
+
+            case SDLK_RIGHT:
+                _appState->NextProblem();
+                break;
+
+            case SDLK_UP:
+                _appState->PrevSolution();
+                break;
+
+            case SDLK_DOWN:
+                _appState->NextSolution();
+                break;
+
             default:
                 break;
             }
@@ -127,23 +363,23 @@ static void update_fps()
     double dt = timer::ToSec(now - s_last_frame_time);
     if (dt >= 1.0)
     {
-        console::debug("FPS: %g\n", s_frame_count / dt);
+        console::log("FPS: %g", s_frame_count / dt);
         s_frame_count = 0;
         s_last_frame_time = now;
     }
 }
 
 // ------------------------------------------------------------------------------------------------
-static void Render(Problem* _activeProblem, GfxBaseApi* _activeAPI)
+static void Render(Problem* _activeProblem, GfxBaseApi* _activeApi)
 {
     assert(_activeProblem);
-    assert(_activeAPI);
+    assert(_activeApi);
     
     // This is the main entry point shared by all tests. 
     _activeProblem->Render();
     
     // Present the results.
-    _activeAPI->SwapBuffers();
+    _activeApi->SwapBuffers();
     
     update_fps();
 }
@@ -154,8 +390,13 @@ static bool InitSDL()
 }
 
 // ------------------------------------------------------------------------------------------------
-static bool Init()
+static bool Init(char* _exeName)
 {
+    // This forces the working directory to the directory the executable is in. This is necessary
+    // to deal with people running from the wrong place (or debuggers).
+    std::string dirName = os::path::dirname(_exeName);
+    os::chdir(dirName);    
+
     if (!InitSDL())
     {
         console::error("Unable to initialize SDL -- required -- so exiting.");
@@ -178,9 +419,13 @@ static void Cleanup()
 }
 
 // ------------------------------------------------------------------------------------------------
-int main(int argv, char* argc[])
+int main(int argc, char* argv[])
 {
-    if (!Init()) {
+    if (argc == 0) {
+        console::error("Cannot tell where the executable is, exiting.");
+    }
+
+    if (!Init(argv[0])) {
         // Technically shouldn't get here--error should exit() if called, and all false cases
         // should emit a message as to why they are exiting. But better safe than sorry.
         return -1;
@@ -194,14 +439,8 @@ int main(int argv, char* argc[])
     GfxBaseApi* activeApi = allGfxApis[NAME_OPENGLGENERIC];
     activeApi->Activate();
 
-    std::vector<Problem*> problems;
-    std::vector<Solution*> solutions;
-
-    ProblemFactory *factory = new ProblemFactory;
-    Problem* activeProblem = factory->GetProblems()[0];
-    Solution* activeSolution = factory->GetSolutions(activeProblem)[0];
-
-    activeProblem->SetSolution(activeSolution);
+    // TODO: Move all Api management into ApplicationState
+    ApplicationState* app = new ApplicationState(activeApi);
 
     for (;;) {
         SDL_Event sdl_event;
@@ -210,21 +449,15 @@ int main(int argv, char* argc[])
                 break;
             }
 
-            OnEvent(&sdl_event);
+            OnEvent(&sdl_event, app);
         } else {
-            Render(activeProblem, activeApi);
+            Render(app->GetActiveProblem(), activeApi);
         }
     }
 
-    activeProblem->SetSolution(nullptr);
-    activeProblem->Shutdown();
-
-    SafeDelete(factory);
-
+    SafeDelete(app);
     activeApi->Deactivate();
-
     DestroyGfxApis(&allGfxApis);
-
     Cleanup();
 
     return 0;

@@ -49,6 +49,7 @@ public:
 
     virtual bool Init(const std::string& _title, int _x, int _y, int _width, int _height)
     {
+        mTitleRoot = _title;
         mWidth = _width;
         mHeight = _height;
         return true;
@@ -71,7 +72,27 @@ public:
         mHeight = _newHeight;
     }
 
+    void OnProblemOrSolutionSet(const std::string& _problemName, const std::string& _solutionName)
+    {
+        if (mWnd == nullptr) {
+            return;
+        }
+
+        std::string newTitle = mTitleRoot + " - " + _problemName;
+
+        if (_solutionName.length()) {
+            newTitle += " - " + _solutionName;
+        }
+
+        SDL_SetWindowTitle(mWnd, newTitle.c_str());
+    }
+
+protected:
+    SDL_Window* mWnd;
+
 private:
+
+    std::string mTitleRoot;
     size_t mWidth;
     size_t mHeight;
 };

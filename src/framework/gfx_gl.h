@@ -22,10 +22,9 @@ public:
     virtual EGfxApi GetApiType() const { return EGfxApi::OpenGLGeneric; }
 
 protected:
-    SDL_Window* mWnd;
     SDL_GLContext mGLrc;
 };
 
 // GL Utilities
-bool CreateShader(GLenum _target, const char* _path, GLuint* _outShader);
-bool CompileProgram(GLuint* _outProgram, ...);
+GLuint CreateProgram(std::string _vsFilename, std::string _psFilename);
+GLuint CreateProgram(std::string _vsFilename, std::string _tcsFilename, std::string _tesFilename, std::string _fsFilename);

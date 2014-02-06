@@ -23,13 +23,12 @@ static void APIENTRY ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum
         return;
     }
     
-    console::debug("%s\n", message);
+    console::debug("%s", message);
 }
 
 // --------------------------------------------------------------------------------------------------------------------
 GfxApiOpenGLGeneric::GfxApiOpenGLGeneric()
-: mWnd()
-, mGLrc()
+: mGLrc()
 { }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -45,22 +44,22 @@ bool GfxApiOpenGLGeneric::Init(const std::string& _title, int _x, int _y, int _w
 
     mWnd = CreateGLWindow(_title.c_str(), _x, _y, _width, _height);
     if (!mWnd) {
-        console::debug("Unable to create SDL Window, which is required for GL.");
+        console::warn("Unable to create SDL Window, which is required for GL.");
         return false;
     }
 
     mGLrc = SDL_GL_CreateContext(mWnd);
     if (mGLrc == 0) {
-        console::debug("Unable to create a GL context, which is required for GL.");
+        console::warn("Unable to create a GL context, which is required for GL.");
         return false;
     }
 
     if (SDL_GL_MakeCurrent(mWnd, mGLrc) != 0) {
-        console::debug("Unable to MakeCurrent on GL context.");
+        console::warn("Unable to MakeCurrent on GL context.");
         return false;
     }
     
-    // TODO: Redo how this is done, needs fallbacks, should use 
+    // TODO: Redo how this is done, needs fallbacks, should use macro file.
     wgl::bind_gl();
 
     SDL_GL_SetSwapInterval(0);
@@ -150,88 +149,185 @@ void GfxApiOpenGLGeneric::SwapBuffers()
     SDL_GL_SwapWindow(mWnd);
 }
 
-// --------------------------------------------------------------------------------------------------------------------
-bool CreateShader(GLenum target, const char* path, GLuint* out_shader)
+// ------------------------------------------------------------------------------------------------
+std::string FileContentsToString(std::string _filename)
 {
-    std::string pathname = "Shaders/glsl/";
-    pathname += path;
+    std::string retBuffer;
 
-    FILE* fp = fopen(pathname.c_str(), "rb");
-    if (!fp)
-        return false;
+    FILE* file = 0;
+    fopen_s(&file, _filename.c_str(), "rb");
+    if (file) {
+        fseek(file, 0, SEEK_END);
+        size_t bytes = ftell(file);
 
-    fseek(fp, 0, SEEK_END);
-    int file_size = ftell(fp);
-    fseek(fp, 0, SEEK_SET);
+        retBuffer.resize(bytes + 1);
 
-    char* source_code = new char[file_size];
-    size_t bytes_read = fread(source_code, 1, file_size, fp);
-    assert(bytes_read == file_size);
-
-    GLuint shader = glCreateShader(target);
-    glShaderSource(shader, 1, &source_code, &file_size);
-    glCompileShader(shader);
-
-    GLint compile_status;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &compile_status);
-    if (!compile_status)
-    {
-        GLint len;
-        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &len);
-        if (len > 1)
-        {
-            char* log = new char[len];
-            GLsizei chars_written;
-            glGetShaderInfoLog(shader, len, &chars_written, log);
-            console::debug("%s", log);
-            delete[] log;
-        }
-
-        glDeleteShader(shader);
-        delete[] source_code;
-        return false;
+        fseek(file, 0, SEEK_SET);
+        fread(&(*retBuffer.begin()), 1, bytes, file);
+        fclose(file);
+        file = 0;
+        return retBuffer;
     }
 
-    *out_shader = shader;
-    delete[] source_code;
-    return true;
+    console::error("Unable to locate file '%s'", _filename);
+
+    return retBuffer;
 }
 
-// --------------------------------------------------------------------------------------------------------------------
-bool CompileProgram(GLuint* out_program, ...)
+// ------------------------------------------------------------------------------------------------
+GLuint CompileShaderFromFile(GLenum _shaderType, std::string _shaderFilename)
 {
-    GLuint p = glCreateProgram();
+    std::string shaderFullPath = "Shaders/glsl/" + _shaderFilename;
 
-    va_list args;
-    va_start(args, out_program);
+    GLuint retVal = glCreateShader(_shaderType);
+    std::string fileContents = FileContentsToString(shaderFullPath);
+    const char* fileContentsCstr = fileContents.c_str();
+    const char* includePath = ".";
 
-    while (GLuint sh = va_arg(args, GLuint)) {
-        glAttachShader(p, sh);
-    }
+    glShaderSource(retVal, 1, &fileContentsCstr, NULL);
+    glCompileShader(retVal);
 
-    va_end(args);
+    GLint compileStatus = 0;
+    glGetShaderiv(retVal, GL_COMPILE_STATUS, &compileStatus);
 
-    glLinkProgram(p);
-
-    GLint link_status;
-    glGetProgramiv(p, GL_LINK_STATUS, &link_status);
-    if (!link_status)
-    {
-        GLint len;
-        glGetProgramiv(p, GL_INFO_LOG_LENGTH, &len);
-        if (len > 1)
-        {
-            char* log = new char[len];
-            GLsizei chars_written;
-            glGetProgramInfoLog(p, len, &chars_written, log);
-            console::debug("%s", log);
-            delete[] log;
+    GLint glinfoLogLength = 0;
+    glGetShaderiv(retVal, GL_INFO_LOG_LENGTH, &glinfoLogLength);
+    if (glinfoLogLength > 1) {
+        GLchar* buffer = new GLchar[glinfoLogLength];
+        glGetShaderInfoLog(retVal, glinfoLogLength, &glinfoLogLength, buffer);
+        if (compileStatus != GL_TRUE) {
+            console::warn("Shader Compilation failed for shader '%s', with the following errors:", _shaderFilename.c_str());
+        } else {
+            console::log("Shader Compilation succeeded for shader '%s', with the following log:", _shaderFilename.c_str());
         }
 
-        glDeleteProgram(p);
-        return false;
+        console::log("%s", buffer);
+        delete[] buffer;
     }
 
-    *out_program = p;
-    return true;
+    if (compileStatus != GL_TRUE) {
+        assert(!"Shader failed compilation, here's an assert to break you in the debugger.");
+        glDeleteShader(retVal);
+        retVal = 0;
+    }
+
+    return retVal;
+}
+
+// ------------------------------------------------------------------------------------------------
+GLuint LinkShaders(GLuint _vs, GLuint _fs)
+{
+    GLuint retVal = glCreateProgram();
+    glAttachShader(retVal, _vs);
+    glAttachShader(retVal, _fs);
+    glLinkProgram(retVal);
+
+    GLint linkStatus = 0;
+    glGetProgramiv(retVal, GL_LINK_STATUS, &linkStatus);
+
+    GLint glinfoLogLength = 0;
+    glGetProgramiv(retVal, GL_INFO_LOG_LENGTH, &glinfoLogLength);
+
+    if (glinfoLogLength > 1) {
+        GLchar* buffer = new GLchar[glinfoLogLength];
+        glGetProgramInfoLog(retVal, glinfoLogLength, &glinfoLogLength, buffer);
+        if (linkStatus != GL_TRUE) {
+            console::warn("Shader Linking failed with the following errors:");
+        }
+        else {
+            console::log("Shader Linking succeeded, with following warnings/messages:");
+        }
+        delete[] buffer;
+    }
+
+    if (linkStatus != GL_TRUE) {
+        assert(!"Shader failed linking, here's an assert to break you in the debugger.");
+        glDeleteProgram(retVal);
+        retVal = 0;
+    }
+
+    return retVal;
+}
+
+// ------------------------------------------------------------------------------------------------
+GLuint LinkShaders(GLuint _vs, GLuint _tcs, GLuint _tes, GLuint _fs)
+{
+    GLuint retVal = glCreateProgram();
+    glAttachShader(retVal, _vs);
+    glAttachShader(retVal, _tcs);
+    glAttachShader(retVal, _tes);
+    glAttachShader(retVal, _fs);
+    glLinkProgram(retVal);
+
+    GLint linkStatus = 0;
+    glGetProgramiv(retVal, GL_LINK_STATUS, &linkStatus);
+
+    GLint glinfoLogLength = 0;
+    glGetProgramiv(retVal, GL_INFO_LOG_LENGTH, &glinfoLogLength);
+    if (glinfoLogLength > 1) {
+        GLchar* buffer = new GLchar[glinfoLogLength];
+        glGetProgramInfoLog(retVal, glinfoLogLength, &glinfoLogLength, buffer);
+        if (linkStatus != GL_TRUE) {
+            console::warn("Shader Linking failed with the following errors:");
+        }
+        else {
+            console::log("Shader Linking succeeded, with following warnings/messages:");
+        }
+        delete[] buffer;
+    }
+
+    if (linkStatus != GL_TRUE) {
+        assert(!"Shader failed linking, here's an assert to break you in the debugger.");
+
+        glDeleteProgram(retVal);
+        retVal = 0;
+    }
+
+    return retVal;
+}
+
+// ------------------------------------------------------------------------------------------------
+GLuint CreateProgram(std::string _vsFilename, std::string _psFilename)
+{
+    GLuint vs = CompileShaderFromFile(GL_VERTEX_SHADER, _vsFilename),
+           fs = CompileShaderFromFile(GL_FRAGMENT_SHADER, _psFilename);
+
+    // If any are 0, dump out early.
+    if ((vs * fs) == 0) {
+        return 0;
+    }
+
+    GLuint retProgram = LinkShaders(vs, fs);
+
+    // Flag these now, they're either attached (linked in) and will be cleaned up with the link, or the
+    // link failed and we're about to lose track of them anyways.
+    glDeleteShader(fs);
+    glDeleteShader(vs);
+
+    return retProgram;
+}
+
+// ------------------------------------------------------------------------------------------------
+GLuint CreateProgram(std::string _vsFilename, std::string _tcsFilename, std::string _tesFilename, std::string _fsFilename)
+{
+    GLuint vs = CompileShaderFromFile(GL_VERTEX_SHADER, _vsFilename),
+           tcs = CompileShaderFromFile(GL_TESS_CONTROL_SHADER, _tcsFilename),
+           tes = CompileShaderFromFile(GL_TESS_EVALUATION_SHADER, _tesFilename),
+           fs = CompileShaderFromFile(GL_FRAGMENT_SHADER, _fsFilename);
+
+    // If any are 0, dump out early.
+    if ((vs * tcs * tes * fs) == 0) {
+        return 0;
+    }
+
+    GLuint retProgram = LinkShaders(vs, tcs, tes, fs);
+
+    // Flag these now, they're either attached (linked in) and will be cleaned up with the link, or the
+    // link failed and we're about to lose track of them anyways.
+    glDeleteShader(fs);
+    glDeleteShader(tes);
+    glDeleteShader(tcs);
+    glDeleteShader(vs);
+
+    return retProgram;
 }
