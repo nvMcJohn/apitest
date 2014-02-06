@@ -3,23 +3,6 @@
 #include "gfx_gl.h"
 #include "console.h"
 
-#include "cubes_gl_uniform.h"
-#include "cubes_gl_dynamic_buffer.h"
-#include "cubes_gl_buffer_range.h"
-#include "cubes_gl_tex_coord.h"
-#include "cubes_gl_multi_draw.h"
-#include "cubes_gl_buffer_storage.h"
-#include "cubes_gl_bindless.h"
-#include "cubes_gl_bindless_indirect.h"
-#include "textures_gl_notex.h"
-#include "textures_gl_forward.h"
-#include "textures_gl_bindless.h"
-#include "textures_gl_bindless_multidraw.h"
-#include "textures_gl_sparse_bindless_texture_array.h"
-#include "textures_gl_sparse_bindless_texture_array_multidraw.h"
-
-#include "streaming_vb_gl.h"
-
 GfxBaseApi *CreateGfxOpenGLGeneric() { return new GfxApiOpenGLGeneric; }
 
 // --------------------------------------------------------------------------------------------------------------------

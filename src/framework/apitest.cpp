@@ -1,13 +1,11 @@
 #include "pch.h"
 
 #include "console.h"
+#include "factory.h"
 #include "gfx.h"
+#include "problems/problem.h"
 #include "timer.h"
-
 #include "wgl.h"
-
-// TODO: Shouldn't need to include this here.
-#include "textures_gl_bindless.h"
 
 #define NAME_OPENGLGENERIC      "OpenGL (Generic)"
 #define NAME_DIRECT3D11         "Direct3D 11"
@@ -136,20 +134,14 @@ static void update_fps()
 }
 
 // ------------------------------------------------------------------------------------------------
-static void Render(TestCase* _activeTestCase, GfxBaseApi* _activeAPI)
+static void Render(Problem* _activeProblem, GfxBaseApi* _activeAPI)
 {
-    assert(_activeTestCase);
+    assert(_activeProblem);
     assert(_activeAPI);
     
-    if (!_activeTestCase->Begin(_activeAPI)) {
-        return;
-    }
-
     // This is the main entry point shared by all tests. 
-    _activeTestCase->Render();
+    _activeProblem->Render();
     
-    _activeTestCase->End();
-
     // Present the results.
     _activeAPI->SwapBuffers();
     
@@ -199,13 +191,15 @@ int main(int argv, char* argc[])
         console::error("Unable to create at least an OpenGL renderer--exiting");
     }
 
-    TestCase* activeTestCase = new Textures_GL_Bindless();
-    if (!activeTestCase->Init()) {
-        console::error("Unable to initialize test case '%s'--exiting.", "Textures_GL_Bindless");
-    }
-
     GfxBaseApi* activeApi = allGfxApis[NAME_OPENGLGENERIC];
     activeApi->Activate();
+
+    std::vector<Problem*> problems;
+    std::vector<Solution*> solutions;
+
+    ProblemFactory *factory = new ProblemFactory;
+    Problem* activeProblem = factory->GetProblems()[0];
+    Solution* activeSolution = factory->GetSolutions(activeProblem)[0];
 
     for (;;) {
         SDL_Event sdl_event;
@@ -216,9 +210,11 @@ int main(int argv, char* argc[])
 
             OnEvent(&sdl_event);
         } else {
-            Render(activeTestCase, activeApi);
+            Render(activeProblem, activeApi);
         }
     }
+
+    SafeDelete(factory);
 
     activeApi->Deactivate();
 
@@ -229,69 +225,7 @@ int main(int argv, char* argc[])
     return 0;
 }
 
-
-// ------------------------------------------------------------------------------------------------
-void StreamingVB::Render()
-{
-    float spacing = 1.0f;
-    float x = spacing;
-    float y = spacing;
-    float w = 1.0f;
-    float h = 1.0f;
-
-    for (int i = 0; i < 160000; ++i)
-    {
-        VertexPos2 verts[] =
-        {
-            { x, y },
-            { x + w, y },
-            { x, y + h },
-            { x + w, y },
-            { x, y + h },
-            { x + w, y + h },
-        };
-
-        // TODO: It'd be ideal to get rid of this virtual call--it's 160,000 per frame. Or at least
-        // make sure it's not really virtual in release builds.
-        Draw(verts, 6);
-
-        x += w + spacing;
-        if (x > 1000)
-        {
-            x = spacing;
-            y += h + spacing;
-        }
-    }
-}
-
-// ------------------------------------------------------------------------------------------------
-void Cubes::Render()
-{
-    static float angle = 0.0f;
-    static Matrix* transforms;
-    if (!transforms)
-        transforms = new Matrix[CUBES_COUNT];
-
-    Matrix *m = transforms;
-    for (int x = 0; x < CUBES_X; ++x)
-    {
-        for (int y = 0; y < CUBES_Y; ++y)
-        {
-            for (int z = 0; z < CUBES_Z; ++z)
-            {
-                *m = matrix_rotation_z(angle);
-                m->w.x = 2.0f * x - CUBES_X;
-                m->w.y = 2.0f * y - CUBES_Y;
-                m->w.z = 2.0f * z - CUBES_Z;
-                ++m;
-            }
-        }
-    }
-
-    Draw(transforms, CUBES_COUNT);
-    angle += 0.01f;
-}
-
+#if 0
 // ------------------------------------------------------------------------------------------------
 void Textures::Render()
 {
@@ -316,3 +250,4 @@ void Textures::Render()
     Draw(transforms, TEXTURES_COUNT);
     angle += 0.01f;
 }
+#endif

@@ -65,4 +65,4 @@ endmacro( add_msvc_precompiled_header )
 
 
 include_directories( ${apitest_SOURCE_DIR}/src )
-file( GLOB HDRS *.h )
+file( GLOB_RECURSE HDRS *.h )

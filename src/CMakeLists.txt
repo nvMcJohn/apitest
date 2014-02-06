@@ -2,33 +2,31 @@
 include( ${apitest_SOURCE_DIR}/build/CMakeCommon.txt )
 
 set( SRCS
-	api_speed_test.cpp
-	console.cpp
-	cubes_gl_bindless.cpp
-        cubes_gl_bindless_indirect.cpp
-        cubes_gl_buffer_range.cpp
-        cubes_gl_buffer_storage.cpp
-        cubes_gl_dynamic_buffer.cpp
-        cubes_gl_multi_draw.cpp
-        cubes_gl_tex_coord.cpp
-        cubes_gl_uniform.cpp
-        gfx_gl.cpp
-        sparse_bindless_texarray.cpp
-        streaming_vb_gl.cpp
-        textures_gl_bindless.cpp
-        textures_gl_bindless_multidraw.cpp
-        textures_gl_forward.cpp
-        textures_gl_notex.cpp
-        textures_gl_sparse_bindless_texture_array.cpp
-        textures_gl_sparse_bindless_texture_array_multidraw.cpp
-        timer.cpp
-        wgl.cpp
+    framework/apitest.cpp
+    framework/console.cpp
+    framework/factory.cpp
+    framework/gfx_gl.cpp
+    framework/sparse_bindless_texarray.cpp
+    framework/timer.cpp
+    framework/wgl.cpp
+
+    problems/dynamicstreaming.cpp
+    problems/null.cpp
+    problems/problem.cpp
+    problems/texturedquads.cpp
+    problems/untexturedobjects.cpp
+
+    solutions/dynamicstreamingsoln.cpp
+    solutions/nullsoln.cpp
+    solutions/solution.cpp
+    solutions/texturedquadssoln.cpp
+    solutions/untexturedobjectssoln.cpp
 )
 
 if( MSVC )
         set( SRCS ${SRCS} 
-                gfx_dx11.cpp
-                streaming_vb_dx11.cpp
+                framework/gfx_dx11.cpp
+                # streaming_vb_dx11.cpp
         )
 endif( MSVC )
 
@@ -41,6 +39,65 @@ include_directories( "${SDL_INCLUDE_DIR}" )
 
 # Build our executable
 add_executable( apitest ${SRCS} ${HDRS} )
+
+source_group( "Framework" FILES 
+    framework/apitest.cpp
+    framework/console.cpp
+    framework/console.h
+    framework/dds_helper.h
+    framework/factory.cpp
+    framework/factory.h
+    framework/gfx.h
+    framework/gfx_dx11.cpp
+    framework/gfx_dx11.h
+    framework/gfx_gl.cpp
+    framework/gfx_gl.h
+    framework/mathlib.h
+    framework/sparse_bindless_texarray.cpp
+    framework/sparse_bindless_texarray.h
+    framework/timer.cpp
+    framework/timer.h
+    framework/wgl.cpp
+    framework/wgl.h
+)
+
+source_group( "Problems" FILES 
+    problems/dynamicstreaming.cpp
+    problems/dynamicstreaming.h
+    problems/null.cpp
+    problems/null.h
+    problems/problem.cpp
+    problems/problem.h
+    problems/texturedquads.cpp
+    problems/texturedquads.h
+    problems/untexturedobjects.cpp
+    problems/untexturedobjects.h
+)
+
+source_group( "Solutions" FILES 
+    solutions/solution.cpp
+    solutions/solution.h
+)
+
+source_group( "Solutions\\DynamicStreaming" FILES 
+    solutions/dynamicstreamingsoln.cpp
+    solutions/dynamicstreamingsoln.h
+)
+
+source_group( "Solutions\\Null" FILES 
+    solutions/nullsoln.cpp
+    solutions/nullsoln.h
+)
+
+source_group( "Solutions\\TexturedQuads" FILES 
+    solutions/texturedquadssoln.cpp
+    solutions/texturedquadssoln.h
+)
+
+source_group( "Solutions\\UntexturedObjects" FILES 
+    solutions/untexturedobjectssoln.cpp
+    solutions/untexturedobjectssoln.h
+)
 
 if( MSVC )
         target_link_libraries( apitest ${SDL_LIBRARY_DIR}/SDL2.lib )

@@ -19,10 +19,10 @@
 #endif
 
 // Needs to be included before SDL.h
-#include "mathlib.h"
+#include "framework/mathlib.h"
 
 #include "SDL.h"
-#include "dds_helper.h"
+#include "framework/dds_helper.h"
 
 #ifdef _WIN32
 #   pragma warning ( disable : 4351 )
