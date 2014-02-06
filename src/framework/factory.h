@@ -12,6 +12,7 @@ class ProblemFactory
 {
 public:
     ProblemFactory();
+    ~ProblemFactory();
 
     std::vector<Problem*> GetProblems();
     std::vector<Solution*> GetSolutions(Problem* _problem);

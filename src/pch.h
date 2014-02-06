@@ -19,6 +19,7 @@
 #endif
 
 // Needs to be included before SDL.h
+#include "framework/console.h"
 #include "framework/mathlib.h"
 
 #include "SDL.h"

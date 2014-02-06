@@ -201,6 +201,8 @@ int main(int argv, char* argc[])
     Problem* activeProblem = factory->GetProblems()[0];
     Solution* activeSolution = factory->GetSolutions(activeProblem)[0];
 
+    activeProblem->SetSolution(activeSolution);
+
     for (;;) {
         SDL_Event sdl_event;
         if (SDL_PollEvent(&sdl_event)) {
@@ -213,6 +215,9 @@ int main(int argv, char* argc[])
             Render(activeProblem, activeApi);
         }
     }
+
+    activeProblem->SetSolution(nullptr);
+    activeProblem->Shutdown();
 
     SafeDelete(factory);
 

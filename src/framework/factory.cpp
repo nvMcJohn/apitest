@@ -13,8 +13,33 @@
 // --------------------------------------------------------------------------------------------------------------------
 ProblemFactory::ProblemFactory()
 {
-    mProblems.push_back(new NullProblem());
-    mSolutions[mProblems.back()->GetName()].push_back(new NullSolution());
+    Problem* newProb = nullptr;
+    // Null
+    newProb = new NullProblem();
+    if (newProb->Init()) {
+        mProblems.push_back(newProb);
+        mSolutions[mProblems.back()->GetName()].push_back(new NullSolution());
+    } else {
+        SafeDelete(newProb);
+    }
+
+    // DynamicStreaming
+    // UntexturedObjects
+    // Textured Quads
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+ProblemFactory::~ProblemFactory()
+{
+    for (auto probIt = mSolutions.begin(); probIt != mSolutions.end(); ++probIt) {
+        for (auto solIt = probIt->second.begin(); solIt != probIt->second.end(); ++solIt) {
+            SafeDelete(*solIt);
+        }
+    }
+
+    for (auto probIt = mProblems.begin(); probIt != mProblems.end(); ++probIt) {
+        SafeDelete(*probIt);
+    }
 }
 
 // --------------------------------------------------------------------------------------------------------------------
