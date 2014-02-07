@@ -59,6 +59,7 @@ public:
 
     virtual void Activate() = 0;
     virtual void Deactivate() = 0;
+    virtual void Clear(Vec4 _clearColor, GLfloat _clearDepth) = 0;
     virtual void SwapBuffers() = 0;
 
     virtual EGfxApi GetApiType() const = 0;

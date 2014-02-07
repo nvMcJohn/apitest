@@ -142,6 +142,17 @@ TestCase* GfxApiOpenGLGeneric::create_test(TestId id)
 #endif
 
 // --------------------------------------------------------------------------------------------------------------------
+void GfxApiOpenGLGeneric::Clear(Vec4 _clearColor, GLfloat _clearDepth)
+{
+    // TODO: This should go elsewhere.
+    glViewport(0, 0, GetWidth(), GetHeight());
+
+    static_assert(sizeof(Vec4) == 4 * sizeof(GLfloat), "Unexpected size difference. Waaaat");
+    glClearBufferfv(GL_COLOR, 0, &_clearColor.x);
+    glClearBufferfv(GL_DEPTH, 0, &_clearDepth);
+}
+
+// --------------------------------------------------------------------------------------------------------------------
 void GfxApiOpenGLGeneric::SwapBuffers()
 {
     assert(mWnd);

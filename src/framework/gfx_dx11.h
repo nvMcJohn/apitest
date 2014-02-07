@@ -16,6 +16,7 @@ public:
 
     virtual void Activate() override;
     virtual void Deactivate() override;
+    virtual void Clear(Vec4 _clearColor, GLfloat _clearDepth) override;
     virtual void SwapBuffers() override;
 
     virtual EGfxApi GetApiType() const { return EGfxApi::Direct3D11; }

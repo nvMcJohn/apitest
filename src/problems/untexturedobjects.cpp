@@ -72,6 +72,8 @@ void UntexturedObjectsProblem::Update()
         }
     }
 
+    ++mIteration;
+
     if (angle > 2 * M_PI) {
         mIteration = 0;
     }

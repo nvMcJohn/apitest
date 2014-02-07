@@ -118,6 +118,13 @@ void GfxApiDirect3D11::Deactivate()
 }
 
 // --------------------------------------------------------------------------------------------------------------------
+void GfxApiDirect3D11::Clear(Vec4 _clearColor, GLfloat _clearDepth)
+{
+    g_d3d_context->ClearRenderTargetView(mColorView, &_clearColor.x);
+    g_d3d_context->ClearDepthStencilView(mDepthStencilView, D3D11_CLEAR_DEPTH, _clearDepth, 0);
+}
+
+// --------------------------------------------------------------------------------------------------------------------
 void GfxApiDirect3D11::SwapBuffers()
 {
     mSwapChain->Present(0, 0);

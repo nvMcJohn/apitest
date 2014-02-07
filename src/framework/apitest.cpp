@@ -72,8 +72,7 @@ public:
         // And set one as active
         mActiveSolution = findFirstValidSolution();
 
-        assert(mActiveApi);
-        mActiveApi->OnProblemOrSolutionSet(mActiveProblem->GetName(), mActiveSolution ? mActiveSolution->GetName() : std::string(""));
+        onSetProblemOrSolution();
     }
 
     void PrevProblem() 
@@ -97,8 +96,7 @@ public:
         // And set one as active
         mActiveSolution = findFirstValidSolution();
 
-        assert(mActiveApi);
-        mActiveApi->OnProblemOrSolutionSet(mActiveProblem->GetName(), mActiveSolution ? mActiveSolution->GetName() : std::string(""));
+        onSetProblemOrSolution();
     }
 
     size_t GetSolutionCount() const { return mSolutions.size(); }
@@ -114,8 +112,7 @@ public:
             mActiveSolution = setNextSolution(mSolutions.begin(), mSolutions.end(), prevSolution, false);
         }
 
-        assert(mActiveApi);
-        mActiveApi->OnProblemOrSolutionSet(mActiveProblem->GetName(), mActiveSolution ? mActiveSolution->GetName() : std::string(""));
+        onSetProblemOrSolution();
     }
 
     void PrevSolution() 
@@ -128,8 +125,7 @@ public:
             mActiveSolution = setNextSolution(mSolutions.rbegin(), mSolutions.rend(), prevSolution, false);
         }
 
-        assert(mActiveApi);
-        mActiveApi->OnProblemOrSolutionSet(mActiveProblem->GetName(), mActiveSolution ? mActiveSolution->GetName() : std::string(""));
+        onSetProblemOrSolution();
     }
     
     void SetActiveApi(GfxBaseApi* _activeApi)
@@ -165,8 +161,7 @@ private:
         // And set one as active
         mActiveSolution = findFirstValidSolution();
 
-        assert(mActiveApi);
-        mActiveApi->OnProblemOrSolutionSet(mActiveProblem->GetName(), mActiveSolution ? mActiveSolution->GetName() : std::string(""));
+        onSetProblemOrSolution();
     }
 
     template<typename ItType>
@@ -224,6 +219,20 @@ private:
         }
 
         return nullptr;
+    }
+
+    void onSetProblemOrSolution()
+    {
+        assert(mActiveApi);
+        mActiveApi->OnProblemOrSolutionSet(mActiveProblem->GetName(), mActiveSolution ? mActiveSolution->GetName() : std::string(""));
+
+        if (mActiveSolution) {
+            size_t width = mActiveApi->GetWidth();
+            size_t height = mActiveApi->GetHeight();
+            Matrix proj = matrix_perspective_rh_gl(radians(45.0f), (float)width / (float)height, 0.1f, 10000.0f);
+
+            mActiveSolution->SetProjectionMatrix(proj);
+        }
     }
 
     ProblemFactory mFactory;
@@ -375,6 +384,12 @@ static void Render(Problem* _activeProblem, GfxBaseApi* _activeApi)
     assert(_activeProblem);
     assert(_activeApi);
     
+    Vec4 clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+    GLfloat clearDepth = 1.0f;
+    _activeProblem->GetClearValues(&clearColor, &clearDepth);
+
+    _activeApi->Clear(clearColor, clearDepth);
+
     // This is the main entry point shared by all tests. 
     _activeProblem->Render();
     
