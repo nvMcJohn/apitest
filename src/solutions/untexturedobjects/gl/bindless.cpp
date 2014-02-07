@@ -81,8 +81,8 @@ void UntexturedObjectsGLBindless::Render(const std::vector<Matrix>& _transforms)
 
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
-    glVertexAttribFormatNV(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex));
-    glVertexAttribFormatNV(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex));
+    glVertexAttribFormatNV(0, 3, GL_FLOAT, GL_FALSE, sizeof(UntexturedObjectsProblem::Vertex));
+    glVertexAttribFormatNV(1, 3, GL_FLOAT, GL_FALSE, sizeof(UntexturedObjectsProblem::Vertex));
 
     // Rasterizer State
     glEnable(GL_CULL_FACE);
@@ -101,8 +101,8 @@ void UntexturedObjectsGLBindless::Render(const std::vector<Matrix>& _transforms)
     for (size_t u = 0; u < _transforms.size(); ++u)
     {
         glBufferAddressRangeNV(GL_ELEMENT_ARRAY_ADDRESS_NV, 0, m_ib_addrs[u], m_ib_sizes[u]);
-        glBufferAddressRangeNV(GL_VERTEX_ATTRIB_ARRAY_ADDRESS_NV, 0, m_vbo_addrs[u] + offsetof(Vertex, pos), m_vbo_sizes[u] - offsetof(Vertex, pos));
-        glBufferAddressRangeNV(GL_VERTEX_ATTRIB_ARRAY_ADDRESS_NV, 1, m_vbo_addrs[u] + offsetof(Vertex, color), m_vbo_sizes[u] - offsetof(Vertex, color));
+        glBufferAddressRangeNV(GL_VERTEX_ATTRIB_ARRAY_ADDRESS_NV, 0, m_vbo_addrs[u] + offsetof(UntexturedObjectsProblem::Vertex, pos), m_vbo_sizes[u] - offsetof(UntexturedObjectsProblem::Vertex, pos));
+        glBufferAddressRangeNV(GL_VERTEX_ATTRIB_ARRAY_ADDRESS_NV, 1, m_vbo_addrs[u] + offsetof(UntexturedObjectsProblem::Vertex, color), m_vbo_sizes[u] - offsetof(UntexturedObjectsProblem::Vertex, color));
 
         glUniformMatrix4fv(1, 1, GL_FALSE, &_transforms[u].x.x);
         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, nullptr);

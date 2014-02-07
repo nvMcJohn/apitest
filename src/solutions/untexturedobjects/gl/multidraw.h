@@ -1,33 +1,32 @@
 #pragma once
 
-#include "gfx_gl.h"
+#include "solutions/untexturedobjectssoln.h"
 
-class Cubes_GL_MultiDraw : public Cubes
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
+class UntexturedObjectsGLMultiDraw : public UntexturedObjectsSolution
 {
 public:
-    Cubes_GL_MultiDraw();
-    virtual ~Cubes_GL_MultiDraw();
+    UntexturedObjectsGLMultiDraw();
+    virtual ~UntexturedObjectsGLMultiDraw();
 
-    virtual bool Init() override;
+    virtual bool Init(const std::vector<UntexturedObjectsProblem::Vertex>& _vertices,
+                      const std::vector<UntexturedObjectsProblem::Index>& _indices,
+                      size_t _objectCount) override;
 
-    virtual bool Begin(GfxBaseApi* _activeAPI) override;
+    virtual void Render(const std::vector<Matrix>& _transforms);
+    virtual void Shutdown();
 
-    virtual void Draw(Matrix* transforms, int count) override;
+    // The name of this solution.
+    virtual std::string GetName() const { return "UntexturedObjectsGLMultiDraw"; }
 
 private:
-    struct Vertex
-    {
-        Vec3 pos;
-        Vec3 color;
-    };
-
     GLuint m_ib;
     GLuint m_vb;
-    GLuint m_vs;
-    GLuint m_fs;
     GLuint m_prog;
 
     GLuint m_transform_buffer;
 
-    DrawElementsIndirectCommand m_commands[CUBES_COUNT];
+    std::vector<DrawElementsIndirectCommand> m_commands;
 };

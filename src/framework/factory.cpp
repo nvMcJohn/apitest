@@ -8,6 +8,7 @@
 
 #include "solutions/nullsoln.h"
 #include "solutions/untexturedobjects/gl/bindless.h"
+#include "solutions/untexturedobjects/gl/multidraw.h"
 
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
@@ -30,6 +31,7 @@ ProblemFactory::ProblemFactory()
     newProb = new UntexturedObjectsProblem();
     if (newProb->Init()) {
         mProblems.push_back(newProb);
+        mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLMultiDraw());
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLBindless());
     }
     else {

@@ -22,12 +22,6 @@ public:
     virtual std::string GetName() const { return "UntexturedObjectsGLBindless"; }
 
 private:
-    struct Vertex
-    {
-        Vec3 pos;
-        Vec3 color;
-    };
-
     std::vector<GLuint> m_ibs;
     std::vector<GLuint64> m_ib_addrs;
     std::vector<GLsizeiptr> m_ib_sizes;
