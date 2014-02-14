@@ -8,7 +8,13 @@
 
 #include "solutions/nullsoln.h"
 #include "solutions/untexturedobjects/gl/bindless.h"
+#include "solutions/untexturedobjects/gl/bindlessindirect.h"
+#include "solutions/untexturedobjects/gl/bufferrange.h"
+#include "solutions/untexturedobjects/gl/bufferstorage.h"
+#include "solutions/untexturedobjects/gl/dynamicbuffer.h"
 #include "solutions/untexturedobjects/gl/multidraw.h"
+#include "solutions/untexturedobjects/gl/texcoord.h"
+#include "solutions/untexturedobjects/gl/uniform.h"
 
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
@@ -31,8 +37,14 @@ ProblemFactory::ProblemFactory()
     newProb = new UntexturedObjectsProblem();
     if (newProb->Init()) {
         mProblems.push_back(newProb);
+        mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLUniform());
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLMultiDraw());
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLBindless());
+        mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLBindlessIndirect());
+        mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLBufferRange());
+        mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLBufferStorage());
+        mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLDynamicBuffer());
+        mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLTexCoord());
     }
     else {
         SafeDelete(newProb);

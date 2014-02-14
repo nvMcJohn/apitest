@@ -13,16 +13,14 @@ UntexturedObjectsGLBindless::UntexturedObjectsGLBindless()
 { }
 
 // --------------------------------------------------------------------------------------------------------------------
-UntexturedObjectsGLBindless::~UntexturedObjectsGLBindless()
-{
-
-}
-
-// --------------------------------------------------------------------------------------------------------------------
 bool UntexturedObjectsGLBindless::Init(const std::vector<UntexturedObjectsProblem::Vertex>& _vertices,
-                                        const std::vector<UntexturedObjectsProblem::Index>& _indices,
-                                        size_t _objectCount)
+                                       const std::vector<UntexturedObjectsProblem::Index>& _indices,
+                                       size_t _objectCount)
 {
+    if (!UntexturedObjectsSolution::Init(_vertices, _indices, _objectCount)) {
+        return false;
+    }
+
     // Shaders
     m_prog = CreateProgram("cubes_gl_bindless_vs.glsl", 
                            "cubes_gl_bindless_fs.glsl");
@@ -105,7 +103,7 @@ void UntexturedObjectsGLBindless::Render(const std::vector<Matrix>& _transforms)
         glBufferAddressRangeNV(GL_VERTEX_ATTRIB_ARRAY_ADDRESS_NV, 1, m_vbo_addrs[u] + offsetof(UntexturedObjectsProblem::Vertex, color), m_vbo_sizes[u] - offsetof(UntexturedObjectsProblem::Vertex, color));
 
         glUniformMatrix4fv(1, 1, GL_FALSE, &_transforms[u].x.x);
-        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, nullptr);
+        glDrawElements(GL_TRIANGLES, mIndexCount, GL_UNSIGNED_SHORT, nullptr);
     }
 }
 

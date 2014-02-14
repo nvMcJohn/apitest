@@ -1,58 +1,53 @@
 #include "pch.h"
 
-#include "multidraw.h"
+#include "dynamicbuffer.h"
 #include "framework/gfx_gl.h"
 
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
-UntexturedObjectsGLMultiDraw::UntexturedObjectsGLMultiDraw()
-: m_ib()
-, m_vb()
-, m_prog()
-, m_transform_buffer()
-{ }
+UntexturedObjectsGLDynamicBuffer::UntexturedObjectsGLDynamicBuffer()
+    : m_ib()
+    , m_vb()
+    , m_ub()
+    , m_prog()
+{}
 
 // --------------------------------------------------------------------------------------------------------------------
-bool UntexturedObjectsGLMultiDraw::Init(const std::vector<UntexturedObjectsProblem::Vertex>& _vertices,
-                                        const std::vector<UntexturedObjectsProblem::Index>& _indices,
-                                        size_t _objectCount)
+bool UntexturedObjectsGLDynamicBuffer::Init(const std::vector<UntexturedObjectsProblem::Vertex>& _vertices,
+                                            const std::vector<UntexturedObjectsProblem::Index>& _indices,
+                                            size_t _objectCount)
 {
     if (!UntexturedObjectsSolution::Init(_vertices, _indices, _objectCount)) {
         return false;
     }
 
-    // Shaders
-    m_prog = CreateProgram("cubes_gl_multi_draw_vs.glsl", "cubes_gl_multi_draw_fs.glsl");
-    if (!m_prog) {
+    m_prog = CreateProgram("cubes_gl_dynamic_buffer_vs.glsl",
+                           "cubes_gl_dynamic_buffer_fs.glsl");
+
+    if (m_prog == 0) {
         console::warn("Unable to initialize solution '%s', shader compilation/linking failed.", GetName().c_str());
+        return false;
     }
 
-    // Buffers
     glGenBuffers(1, &m_vb);
     glBindBuffer(GL_ARRAY_BUFFER, m_vb);
-    glBufferData(GL_ARRAY_BUFFER, _vertices.size() * sizeof(UntexturedObjectsProblem::Vertex), &*_vertices.begin(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(UntexturedObjectsProblem::Vertex) * _vertices.size(), &*_vertices.begin(), GL_STATIC_DRAW);
 
     glGenBuffers(1, &m_ib);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ib);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, _indices.size() * sizeof(UntexturedObjectsProblem::Index), &*_indices.begin(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(UntexturedObjectsProblem::Index) * _indices.size(), &*_indices.begin(), GL_STATIC_DRAW);
 
-    glGenBuffers(1, &m_transform_buffer);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, m_transform_buffer);
-
-    // Set the command buffer size.
-    m_commands.resize(_objectCount);
+    glGenBuffers(1, &m_ub);
 
     return glGetError() == GL_NO_ERROR;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-void UntexturedObjectsGLMultiDraw::Render(const std::vector<Matrix>& _transforms)
+void UntexturedObjectsGLDynamicBuffer::Render(const std::vector<Matrix>& _transforms)
 {
-    size_t count = _transforms.size();
-    assert(count <= m_commands.size());
-
     // Program
+    // TODO: Should get camera info from problem, too. (Since the problems should be the same dataset).
     Vec3 dir = { -0.5f, -1, 1 };
     Vec3 at = { 0, 0, 0 };
     Vec3 up = { 0, 0, 1 };
@@ -63,6 +58,8 @@ void UntexturedObjectsGLMultiDraw::Render(const std::vector<Matrix>& _transforms
 
     glUseProgram(m_prog);
     glUniformMatrix4fv(0, 1, GL_TRUE, &view_proj.x.x);
+
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_ub);
 
     // Input Layout
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ib);
@@ -86,27 +83,24 @@ void UntexturedObjectsGLMultiDraw::Render(const std::vector<Matrix>& _transforms
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
 
-    for (size_t u = 0; u < count; ++u)
+    glBindBuffer(GL_UNIFORM_BUFFER, m_ub);
+    const size_t xformCount = _transforms.size();
+
+    for (size_t i = 0; i < xformCount; ++i)
     {
-        DrawElementsIndirectCommand *cmd = &m_commands[u];
-        cmd->count = mIndexCount;
-        cmd->instanceCount = 1;
-        cmd->firstIndex = 0;
-        cmd->baseVertex = 0;
-        cmd->baseInstance = 0;
+        Constants cb;
+        cb.world = _transforms[i];
+        glBufferData(GL_UNIFORM_BUFFER, sizeof(Constants), &cb, GL_DYNAMIC_DRAW);
+
+        glDrawElements(GL_TRIANGLES, mIndexCount, GL_UNSIGNED_SHORT, nullptr);
     }
-
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_transform_buffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, _transforms.size() * sizeof(Matrix), &*_transforms.begin(), GL_DYNAMIC_DRAW);
-
-    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_SHORT, &*m_commands.begin(), count, 0);
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-void UntexturedObjectsGLMultiDraw::Shutdown()
+void UntexturedObjectsGLDynamicBuffer::Shutdown()
 {
     glDeleteBuffers(1, &m_ib);
     glDeleteBuffers(1, &m_vb);
-    glDeleteBuffers(1, &m_transform_buffer);
+    glDeleteBuffers(1, &m_ub);
     glDeleteProgram(m_prog);
 }

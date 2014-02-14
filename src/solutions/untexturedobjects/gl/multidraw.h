@@ -9,7 +9,7 @@ class UntexturedObjectsGLMultiDraw : public UntexturedObjectsSolution
 {
 public:
     UntexturedObjectsGLMultiDraw();
-    virtual ~UntexturedObjectsGLMultiDraw();
+    virtual ~UntexturedObjectsGLMultiDraw() { }
 
     virtual bool Init(const std::vector<UntexturedObjectsProblem::Vertex>& _vertices,
                       const std::vector<UntexturedObjectsProblem::Index>& _indices,

@@ -1,56 +1,68 @@
 #include "pch.h"
 
-#include "multidraw.h"
+#include "bufferstorage.h"
 #include "framework/gfx_gl.h"
 
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
-UntexturedObjectsGLMultiDraw::UntexturedObjectsGLMultiDraw()
-: m_ib()
-, m_vb()
-, m_prog()
-, m_transform_buffer()
-{ }
+UntexturedObjectsGLBufferStorage::UntexturedObjectsGLBufferStorage()
+    : m_ib()
+    , m_vb()
+    , m_prog()
+    , m_transform_buffer()
+    , m_transform_ptr()
+    , m_cmd_buffer()
+    , m_cmd_ptr()
+{}
 
 // --------------------------------------------------------------------------------------------------------------------
-bool UntexturedObjectsGLMultiDraw::Init(const std::vector<UntexturedObjectsProblem::Vertex>& _vertices,
-                                        const std::vector<UntexturedObjectsProblem::Index>& _indices,
-                                        size_t _objectCount)
+bool UntexturedObjectsGLBufferStorage::Init(const std::vector<UntexturedObjectsProblem::Vertex>& _vertices,
+                                            const std::vector<UntexturedObjectsProblem::Index>& _indices,
+                                            size_t _objectCount)
 {
     if (!UntexturedObjectsSolution::Init(_vertices, _indices, _objectCount)) {
         return false;
     }
 
     // Shaders
-    m_prog = CreateProgram("cubes_gl_multi_draw_vs.glsl", "cubes_gl_multi_draw_fs.glsl");
-    if (!m_prog) {
+    m_prog = CreateProgram("cubes_gl_buffer_storage_vs.glsl",
+                           "cubes_gl_buffer_storage_fs.glsl");
+
+    if (m_prog == 0) {
         console::warn("Unable to initialize solution '%s', shader compilation/linking failed.", GetName().c_str());
+        return false;
     }
 
-    // Buffers
     glGenBuffers(1, &m_vb);
     glBindBuffer(GL_ARRAY_BUFFER, m_vb);
-    glBufferData(GL_ARRAY_BUFFER, _vertices.size() * sizeof(UntexturedObjectsProblem::Vertex), &*_vertices.begin(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(UntexturedObjectsProblem::Vertex) * _vertices.size(), &*_vertices.begin(), GL_STATIC_DRAW);
 
     glGenBuffers(1, &m_ib);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ib);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, _indices.size() * sizeof(UntexturedObjectsProblem::Index), &*_indices.begin(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(UntexturedObjectsProblem::Index) * _indices.size(), &*_indices.begin(), GL_STATIC_DRAW);
 
     glGenBuffers(1, &m_transform_buffer);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, m_transform_buffer);
+    glBufferStorage(GL_SHADER_STORAGE_BUFFER, _objectCount * 64, nullptr, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_DYNAMIC_STORAGE_BIT);
+    m_transform_ptr = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, _objectCount * 64, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT);
 
-    // Set the command buffer size.
+    glGenBuffers(1, &m_cmd_buffer);
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_cmd_buffer);
+    glBufferStorage(GL_DRAW_INDIRECT_BUFFER, _objectCount * sizeof(DrawElementsIndirectCommand), nullptr, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_DYNAMIC_STORAGE_BIT);
+    m_cmd_ptr = glMapBufferRange(GL_DRAW_INDIRECT_BUFFER, 0, _objectCount * sizeof(DrawElementsIndirectCommand), GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT);
+
     m_commands.resize(_objectCount);
 
     return glGetError() == GL_NO_ERROR;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-void UntexturedObjectsGLMultiDraw::Render(const std::vector<Matrix>& _transforms)
+void UntexturedObjectsGLBufferStorage::Render(const std::vector<Matrix>& _transforms)
 {
-    size_t count = _transforms.size();
-    assert(count <= m_commands.size());
+    const auto objCount = m_commands.size();
+    const auto xformCount = _transforms.size();
+    assert(objCount == xformCount);
 
     // Program
     Vec3 dir = { -0.5f, -1, 1 };
@@ -86,9 +98,8 @@ void UntexturedObjectsGLMultiDraw::Render(const std::vector<Matrix>& _transforms
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
 
-    for (size_t u = 0; u < count; ++u)
-    {
-        DrawElementsIndirectCommand *cmd = &m_commands[u];
+    for (auto it = m_commands.begin(); it != m_commands.end(); ++it) {
+        DrawElementsIndirectCommand *cmd = &*it;
         cmd->count = mIndexCount;
         cmd->instanceCount = 1;
         cmd->firstIndex = 0;
@@ -96,17 +107,31 @@ void UntexturedObjectsGLMultiDraw::Render(const std::vector<Matrix>& _transforms
         cmd->baseInstance = 0;
     }
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_transform_buffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, _transforms.size() * sizeof(Matrix), &*_transforms.begin(), GL_DYNAMIC_DRAW);
+    memcpy(m_transform_ptr, &*_transforms.begin(), sizeof(Matrix) * xformCount);
+    memcpy(m_cmd_ptr, &*m_commands.begin(), sizeof(DrawElementsIndirectCommand) * objCount);
+    glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
 
-    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_SHORT, &*m_commands.begin(), count, 0);
+    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_SHORT, nullptr, objCount, 0);
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-void UntexturedObjectsGLMultiDraw::Shutdown()
+void UntexturedObjectsGLBufferStorage::Shutdown()
 {
+    if (m_transform_ptr)
+    {
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_transform_buffer);
+        glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+    }
+
+    if (m_cmd_ptr)
+    {
+        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_cmd_buffer);
+        glUnmapBuffer(GL_DRAW_INDIRECT_BUFFER);
+    }
+
     glDeleteBuffers(1, &m_ib);
     glDeleteBuffers(1, &m_vb);
     glDeleteBuffers(1, &m_transform_buffer);
+    glDeleteBuffers(1, &m_cmd_buffer);
     glDeleteProgram(m_prog);
 }

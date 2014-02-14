@@ -24,7 +24,13 @@ set( SRCS
     solutions/untexturedobjectssoln.cpp
 
     solutions/untexturedobjects/gl/bindless.cpp
+    solutions/untexturedobjects/gl/bindlessindirect.cpp
+    solutions/untexturedobjects/gl/bufferrange.cpp
+    solutions/untexturedobjects/gl/bufferstorage.cpp
+    solutions/untexturedobjects/gl/dynamicbuffer.cpp
     solutions/untexturedobjects/gl/multidraw.cpp
+    solutions/untexturedobjects/gl/texcoord.cpp
+    solutions/untexturedobjects/gl/uniform.cpp
 )
 
 if( MSVC )
@@ -110,10 +116,41 @@ source_group( "Solutions\\UntexturedObjects\\GL\\Bindless" FILES
     solutions/untexturedobjects/gl/bindless.h
 )
 
+source_group( "Solutions\\UntexturedObjects\\GL\\BindlessIndirect" FILES 
+    solutions/untexturedobjects/gl/bindlessindirect.cpp
+	solutions/untexturedobjects/gl/bindlessindirect.h
+)
+
+source_group( "Solutions\\UntexturedObjects\\GL\\BufferRange" FILES 
+    solutions/untexturedobjects/gl/bufferrange.cpp
+    solutions/untexturedobjects/gl/bufferrange.h
+)
+
+source_group( "Solutions\\UntexturedObjects\\GL\\BufferStorage" FILES 
+    solutions/untexturedobjects/gl/bufferstorage.cpp
+    solutions/untexturedobjects/gl/bufferstorage.h
+)
+
+source_group( "Solutions\\UntexturedObjects\\GL\\DynamicBuffer" FILES 
+    solutions/untexturedobjects/gl/dynamicbuffer.cpp
+    solutions/untexturedobjects/gl/dynamicbuffer.h
+)
+
 source_group( "Solutions\\UntexturedObjects\\GL\\MultiDraw" FILES 
     solutions/untexturedobjects/gl/multidraw.cpp
     solutions/untexturedobjects/gl/multidraw.h
 )
+
+source_group( "Solutions\\UntexturedObjects\\GL\\TexCoord" FILES 
+    solutions/untexturedobjects/gl/texcoord.cpp
+    solutions/untexturedobjects/gl/texcoord.h
+)
+
+source_group( "Solutions\\UntexturedObjects\\GL\\Uniforms" FILES 
+    solutions/untexturedobjects/gl/uniform.cpp
+    solutions/untexturedobjects/gl/uniform.h
+)
+
 
 if( MSVC )
         target_link_libraries( apitest ${SDL_LIBRARY_DIR}/SDL2.lib )

@@ -11,7 +11,9 @@ bool Problem::SetSolution(Solution* _solution)
     assert(_solution == nullptr || _solution->GetProblemName() == GetName());
 
     if (mActiveSolution) {
+        console::log("Solution %s - shutdown beginning.", mActiveSolution->GetName().c_str());
         mActiveSolution->Shutdown();
+        console::log("Solution %s shutdown complete.", mActiveSolution->GetName().c_str());
     }
 
     mActiveSolution = _solution;

@@ -5,11 +5,11 @@
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
-class UntexturedObjectsGLBindless : public UntexturedObjectsSolution
+class UntexturedObjectsGLBufferStorage : public UntexturedObjectsSolution
 {
 public:
-    UntexturedObjectsGLBindless();
-    virtual ~UntexturedObjectsGLBindless() { }
+    UntexturedObjectsGLBufferStorage();
+    virtual ~UntexturedObjectsGLBufferStorage() { }
 
     virtual bool Init(const std::vector<UntexturedObjectsProblem::Vertex>& _vertices,
                       const std::vector<UntexturedObjectsProblem::Index>& _indices,
@@ -19,15 +19,17 @@ public:
     virtual void Shutdown();
 
     // The name of this solution.
-    virtual std::string GetName() const { return "UntexturedObjectsGLBindless"; }
+    virtual std::string GetName() const { return "UntexturedObjectsGLBufferStorage"; }
 
 private:
-    std::vector<GLuint> m_ibs;
-    std::vector<GLuint64> m_ib_addrs;
-    std::vector<GLsizeiptr> m_ib_sizes;
-    std::vector<GLuint> m_vbs;
-    std::vector<GLuint64> m_vbo_addrs;
-    std::vector<GLsizeiptr> m_vbo_sizes;
-
+    GLuint m_ib;
+    GLuint m_vb;
     GLuint m_prog;
+
+    GLuint m_transform_buffer;
+    void *m_transform_ptr;
+
+    std::vector<DrawElementsIndirectCommand> m_commands;
+    GLuint m_cmd_buffer;
+    void *m_cmd_ptr;
 };
