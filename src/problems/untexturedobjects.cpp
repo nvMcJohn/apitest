@@ -51,6 +51,8 @@ bool UntexturedObjectsProblem::SetSolution(Solution* _solution)
         console::log("Solution %s - Initializing.", mActiveSolution->GetName().c_str());
         bool retVal = reinterpret_cast<UntexturedObjectsSolution*>(mActiveSolution)->Init(mVertices, mIndices, kObjectCount);
         console::log("Solution %s - Initialize complete (Success: %s).", mActiveSolution->GetName().c_str(), retVal ? "true" : "false");
+
+        return retVal;
     }
 
     return true;

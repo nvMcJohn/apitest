@@ -13,7 +13,6 @@ NullProblem::NullProblem()
 // --------------------------------------------------------------------------------------------------------------------
 bool NullProblem::Init()
 {
-    console::debug("Initializing NullProblem");
     // Nothing to initialize
     return true;
 }
@@ -32,12 +31,11 @@ bool NullProblem::SetSolution(Solution* _solution)
     }
     
     if (mActiveSolution) {
-        console::debug("NullProblem::SetSolution(%s)", mActiveSolution->GetName().c_str());
-
-        return reinterpret_cast<NullSolution*>(mActiveSolution)->Init();
+        console::log("Solution %s - Initializing.", mActiveSolution->GetName().c_str());
+        bool retVal = reinterpret_cast<NullSolution*>(mActiveSolution)->Init();
+        console::log("Solution %s - Initialize complete (Success: %s).", mActiveSolution->GetName().c_str(), retVal ? "true" : "false");
+        return retVal;
     }
-
-    console::debug("NullProblem::SetSolution(%s)", "nullptr");
 
     return true;
 }
