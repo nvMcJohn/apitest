@@ -246,8 +246,10 @@ GLuint LinkShaders(GLuint _vs, GLuint _fs)
             console::warn("Shader Linking failed with the following errors:");
         }
         else {
-            console::log("Shader Linking succeeded, with following warnings/messages:");
+            console::log("Shader Linking succeeded, with following warnings/messages:\n");
         }
+
+        console::log("%s", buffer);
         delete[] buffer;
     }
 
@@ -342,3 +344,32 @@ GLuint CreateProgram(std::string _vsFilename, std::string _tcsFilename, std::str
 
     return retProgram;
 }
+
+// ------------------------------------------------------------------------------------------------
+GLuint NewTex2DFromDetails(const TextureDetails& _texDetails)
+{
+    GLuint retVal = 0;
+    GLuint texs[2] = { 0 };
+
+    glGenTextures(1, &retVal);
+
+    if (retVal == 0) {
+        return retVal;
+    }
+
+    glBindTexture(GL_TEXTURE_2D, retVal);
+    glTexStorage2D(GL_TEXTURE_2D, _texDetails.szMipMapCount, _texDetails.glFormat,
+                                  _texDetails.dwWidth, _texDetails.dwHeight);
+
+    size_t offset = 0;
+    for (int mip = 0; mip < _texDetails.szMipMapCount; ++mip) {
+        glCompressedTexSubImage2D(GL_TEXTURE_2D, mip, 0, 0, _texDetails.MipMapWidth(mip), _texDetails.MipMapHeight(mip), _texDetails.glFormat, _texDetails.pSizes[mip], (char*)_texDetails.pPixels + offset);
+        offset += _texDetails.pSizes[mip];
+    }
+
+    assert(glGetError() == GL_NO_ERROR);
+
+    return retVal;
+}
+
+

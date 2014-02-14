@@ -23,6 +23,13 @@ set( SRCS
     solutions/texturedquadssoln.cpp
     solutions/untexturedobjectssoln.cpp
 
+    solutions/texturedquads/gl/bindless.cpp
+    solutions/texturedquads/gl/bindlessmultidraw.cpp
+    solutions/texturedquads/gl/naive.cpp
+    solutions/texturedquads/gl/notex.cpp
+    solutions/texturedquads/gl/sparsebindlesstexturearray.cpp
+    solutions/texturedquads/gl/sparsebindlesstexturearraymultidraw.cpp
+
     solutions/untexturedobjects/gl/bindless.cpp
     solutions/untexturedobjects/gl/bindlessindirect.cpp
     solutions/untexturedobjects/gl/bufferrange.cpp
@@ -104,6 +111,36 @@ source_group( "Solutions\\Null" FILES
 source_group( "Solutions\\TexturedQuads" FILES 
     solutions/texturedquadssoln.cpp
     solutions/texturedquadssoln.h
+)
+
+source_group( "Solutions\\TexturedQuads\\Bindless" FILES 
+    solutions/texturedquads/gl/bindless.cpp
+    solutions/texturedquads/gl/bindless.h
+)
+
+source_group( "Solutions\\TexturedQuads\\BindlessMultidraw" FILES 
+    solutions/texturedquads/gl/bindlessmultidraw.cpp
+    solutions/texturedquads/gl/bindlessmultidraw.h
+)
+
+source_group( "Solutions\\TexturedQuads\\Naive" FILES 
+    solutions/texturedquads/gl/naive.cpp
+    solutions/texturedquads/gl/naive.h
+)
+
+source_group( "Solutions\\TexturedQuads\\Notex (SOL)" FILES 
+    solutions/texturedquads/gl/notex.cpp
+    solutions/texturedquads/gl/notex.h
+)
+
+source_group( "Solutions\\TexturedQuads\\SparseBindlessTextureArray" FILES 
+    solutions/texturedquads/gl/sparsebindlesstexturearray.cpp
+    solutions/texturedquads/gl/sparsebindlesstexturearray.h
+)
+
+source_group( "Solutions\\TexturedQuads\\SparseBindlessTextureArrayMultidraw" FILES 
+    solutions/texturedquads/gl/sparsebindlesstexturearraymultidraw.cpp
+    solutions/texturedquads/gl/sparsebindlesstexturearraymultidraw.h
 )
 
 source_group( "Solutions\\UntexturedObjects" FILES 

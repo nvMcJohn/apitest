@@ -26,6 +26,41 @@ protected:
     SDL_GLContext mGLrc;
 };
 
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 // GL Utilities
 GLuint CreateProgram(std::string _vsFilename, std::string _psFilename);
 GLuint CreateProgram(std::string _vsFilename, std::string _tcsFilename, std::string _tesFilename, std::string _fsFilename);
+
+// --------------------------------------------------------------------------------------------------------------------
+template <typename T>
+inline void BufferData(GLenum _target, const std::vector<T>& _data, GLenum _usage)
+{
+    if (_data.size() > 0) {
+        glBufferData(_target, sizeof(T)* _data.size(), &*_data.cbegin(), _usage);
+    }
+    else {
+        glBufferData(_target, 0, nullptr, _usage);
+    }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+template <typename T>
+inline GLuint NewBufferFromVector(GLenum _target, const std::vector<T>& _data, GLenum _usage)
+{
+    GLuint retVal = 0;
+    glGenBuffers(1, &retVal);
+    if (retVal == 0) {
+        return 0;
+    }
+
+    glBindBuffer(_target, retVal);
+    BufferData(_target, _data, _usage);
+
+    assert(glGetError() == GL_NO_ERROR);
+
+    return retVal;
+}
+
+GLuint NewTex2DFromDetails(const TextureDetails& _texDetails);

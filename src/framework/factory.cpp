@@ -16,6 +16,13 @@
 #include "solutions/untexturedobjects/gl/texcoord.h"
 #include "solutions/untexturedobjects/gl/uniform.h"
 
+#include "solutions/texturedquads/gl/bindless.h"
+#include "solutions/texturedquads/gl/bindlessmultidraw.h"
+#include "solutions/texturedquads/gl/naive.h"
+#include "solutions/texturedquads/gl/notex.h"
+#include "solutions/texturedquads/gl/sparsebindlesstexturearray.h"
+#include "solutions/texturedquads/gl/sparsebindlesstexturearraymultidraw.h"
+
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
@@ -25,9 +32,11 @@ ProblemFactory::ProblemFactory()
     // Null
     newProb = new NullProblem();
     if (newProb->Init()) {
+        newProb->Shutdown();
         mProblems.push_back(newProb);
         mSolutions[mProblems.back()->GetName()].push_back(new NullSolution());
     } else {
+        newProb->Shutdown();
         SafeDelete(newProb);
         console::error("Unable to create the Null Problem--exiting.");
     }
@@ -36,6 +45,7 @@ ProblemFactory::ProblemFactory()
     // UntexturedObjects
     newProb = new UntexturedObjectsProblem();
     if (newProb->Init()) {
+        newProb->Shutdown();
         mProblems.push_back(newProb);
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLUniform());
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLMultiDraw());
@@ -45,11 +55,26 @@ ProblemFactory::ProblemFactory()
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLBufferStorage());
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLDynamicBuffer());
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLTexCoord());
-    }
-    else {
+    } else {
+        newProb->Shutdown();
         SafeDelete(newProb);
     }
+
     // Textured Quads
+    newProb = new TexturedQuadsProblem();
+    if (newProb->Init()) {
+        newProb->Shutdown();
+        mProblems.push_back(newProb);
+        mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLBindless());
+        mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLBindlessMultiDraw());
+        mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLNaive());
+        mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLNoTex());
+        mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLSparseBindlessTextureArray());
+        mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLSparseBindlessTextureArrayMultiDraw());
+    } else {
+        newProb->Shutdown();
+        SafeDelete(newProb);
+    }
 }
 
 // --------------------------------------------------------------------------------------------------------------------

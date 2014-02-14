@@ -3,6 +3,9 @@
 
 #include "solutions/untexturedobjectssoln.h"
 
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 const int kObjectsX = 64;
 const int kObjectsY = 64;
 const int kObjectsZ = 64;
@@ -14,10 +17,7 @@ const int kIndexCount = 36;
 
 // --------------------------------------------------------------------------------------------------------------------
 UntexturedObjectsProblem::UntexturedObjectsProblem()
-: mTransforms(kTransformCount)
-, mVertices(kVertexCount)
-, mIndices(kIndexCount)
-, mIteration()
+: mIteration()
 {
 
 }
@@ -26,8 +26,19 @@ UntexturedObjectsProblem::UntexturedObjectsProblem()
 bool UntexturedObjectsProblem::Init()
 {
     genUnitCube();
+    mTransforms.resize(kTransformCount);
 
     return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+void UntexturedObjectsProblem::Shutdown()
+{
+    Problem::Shutdown();
+
+    mIndices.clear();
+    mVertices.clear();
+    mTransforms.clear();
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -86,9 +97,6 @@ void UntexturedObjectsProblem::Update()
 // --------------------------------------------------------------------------------------------------------------------
 void UntexturedObjectsProblem::genUnitCube()
 {
-    assert(mVertices.size() == kVertexCount);
-    assert(mIndices.size() == kIndexCount);
-
     const Vertex vertices[] = {
         { -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f },
         {  0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  0.0f },
@@ -100,14 +108,10 @@ void UntexturedObjectsProblem::genUnitCube()
         { -0.5f, -0.5f, -0.5f,  0.0f,  0.0f,  0.0f },
     };
 
-    mVertices[0] = vertices[0];
-    mVertices[1] = vertices[1];
-    mVertices[2] = vertices[2];
-    mVertices[3] = vertices[3];
-    mVertices[4] = vertices[4];
-    mVertices[5] = vertices[5];
-    mVertices[6] = vertices[6];
-    mVertices[7] = vertices[7];
+    for (int i = 0; i < ArraySize(vertices); ++i) {
+        mVertices.push_back(vertices[i]);
+    }
+    assert(mVertices.size() == kVertexCount);
 
     const uint16_t indices[] =
     {
@@ -119,7 +123,9 @@ void UntexturedObjectsProblem::genUnitCube()
         0, 3, 4, 0, 4, 7
     };
 
-    for (size_t u = 0; u < ArraySize(indices); ++u) {
-        mIndices[u] = indices[u];
+    for (int i = 0; i < ArraySize(indices); ++i) {
+        mIndices.push_back(indices[i]);
     }
+
+    assert(mIndices.size() == kIndexCount);
 }

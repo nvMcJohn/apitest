@@ -65,8 +65,8 @@ struct TextureDetails
             free(pSizes);
     }
 
-    GLint MipMapHeight(GLint mipMap) { return dds_imax(1, dwHeight >> mipMap); }
-    GLint MipMapWidth(GLint mipMap) { return dds_imax(1, dwWidth >> mipMap); }
+    GLint MipMapHeight(GLint mipMap) const { return dds_imax(1, dwHeight >> mipMap); }
+    GLint MipMapWidth(GLint mipMap) const { return dds_imax(1, dwWidth >> mipMap); }
 };
 
 // ------------------------------------------------------------------------------------------------

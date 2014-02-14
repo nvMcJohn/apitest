@@ -1,45 +1,36 @@
 #pragma once
 
-#include "sparse_bindless_texarray.h"
+#include "solutions/texturedquadssoln.h"
+#include "framework/sparse_bindless_texarray.h"
 
-class Texture2D;
-
-// ------------------------------------------------------------------------------------------------
-// ------------------------------------------------------------------------------------------------
-// ------------------------------------------------------------------------------------------------
-class Textures_GL_Sparse_Bindless_Texture_Array : public Textures
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
+class TexturedQuadsGLSparseBindlessTextureArray : public TexturedQuadsSolution
 {
 public:
-    Textures_GL_Sparse_Bindless_Texture_Array();
-    virtual ~Textures_GL_Sparse_Bindless_Texture_Array();
+    TexturedQuadsGLSparseBindlessTextureArray();
+    virtual ~TexturedQuadsGLSparseBindlessTextureArray() { }
 
-    virtual bool Init() override;
+    virtual bool Init(const std::vector<TexturedQuadsProblem::Vertex>& _vertices,
+                      const std::vector<TexturedQuadsProblem::Index>& _indices,
+                      const std::vector<TextureDetails*>& _textures,
+                      size_t _objectCount);
 
-    virtual bool Begin(GfxBaseApi* _activeAPI) override;
+    virtual void Render(const std::vector<Matrix>& _transforms);
+    virtual void Shutdown();
 
-    virtual void Draw(Matrix* transforms, int count) override;
+    // The name of this solution.
+    virtual std::string GetName() const { return "TexturedQuadsGLSparseBindlessTextureArray"; }
 
 private:
-    struct Vertex
-    {
-        Vec3 pos;
-        Vec2 tex;
-    };
+    GLuint mIndexBuffer;
+    GLuint mVertexBuffer;
+    GLuint mProgram;
+    GLuint mTransformBuffer;
+    GLuint mTexAddressBuffer;
 
-    GLuint m_ib;
-    GLuint m_vb_pos;
-    GLuint m_vb_tex;
-    GLuint m_vs;
-    GLuint m_fs;
-    GLuint m_prog;
-    GLuint m_texbuf;
-
-    GLuint m_transform_buffer;
-
-    Texture2D* mTex1;
-    Texture2D* mTex2;
-
-    DrawElementsIndirectCommand m_commands[TEXTURES_COUNT];
+    std::vector<Texture2D*> mTextures;
 
     TextureManager mTexManager;
 };

@@ -18,6 +18,7 @@ Texture2D::Texture2D(Texture2DContainer* container, GLsizei sliceNum)
 Texture2D::~Texture2D()
 {
     free();
+    mContainer->virtualFree(GLsizei(mSliceNum));
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -30,6 +31,7 @@ void Texture2D::commit()
 void Texture2D::free()
 {
     mContainer->free(this);
+    
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -46,6 +48,7 @@ Texture2DContainer::Texture2DContainer(GLsizei levels, GLenum internalformat, GL
 , mWidth(width)
 , mHeight(height)
 , mLevels(levels)
+, mSlices(slices)
 , mXTileSize(0)
 , mYTileSize(0)
 {
@@ -89,8 +92,8 @@ Texture2DContainer::Texture2DContainer(GLsizei levels, GLenum internalformat, GL
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_VIRTUAL_PAGE_SIZE_INDEX_ARB, bestIndex);
 
     // We've set all the necessary parameters, now it's time to create the sparse texture.
-    glTexStorage3D(GL_TEXTURE_2D_ARRAY, levels, internalformat, width, height, slices);
-    for (GLsizei i = 0; i < slices; ++i) {
+    glTexStorage3D(GL_TEXTURE_2D_ARRAY, levels, internalformat, width, height, mSlices);
+    for (GLsizei i = 0; i < mSlices; ++i) {
         mFreeList.push(i);
     }
 
@@ -102,6 +105,9 @@ Texture2DContainer::Texture2DContainer(GLsizei levels, GLenum internalformat, GL
 // ------------------------------------------------------------------------------------------------
 Texture2DContainer::~Texture2DContainer()
 {
+    // If this fires, it means there was a texture leaked somewhere.
+    assert(mFreeList.size() == mSlices);
+
     glMakeTextureHandleNonResidentARB(mHandle);
     mHandle = 0;
     glDeleteTextures(1, &mTexId);
@@ -177,11 +183,32 @@ TextureManager::TextureManager()
 }
 
 // ------------------------------------------------------------------------------------------------
+TextureManager::~TextureManager()
+{
+    assert(mInited == false);
+}
+
+// ------------------------------------------------------------------------------------------------
 Texture2D* TextureManager::newTexture2D(GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height)
 {
     assert(mInited);
     Texture2D* retTex = allocTexture2D(levels, internalformat, width, height);
     retTex->commit();
+
+    return retTex;
+}
+
+// ------------------------------------------------------------------------------------------------
+Texture2D* TextureManager::newTexture2DFromDetails(const TextureDetails* _texDetails)
+{
+    Texture2D* retTex = allocTexture2D(_texDetails->szMipMapCount, _texDetails->glFormat, _texDetails->dwWidth, _texDetails->dwHeight);
+    retTex->commit();
+
+    size_t offset = 0;
+    for (int mip = 0; mip < _texDetails->szMipMapCount; ++mip) {
+        retTex->CompressedTexSubImage2D(mip, 0, 0, _texDetails->MipMapWidth(mip), _texDetails->MipMapHeight(mip), _texDetails->glFormat, _texDetails->pSizes[mip], (char*)_texDetails->pPixels + offset);
+        offset += _texDetails->pSizes[mip];
+    }
 
     return retTex;
 }
@@ -196,11 +223,30 @@ void TextureManager::free(Texture2D* _tex)
 // ------------------------------------------------------------------------------------------------
 bool TextureManager::Init()
 {
+    assert(mInited == false);
+
     glGetIntegerv(GL_MAX_SPARSE_ARRAY_TEXTURE_LAYERS_ARB, &mMaxTextureArrayLevels);
 
     mInited = true;
     return true;
 }
+
+// ------------------------------------------------------------------------------------------------
+void TextureManager::Shutdown()
+{
+    assert(mInited);
+
+    for (auto containIt = mTexArrays2D.begin(); containIt != mTexArrays2D.end(); ++containIt) {
+        for (auto ptrIt = containIt->second.begin(); ptrIt != containIt->second.end(); ++ptrIt) {
+            SafeDelete(*ptrIt);
+        }
+    }
+
+    mTexArrays2D.clear();
+
+    mInited = false;
+}
+
 
 // ------------------------------------------------------------------------------------------------
 Texture2D* TextureManager::allocTexture2D(GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height)

@@ -1,103 +1,50 @@
 #include "pch.h"
 
-#include "textures_gl_notex.h"
-#include "mathlib.h"
-#include "console.h"
+#include "notex.h"
+#include "framework/gfx_gl.h"
 
-// ------------------------------------------------------------------------------------------------
-// ------------------------------------------------------------------------------------------------
-// ------------------------------------------------------------------------------------------------
-Textures_GL_NoTex::Textures_GL_NoTex()
-    : m_ib()
-    , m_vb_pos()
-    , m_vb_tex()
-    , m_vs()
-    , m_fs()
-    , m_prog()
-    , m_transform_buffer()
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
+TexturedQuadsGLNoTex::TexturedQuadsGLNoTex()
+: mIndexBuffer()
+, mVertexBuffer()
+, mProgram()
+, mTransformBuffer()
 {}
 
-// ------------------------------------------------------------------------------------------------
-Textures_GL_NoTex::~Textures_GL_NoTex()
+// --------------------------------------------------------------------------------------------------------------------
+bool TexturedQuadsGLNoTex::Init(const std::vector<TexturedQuadsProblem::Vertex>& _vertices,
+                                const std::vector<TexturedQuadsProblem::Index>& _indices,
+                                const std::vector<TextureDetails*>& _textures,
+                                size_t _objectCount)
 {
-    glDeleteBuffers(1, &m_ib);
-    glDeleteBuffers(1, &m_vb_pos);
-    glDeleteBuffers(1, &m_vb_tex);
-    glDeleteBuffers(1, &m_transform_buffer);
-    glDeleteShader(m_vs);
-    glDeleteShader(m_fs);
-    glDeleteProgram(m_prog);
-}
-
-// ------------------------------------------------------------------------------------------------
-bool Textures_GL_NoTex::Init()
-{
-    // Shaders
-    if (!CreateShader(GL_VERTEX_SHADER, "textures_gl_notex_vs.glsl", &m_vs))
+    if (!TexturedQuadsSolution::Init(_vertices, _indices, _textures, _objectCount)) {
         return false;
+    }
 
-    if (!CreateShader(GL_FRAGMENT_SHADER, "textures_gl_notex_fs.glsl", &m_fs))
-        return false;
+    // Programs
+    mProgram = CreateProgram("textures_gl_notex_vs.glsl",
+                             "textures_gl_notex_fs.glsl");
 
-    if (!CompileProgram(&m_prog, m_vs, m_fs, 0))
+    if (mProgram == 0) {
+        console::warn("Unable to initialize solution '%s', shader compilation/linking failed.", GetName().c_str());
         return false;
+    }
 
     // Buffers
-    Vec3 vertices_pos[] =
-    {
-        { -0.5, -0.5f,  0.0f },
-        {  0.5, -0.5f,  0.0f },
-        {  0.5,  0.5f,  0.0f },
-        { -0.5,  0.5f,  0.0f },
-    };
+    mVertexBuffer = NewBufferFromVector(GL_ARRAY_BUFFER, _vertices, GL_STATIC_DRAW);
+    mIndexBuffer = NewBufferFromVector(GL_ELEMENT_ARRAY_BUFFER, _indices, GL_STATIC_DRAW);
 
-    Vec2 vertices_tex[] = 
-    {
-        { 0, 0 },
-        { 0, 1 },
-        { 1, 0 },
-        { 1, 1 }
-    };
-
-    GLushort indices[] =
-    {
-        0, 1, 2, 0, 2, 3,
-    };
-
-    // Buffers
-    GLuint vbs[2] = { 0 };
-
-    glGenBuffers(2, vbs);
-    m_vb_pos = vbs[0];
-    m_vb_tex = vbs[1];
-
-    glBindBuffer(GL_ARRAY_BUFFER, m_vb_pos);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_pos), vertices_pos, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ARRAY_BUFFER, m_vb_tex);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_tex), vertices_tex, GL_STATIC_DRAW);
-
-    glGenBuffers(1, &m_ib);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ib);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-    glGenBuffers(1, &m_transform_buffer);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, m_transform_buffer);
+    glGenBuffers(1, &mTransformBuffer);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, mTransformBuffer);
 
     return glGetError() == GL_NO_ERROR;
 }
 
-// ------------------------------------------------------------------------------------------------
-bool Textures_GL_NoTex::Begin(GfxBaseApi* _activeAPI)
+// --------------------------------------------------------------------------------------------------------------------
+void TexturedQuadsGLNoTex::Render(const std::vector<Matrix>& _transforms)
 {
-    int width = _activeAPI->GetWidth();
-    int height = _activeAPI->GetHeight();
-
-    float c[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
-    float d = 1.0f;
-    glClearBufferfv(GL_COLOR, 0, c);
-    glClearBufferfv(GL_DEPTH, 0, &d);
-
     // Program
     Vec3 dir = { 0, 0, 1 };
     Vec3 at = { 0, 0, 0 };
@@ -105,21 +52,18 @@ bool Textures_GL_NoTex::Begin(GfxBaseApi* _activeAPI)
     dir = normalize(dir);
     Vec3 eye = at - 250 * dir;
     Matrix view = matrix_look_at(eye, at, up);
-    Matrix proj = matrix_perspective_rh_gl(radians(45.0f), (float)width / (float)height, 0.1f, 10000.0f);
-    Matrix view_proj = proj * view;
+    Matrix view_proj = mProj * view;
 
-    glUseProgram(m_prog);
+    glUseProgram(mProgram);
     glUniformMatrix4fv(0, 1, GL_TRUE, &view_proj.x.x);
 
     // Input Layout. First the IB
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ib);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndexBuffer);
 
-    // Then the VBs (SOA).
-    glBindBuffer(GL_ARRAY_BUFFER, m_vb_pos);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glBindBuffer(GL_ARRAY_BUFFER, m_vb_tex);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
-
+    // Then the VBs.
+    glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedQuadsProblem::Vertex), (void*)offsetof(TexturedQuadsProblem::Vertex, pos));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedQuadsProblem::Vertex), (void*)offsetof(TexturedQuadsProblem::Vertex, tex));
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
 
@@ -129,7 +73,6 @@ bool Textures_GL_NoTex::Begin(GfxBaseApi* _activeAPI)
     glFrontFace(GL_CCW);
 
     glDisable(GL_SCISSOR_TEST);
-    glViewport(0, 0, width, height);
 
     // Blend State
     glDisable(GL_BLEND);
@@ -139,21 +82,26 @@ bool Textures_GL_NoTex::Begin(GfxBaseApi* _activeAPI)
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
 
-    return true;
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, mTransformBuffer);
+    BufferData(GL_SHADER_STORAGE_BUFFER, _transforms, GL_DYNAMIC_DRAW);
+    size_t xformCount = _transforms.size();
+    assert(xformCount <= mObjectCount);
+
+    for (size_t u = 0; u < xformCount; ++u) {
+        // Update the Draw ID (since we cannot use multi_draw here
+        glUniform1i(1, u);
+
+        glDrawElements(GL_TRIANGLES, mIndexCount, GL_UNSIGNED_SHORT, 0);
+    }
 }
 
-// ------------------------------------------------------------------------------------------------
-void Textures_GL_NoTex::Draw(Matrix* transforms, int count)
+// --------------------------------------------------------------------------------------------------------------------
+void TexturedQuadsGLNoTex::Shutdown()
 {
-    assert(count <= TEXTURES_COUNT);
+    // No textures to clean up here.
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_transform_buffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Matrix) * count, transforms, GL_DYNAMIC_DRAW);
-
-    for (int i = 0; i < count; ++i) {
-        // Update the Draw ID (since we cannot use multi_draw here
-        glUniform1i(1, i); 
-
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
-    }
+    glDeleteBuffers(1, &mIndexBuffer);
+    glDeleteBuffers(1, &mVertexBuffer);
+    glDeleteBuffers(1, &mTransformBuffer);
+    glDeleteProgram(mProgram);
 }

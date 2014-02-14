@@ -19,6 +19,7 @@ public:
 
     virtual bool Init() override;
     virtual void Render() override;
+    virtual void Shutdown() override;
     inline virtual std::string GetName() override { return "UntexturedObjects"; }
 
     virtual bool SetSolution(Solution* _solution) override;

@@ -1,37 +1,30 @@
 #pragma once
 
-#include "gfx_gl.h"
+#include "solutions/texturedquadssoln.h"
 
-// ------------------------------------------------------------------------------------------------
-// ------------------------------------------------------------------------------------------------
-// ------------------------------------------------------------------------------------------------
-class Textures_GL_NoTex : public Textures
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
+class TexturedQuadsGLNoTex : public TexturedQuadsSolution
 {
 public:
-    Textures_GL_NoTex();
-    virtual ~Textures_GL_NoTex();
+    TexturedQuadsGLNoTex();
+    virtual ~TexturedQuadsGLNoTex() { }
 
-    virtual bool Init() override;
+    virtual bool Init(const std::vector<TexturedQuadsProblem::Vertex>& _vertices,
+                      const std::vector<TexturedQuadsProblem::Index>& _indices,
+                      const std::vector<TextureDetails*>& _textures,
+                      size_t _objectCount);
 
-    virtual bool Begin(GfxBaseApi* _activeAPI) override;
+    virtual void Render(const std::vector<Matrix>& _transforms);
+    virtual void Shutdown();
 
-    virtual void Draw(Matrix* transforms, int count) override;
+    // The name of this solution.
+    virtual std::string GetName() const { return "TexturedQuadsGLNoTex"; }
 
 private:
-    struct Vertex
-    {
-        Vec3 pos;
-        Vec2 tex;
-    };
-
-    GLuint m_ib;
-    GLuint m_vb_pos;
-    GLuint m_vb_tex;
-    GLuint m_vs;
-    GLuint m_fs;
-    GLuint m_prog;
-
-    GLuint m_transform_buffer;
-
-    DrawElementsIndirectCommand m_commands[TEXTURES_COUNT];
+    GLuint mIndexBuffer;
+    GLuint mVertexBuffer;
+    GLuint mProgram;
+    GLuint mTransformBuffer;
 };

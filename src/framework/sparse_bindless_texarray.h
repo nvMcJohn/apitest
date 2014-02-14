@@ -45,6 +45,7 @@ private:
     const GLsizei mWidth;
     const GLsizei mHeight;
     const GLsizei mLevels;
+    const GLsizei mSlices;
     GLsizei mXTileSize;
     GLsizei mYTileSize;
 
@@ -89,10 +90,15 @@ class TextureManager
 {
 public:
     TextureManager();
+    ~TextureManager();
+
     Texture2D* newTexture2D(GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
+    Texture2D* newTexture2DFromDetails(const TextureDetails* _texDetails);
+
     void free(Texture2D* _tex);
 
     bool Init();
+    void Shutdown();
 private:
 
     std::map<std::tuple<GLsizei, GLenum, GLsizei, GLsizei>, std::vector<Texture2DContainer*>> mTexArrays2D;

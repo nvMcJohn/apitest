@@ -63,6 +63,10 @@ public:
             mActiveProblem = setNextProblem(mProblems.begin(), mProblems.end(), prevProblem, false);
         }
 
+        // The previous logic also breaks if the prevProblem and mActiveProblem are the same (double call to Init).
+        assert(prevProblem != mActiveProblem);
+        prevProblem->Shutdown();
+
         // Must have a valid problem now.
         assert(mActiveProblem);
 
@@ -86,6 +90,10 @@ public:
         if (!mActiveProblem) {
             mActiveProblem = setNextProblem(mProblems.rbegin(), mProblems.rend(), prevProblem, false);
         }
+
+        // The previous logic also breaks if the prevProblem and mActiveProblem are the same (double call to Init).
+        assert(prevProblem != mActiveProblem);
+        prevProblem->Shutdown();
 
         // Must have a valid problem now.
         assert(mActiveProblem);
@@ -154,6 +162,9 @@ private:
         
         // Set the new active problem
         mActiveProblem = mProblems[_index];
+
+        // And init it.
+        mActiveProblem->Init();
 
         // Get the list of possible solutions.
         mSolutions = mFactory.GetSolutions(mActiveProblem);
@@ -479,28 +490,4 @@ int main(int argc, char* argv[])
 }
 
 #if 0
-// ------------------------------------------------------------------------------------------------
-void Textures::Render()
-{
-    static float angle = 0.0f;
-    static Matrix* transforms;
-    if (!transforms)
-        transforms = new Matrix[TEXTURES_COUNT];
-
-    Matrix *m = transforms;
-    for (int x = 0; x < TEXTURES_X; ++x)
-    {
-        for (int y = 0; y < TEXTURES_Y; ++y)
-        {
-            *m = matrix_rotation_z(angle);
-            m->w.x = 2.0f * x - TEXTURES_X;
-            m->w.y = 2.0f * y - TEXTURES_Y;
-            m->w.z = 0.0f;
-            ++m;
-        }
-    }
-
-    Draw(transforms, TEXTURES_COUNT);
-    angle += 0.01f;
-}
 #endif
