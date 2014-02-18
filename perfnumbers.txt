@@ -1,0 +1,22 @@
+Clean (All numbers are fps)
+=====
+
+Null - Null - 9700 
+
+UntexturedObjects - GLUniform - 17.76 
+UntexturedObjects - GLMultidraw - 54.80 
+UntexturedObjects - GLBindless - 12.91
+UntexturedObjects - GLBindlessIndirect - 24.54
+UntexturedObjects - GLBufferRange - 9.36
+UntexturedObjects - GLBufferStorage - 69.15
+UntexturedObjects - GLDynamicBuffer - 10.81
+UntexturedObjects - GLTexCoord - 17.64
+
+TexturedQuads - GLBindless - 336.8
+TexturedQuads - GLBindlessMultiDraw - 1270.9
+TexturedQuads - GLNaive - 127.29
+TexturedQuads - GLNoTex - 538.29
+TexturedQuads - GLSparseBindlessTextureArray - 529.87
+TexturedQuads - GLSparseBindlessTextureArrayMultiDraw - 1251
+
+
