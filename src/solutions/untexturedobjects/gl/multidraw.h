@@ -29,4 +29,9 @@ private:
     GLuint m_transform_buffer;
 
     std::vector<DrawElementsIndirectCommand> m_commands;
+
+    struct UniformLocations {
+        GLuint ViewProjection;
+        UniformLocations() { memset(this, 0, sizeof(*this)); }
+    } mUniformLocation;
 };

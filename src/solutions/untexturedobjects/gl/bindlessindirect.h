@@ -50,4 +50,10 @@ private:
     std::vector<Command> m_commands;
     GLuint m_cmd_buffer;
     void *m_cmd_ptr;
+
+    struct UniformLocations {
+        GLuint ViewProjection;
+        GLuint World;
+        UniformLocations() { memset(this, 0, sizeof(*this)); }
+    } mUniformLocation;
 };

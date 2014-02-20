@@ -28,4 +28,9 @@ private:
     GLuint m_prog;
 
     std::vector<char> m_storage;
+
+    struct UniformLocations {
+        GLuint ViewProjection;
+        UniformLocations() { memset(this, 0, sizeof(*this)); }
+    } mUniformLocation;
 };

@@ -1,21 +1,30 @@
-#version 430
-#extension GL_ARB_shader_draw_parameters : enable
+#version 420
+#extension GL_ARB_shader_draw_parameters : require
+#extension GL_ARB_shader_storage_buffer_object : require
 
-layout (location = 0) uniform mat4 ViewProjection;
+// Uniforms / SSBO ----------------------------------------------------------------------------------------------------
 layout (std140, binding = 0) buffer CB0
 {
     mat4 Transforms[];
 };
 
-layout (location = 0) in vec3 Attr_Pos;
-layout (location = 1) in vec3 Attr_Color;
+uniform mat4 ViewProjection;
 
-out vec3 VS_Color;
+// Input --------------------------------------------------------------------------------------------------------------
+layout(location = 0) in vec3 In_v3Pos;
+layout(location = 1) in vec3 In_v3Color;
+in int gl_DrawIDARB;
 
+// Output -------------------------------------------------------------------------------------------------------------
+out block {
+    vec3 v3Color;
+} Out;
+
+// Functions ----------------------------------------------------------------------------------------------------------
 void main()
 {
     mat4 World = Transforms[gl_DrawIDARB];
-	vec3 world_pos = vec3(World * vec4(Attr_Pos, 1));
-    gl_Position = ViewProjection * vec4(world_pos, 1);
-	VS_Color = Attr_Color;
+    vec3 worldPos = vec3(World * vec4(In_v3Pos, 1));
+    gl_Position = ViewProjection * vec4(worldPos, 1);
+    Out.v3Color = In_v3Color;
 }

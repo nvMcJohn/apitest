@@ -22,13 +22,20 @@ bool UntexturedObjectsGLDynamicBuffer::Init(const std::vector<UntexturedObjectsP
         return false;
     }
 
-    m_prog = CreateProgram("cubes_gl_dynamic_buffer_vs.glsl",
-                           "cubes_gl_dynamic_buffer_fs.glsl");
+    // Program
+    const char* kUniformNames[] = { "ViewProjection", nullptr };
+
+    m_prog = CreateProgramT("cubes_gl_dynamic_buffer_vs.glsl",
+                            "cubes_gl_dynamic_buffer_fs.glsl",
+                            kUniformNames, &mUniformLocation);
 
     if (m_prog == 0) {
         console::warn("Unable to initialize solution '%s', shader compilation/linking failed.", GetName().c_str());
         return false;
     }
+
+    GLuint UB0 = glGetUniformBlockIndex(m_prog, "UB0");
+    glUniformBlockBinding(m_prog, UB0, 0);
 
     glGenBuffers(1, &m_vb);
     glBindBuffer(GL_ARRAY_BUFFER, m_vb);
@@ -57,7 +64,7 @@ void UntexturedObjectsGLDynamicBuffer::Render(const std::vector<Matrix>& _transf
     Matrix view_proj = mProj * view;
 
     glUseProgram(m_prog);
-    glUniformMatrix4fv(0, 1, GL_TRUE, &view_proj.x.x);
+    glUniformMatrix4fv(mUniformLocation.ViewProjection, 1, GL_TRUE, &view_proj.x.x);
 
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_ub);
 

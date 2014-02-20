@@ -25,9 +25,13 @@ bool UntexturedObjectsGLBufferStorage::Init(const std::vector<UntexturedObjectsP
         return false;
     }
 
-    // Shaders
-    m_prog = CreateProgram("cubes_gl_buffer_storage_vs.glsl",
-                           "cubes_gl_buffer_storage_fs.glsl");
+    // Program
+    const char* kUniformNames[] = { "ViewProjection", nullptr };
+
+    m_prog = CreateProgramT("cubes_gl_buffer_storage_vs.glsl",
+                            "cubes_gl_buffer_storage_fs.glsl",
+                            kUniformNames, &mUniformLocation);
+
 
     if (m_prog == 0) {
         console::warn("Unable to initialize solution '%s', shader compilation/linking failed.", GetName().c_str());
@@ -74,7 +78,7 @@ void UntexturedObjectsGLBufferStorage::Render(const std::vector<Matrix>& _transf
     Matrix view_proj = mProj * view;
 
     glUseProgram(m_prog);
-    glUniformMatrix4fv(0, 1, GL_TRUE, &view_proj.x.x);
+    glUniformMatrix4fv(mUniformLocation.ViewProjection, 1, GL_TRUE, &view_proj.x.x);
 
     // Input Layout
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ib);

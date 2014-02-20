@@ -30,4 +30,10 @@ private:
     std::vector<GLsizeiptr> m_vbo_sizes;
 
     GLuint m_prog;
+
+    struct UniformLocations {
+        GLuint ViewProjection;
+        GLuint World;
+        UniformLocations() { memset(this, 0, sizeof(*this)); }
+    } mUniformLocation;
 };

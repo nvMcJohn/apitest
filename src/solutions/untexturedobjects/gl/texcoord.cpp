@@ -12,6 +12,7 @@ UntexturedObjectsGLTexCoord::UntexturedObjectsGLTexCoord()
 , m_prog()
 {}
 
+
 // --------------------------------------------------------------------------------------------------------------------
 bool UntexturedObjectsGLTexCoord::Init(const std::vector<UntexturedObjectsProblem::Vertex>& _vertices,
                                        const std::vector<UntexturedObjectsProblem::Index>& _indices,
@@ -21,14 +22,19 @@ bool UntexturedObjectsGLTexCoord::Init(const std::vector<UntexturedObjectsProble
         return false;
     }
 
-    m_prog = CreateProgram("cubes_gl_tex_coord_vs.glsl",
-                           "cubes_gl_tex_coord_fs.glsl");
+    // Program
+    const char* kUniformNames[] = { "ViewProjection", nullptr };
+
+    m_prog = CreateProgramT("cubes_gl_tex_coord_vs.glsl",
+                            "cubes_gl_tex_coord_fs.glsl",
+                            kUniformNames, &mUniformLocation);
 
     if (m_prog == 0) {
         console::warn("Unable to initialize solution '%s', shader compilation/linking failed.", GetName().c_str());
         return false;
     }
 
+    // Buffers
     glGenBuffers(1, &m_vb);
     glBindBuffer(GL_ARRAY_BUFFER, m_vb);
     glBufferData(GL_ARRAY_BUFFER, sizeof(UntexturedObjectsProblem::Vertex) * _vertices.size(), &*_vertices.begin(), GL_STATIC_DRAW);
@@ -53,7 +59,7 @@ void UntexturedObjectsGLTexCoord::Render(const std::vector<Matrix>& _transforms)
     Matrix view_proj = mProj * view;
 
     glUseProgram(m_prog);
-    glUniformMatrix4fv(0, 1, GL_TRUE, &view_proj.x.x);
+    glUniformMatrix4fv(mUniformLocation.ViewProjection, 1, GL_TRUE, &view_proj.x.x);
 
     // Input Layout
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ib);

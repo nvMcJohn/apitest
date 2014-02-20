@@ -21,8 +21,12 @@ bool UntexturedObjectsGLUniform::Init(const std::vector<UntexturedObjectsProblem
         return false;
     }
 
-    m_prog = CreateProgram("cubes_gl_uniform_vs.glsl",
-                           "cubes_gl_uniform_fs.glsl");
+    // Program
+    const char* kUniformNames[] = { "ViewProjection", "World", nullptr };
+
+    m_prog = CreateProgramT("cubes_gl_uniform_vs.glsl",
+                            "cubes_gl_uniform_fs.glsl",
+                            kUniformNames, &mUniformLocation);
 
     if (m_prog == 0) {
         console::warn("Unable to initialize solution '%s', shader compilation/linking failed.", GetName().c_str());
@@ -53,7 +57,7 @@ void UntexturedObjectsGLUniform::Render(const std::vector<Matrix>& _transforms)
     Matrix view_proj = mProj * view;
 
     glUseProgram(m_prog);
-    glUniformMatrix4fv(0, 1, GL_TRUE, &view_proj.x.x);
+    glUniformMatrix4fv(mUniformLocation.ViewProjection, 1, GL_TRUE, &view_proj.x.x);
 
     // Input Layout
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ib);
@@ -80,7 +84,7 @@ void UntexturedObjectsGLUniform::Render(const std::vector<Matrix>& _transforms)
     for (auto it = _transforms.begin(); it != _transforms.end(); ++it) {
         const Matrix* m = &*it;
 
-        glUniformMatrix4fv(1, 1, GL_FALSE, &m->x.x);
+        glUniformMatrix4fv(mUniformLocation.World, 1, GL_FALSE, &m->x.x);
         glDrawElements(GL_TRIANGLES, mIndexCount, GL_UNSIGNED_SHORT, nullptr);
     }
 }

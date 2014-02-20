@@ -30,8 +30,12 @@ bool UntexturedObjectsGLBindlessIndirect::Init(const std::vector<UntexturedObjec
         return false;
     }
 
-    m_prog = CreateProgram("cubes_gl_bindless_indirect_vs.glsl",
-                           "cubes_gl_bindless_indirect_fs.glsl");
+    // Program
+    const char* kUniformNames[] = { "ViewProjection", "World", nullptr };
+
+    m_prog = CreateProgramT("cubes_gl_bindless_indirect_vs.glsl",
+                            "cubes_gl_bindless_indirect_fs.glsl",
+                            kUniformNames, &mUniformLocation);
 
     if (m_prog == 0) {
         console::warn("Unable to initialize solution '%s', shader compilation/linking failed.", GetName().c_str());

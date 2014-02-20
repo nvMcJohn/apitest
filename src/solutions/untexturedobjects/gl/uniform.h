@@ -25,4 +25,10 @@ private:
     GLuint m_ib;
     GLuint m_vb;
     GLuint m_prog;
+
+    struct UniformLocations {
+        GLuint ViewProjection;
+        GLuint World;
+        UniformLocations() { memset(this, 0, sizeof(*this)); }
+    } mUniformLocation;
 };

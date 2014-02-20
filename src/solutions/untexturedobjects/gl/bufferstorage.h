@@ -32,4 +32,10 @@ private:
     std::vector<DrawElementsIndirectCommand> m_commands;
     GLuint m_cmd_buffer;
     void *m_cmd_ptr;
+
+    struct UniformLocations {
+        GLuint ViewProjection;
+        UniformLocations() { memset(this, 0, sizeof(*this)); }
+    } mUniformLocation;
+
 };

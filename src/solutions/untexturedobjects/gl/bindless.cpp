@@ -21,9 +21,12 @@ bool UntexturedObjectsGLBindless::Init(const std::vector<UntexturedObjectsProble
         return false;
     }
 
-    // Shaders
-    m_prog = CreateProgram("cubes_gl_bindless_vs.glsl", 
-                           "cubes_gl_bindless_fs.glsl");
+    // Program
+    const char* kUniformNames[] = { "ViewProjection", "World", nullptr };
+
+    m_prog = CreateProgramT("cubes_gl_bindless_vs.glsl", 
+                            "cubes_gl_bindless_fs.glsl",
+                            kUniformNames, &mUniformLocation);
 
     if (m_prog == 0) {
         console::warn("Unable to initialize solution '%s', shader compilation/linking failed.", GetName().c_str());
@@ -71,7 +74,7 @@ void UntexturedObjectsGLBindless::Render(const std::vector<Matrix>& _transforms)
     Matrix viewProj = mProj * view;
 
     glUseProgram(m_prog);
-    glUniformMatrix4fv(0, 1, GL_TRUE, &viewProj.x.x);
+    glUniformMatrix4fv(mUniformLocation.ViewProjection, 1, GL_TRUE, &viewProj.x.x);
 
     // Input Layout
     glEnableClientState(GL_ELEMENT_ARRAY_UNIFIED_NV);
@@ -102,7 +105,7 @@ void UntexturedObjectsGLBindless::Render(const std::vector<Matrix>& _transforms)
         glBufferAddressRangeNV(GL_VERTEX_ATTRIB_ARRAY_ADDRESS_NV, 0, m_vbo_addrs[u] + offsetof(UntexturedObjectsProblem::Vertex, pos), m_vbo_sizes[u] - offsetof(UntexturedObjectsProblem::Vertex, pos));
         glBufferAddressRangeNV(GL_VERTEX_ATTRIB_ARRAY_ADDRESS_NV, 1, m_vbo_addrs[u] + offsetof(UntexturedObjectsProblem::Vertex, color), m_vbo_sizes[u] - offsetof(UntexturedObjectsProblem::Vertex, color));
 
-        glUniformMatrix4fv(1, 1, GL_FALSE, &_transforms[u].x.x);
+        glUniformMatrix4fv(mUniformLocation.World, 1, GL_FALSE, &_transforms[u].x.x);
         glDrawElements(GL_TRIANGLES, mIndexCount, GL_UNSIGNED_SHORT, nullptr);
     }
 }

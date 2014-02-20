@@ -1,16 +1,22 @@
-#version 430
+#version 420
 
-layout (location = 0) uniform mat4 ViewProjection;
-layout (location = 1) uniform mat4 World;
+// Uniforms / SSBO ----------------------------------------------------------------------------------------------------
+uniform mat4 ViewProjection;
+uniform mat4 World;
 
-layout (location = 0) in vec3 Attr_Pos;
-layout (location = 1) in vec3 Attr_Color;
+// Input --------------------------------------------------------------------------------------------------------------
+layout (location = 0) in vec3 In_v3Pos;
+layout (location = 1) in vec3 In_v3Color;
 
-out vec3 VS_Color;
+// Output -------------------------------------------------------------------------------------------------------------
+out block {
+    vec3 v3Color;
+} Out;
 
+// Functions ----------------------------------------------------------------------------------------------------------
 void main()
 {
-	vec3 world_pos = vec3(World * vec4(Attr_Pos, 1));
-    gl_Position = ViewProjection * vec4(world_pos, 1);
-	VS_Color = Attr_Color;
+    vec3 worldPos = vec3(World * vec4(In_v3Pos, 1));
+    gl_Position = ViewProjection * vec4(worldPos, 1);
+    Out.v3Color = In_v3Color;
 }
