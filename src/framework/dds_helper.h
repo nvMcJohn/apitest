@@ -11,9 +11,9 @@
 
     #include <errno.h>
 
-    typedef unsigned char BYTE;
-    typedef unsigned int  UINT;
-    typedef unsigned long DWORD;
+    typedef uint8_t BYTE;
+    typedef uint32_t  UINT;
+    typedef uint32_t DWORD;
     typedef int errno_t;
 
     inline errno_t fopen_s(FILE** pFile, const char* filename, const char *mode)

@@ -16,7 +16,7 @@
 #   pragma comment(lib, "imm32.lib")
 #   pragma comment(lib, "version.lib")
 #   pragma comment(lib, "winmm.lib")
-#else _WIN32
+#else
     // This is not supported on !Windows.
     GfxBaseApi *CreateGfxDirect3D11()       { return nullptr; }
 #endif
@@ -425,7 +425,7 @@ static bool Init(char* _exeName)
 
     if (!InitSDL())
     {
-        console::error("Unable to initialize SDL -- required -- so exiting.");
+        console::error("SDL Error at Initialize: '%s'.\nUnable to initialize SDL -- required -- so exiting.", SDL_GetError());
         return false;
     }
 

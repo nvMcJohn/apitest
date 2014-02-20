@@ -9,18 +9,18 @@ set( SDL_INCLUDE_DIR "${apitest_SOURCE_DIR}/thirdparty/SDL2-2.0.1/include" )
 if( MSVC )
     set( SDL_LIBRARY_DIR "${CMAKE_BINARY_DIR}/thirdparty/SDL2-2.0.1/\$(Configuration)" )
 
-	set( CMAKE_CXX_FLAGS "/WX /W3 /MP /GR /EHa /arch:SSE2" )
-	set( CMAKE_CXX_FLAGS_DEBUG "/ZI /Od" )
-	set( CMAKE_CXX_FLAGS_RELEASE "/Zi /O2" )
+    set( CMAKE_CXX_FLAGS "/WX /W3 /MP /GR /EHa /arch:SSE2" )
+    set( CMAKE_CXX_FLAGS_DEBUG "/ZI /Od" )
+    set( CMAKE_CXX_FLAGS_RELEASE "/Zi /O2" )
 
-	set( CMAKE_EXE_LINKER_FLAGS "/DEBUG" )
-	set( CMAKE_SHARED_LINKER_FLAGS "/DEBUG" )
-	set( CMAKE_MODULE_LINKER_FLAGS "/DEBUG" )
+    set( CMAKE_EXE_LINKER_FLAGS "/DEBUG" )
+    set( CMAKE_SHARED_LINKER_FLAGS "/DEBUG" )
+    set( CMAKE_MODULE_LINKER_FLAGS "/DEBUG" )
 elseif( APPLE )
 
     set( SDL_LIBRARY_DIR "${CMAKE_BINARY_DIR}/thirdparty/SDL2-2.0.1/" )
     
-	set( CMAKE_CXX_FLAGS "-std=c++0x -stdlib=libc++ -g -O0" )
+    set( CMAKE_CXX_FLAGS "-std=c++0x -stdlib=libc++ -g -O0" )
     # set( CMAKE_CXX_FLAGS_DEBUG "-O0" )
     # set( CMAKE_CXX_FLAGS_RELEASE "-O3" )
 
@@ -30,7 +30,7 @@ elseif( APPLE )
 else()
     set( SDL_LIBRARY_DIR "${CMAKE_BINARY_DIR}/thirdparty/SDL2-2.0.1/" )
 
-	set( CMAKE_CXX_FLAGS "-std=c++11 -g -O0" )
+    set( CMAKE_CXX_FLAGS "-std=c++11 -g -O0 ${CMAKE_CXX_FLAGS} -DPOSIX=1 -DLINUX=1" )
     # set( CMAKE_CXX_FLAGS_DEBUG "-O0" )
     # set( CMAKE_CXX_FLAGS_RELEASE "-O3" )
 

@@ -180,7 +180,7 @@ std::string FileContentsToString(std::string _filename)
         return retBuffer;
     }
 
-    console::error("Unable to locate file '%s'", _filename);
+    console::error("Unable to locate file '%s'", _filename.c_str());
 
     return retBuffer;
 }
@@ -217,7 +217,9 @@ GLuint CompileShaderFromFile(GLenum _shaderType, std::string _shaderFilename)
     }
 
     if (compileStatus != GL_TRUE) {
-        assert(!"Shader failed compilation, here's an assert to break you in the debugger.");
+        #ifndef POSIX
+       	     assert(!"Shader failed compilation, here's an assert to break you in the debugger.");
+        #endif
         glDeleteShader(retVal);
         retVal = 0;
     }
@@ -254,7 +256,9 @@ GLuint LinkShaders(GLuint _vs, GLuint _fs)
     }
 
     if (linkStatus != GL_TRUE) {
-        assert(!"Shader failed linking, here's an assert to break you in the debugger.");
+        #ifndef POSIX
+            assert(!"Shader failed linking, here's an assert to break you in the debugger.");
+        #endif
         glDeleteProgram(retVal);
         retVal = 0;
     }
