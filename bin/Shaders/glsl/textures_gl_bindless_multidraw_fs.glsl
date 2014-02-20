@@ -1,27 +1,25 @@
-#version 430
-
-#extension GL_ARB_separate_shader_objects : enable
-#extension GL_ARB_bindless_texture : enable
-#extension GL_NV_gpu_shader5 : require
+#version 420
+#extension GL_ARB_shader_storage_buffer_object : require
+#extension GL_ARB_bindless_texture : require
 
 // Uniforms / SSBO --------------------------------------------------------------------------------
 layout (std430, binding = 1) readonly buffer CB1
 {
-	uint64_t texAddress[];
+    sampler2D texAddress[];
 };
 
-layout(location=0) in struct {
+// Input --------------------------------------------------------------------------------------------------------------
+in block {
     vec2 v2TexCoord;
-	flat int iDrawID;
+    flat int iDrawID;
 } In;
 
-layout(location=0) out struct {
-    vec4 v4Color;
-} Out;
+//  Output ------------------------------------------------------------------------------------------------------------
+layout(location = 0) out vec4 Out_v4Color;
 
-
+// Functions ----------------------------------------------------------------------------------------------------------
 void main()
 {
-	sampler2D smplr = sampler2D(texAddress[In.iDrawID]);
-	Out.v4Color = vec4(texture(smplr, In.v2TexCoord).xyz,  1);
+    sampler2D smplr = sampler2D(texAddress[In.iDrawID]);
+    Out_v4Color = vec4(texture(smplr, In.v2TexCoord).xyz,  1);
 }

@@ -3,7 +3,7 @@
 #include "console.h"
 
 #ifndef OutputDebugString
-#   define OutputDebugString(_x) printf("%s\n", _x)
+#   define OutputDebugString(_x)
 #endif
 
 #ifndef _WINDEF_
@@ -13,6 +13,12 @@
 
 namespace console
 {
+    void print(const char* _string)
+    {
+        OutputDebugString(_string);
+        printf("%s", _string);
+    }
+
     // ----------------------------------------------------------------------------------------------------------------
     void debug(const char* _fmt, ...)
     {
@@ -24,7 +30,7 @@ namespace console
         va_end(args);
 
         sprintf_s(finalBuff, sizeof(finalBuff), "Debug: %s\n", buff);
-        OutputDebugString(finalBuff);
+        console::print(finalBuff);
     }
 
     // ----------------------------------------------------------------------------------------------------------------
@@ -38,7 +44,7 @@ namespace console
         va_end(args);
 
         sprintf_s(finalBuff, sizeof(finalBuff), "%s\n", buff);
-        OutputDebugString(finalBuff);
+        console::print(finalBuff);
     }
 
     // ----------------------------------------------------------------------------------------------------------------
@@ -52,7 +58,7 @@ namespace console
         va_end(args);
 
         sprintf_s(finalBuff, sizeof(finalBuff), "Warning: %s\n", buff);
-        OutputDebugString(finalBuff);
+        console::print(finalBuff);
     }
 
     // ----------------------------------------------------------------------------------------------------------------
@@ -66,7 +72,7 @@ namespace console
         va_end(args);
 
         sprintf_s(finalBuff, sizeof(finalBuff), "ERROR: %s\n", buff);
-        OutputDebugString(finalBuff);
+        console::print(finalBuff);
 
         exit(-1);
     }

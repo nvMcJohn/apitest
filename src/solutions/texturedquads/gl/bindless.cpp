@@ -29,9 +29,12 @@ bool TexturedQuadsGLBindless::Init(const std::vector<TexturedQuadsProblem::Verte
         return false;
     }
 
-    // Programs
-    mProgram = CreateProgram("textures_gl_bindless_vs.glsl",
-                             "textures_gl_bindless_fs.glsl");
+    // Program
+    const char* kUniformNames[] = { "ViewProjection", "DrawID", "gTex", nullptr };
+
+    mProgram = CreateProgramT("textures_gl_bindless_vs.glsl",
+                              "textures_gl_bindless_fs.glsl", 
+                              kUniformNames, &mUniformLocation);
 
     if (mProgram == 0) {
         console::warn("Unable to initialize solution '%s', shader compilation/linking failed.", GetName().c_str());
@@ -79,7 +82,7 @@ void TexturedQuadsGLBindless::Render(const std::vector<Matrix>& _transforms)
     Matrix view_proj = mProj * view;
 
     glUseProgram(mProgram);
-    glUniformMatrix4fv(0, 1, GL_TRUE, &view_proj.x.x);
+    glUniformMatrix4fv(mUniformLocation.ViewProjection, 1, GL_TRUE, &view_proj.x.x);
 
     // Input Layout. First the IB
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndexBuffer);
@@ -121,7 +124,7 @@ void TexturedQuadsGLBindless::Render(const std::vector<Matrix>& _transforms)
 
     for (size_t u = 0; u < xformCount; ++u) {
         // Update the Draw ID (since we cannot use multi_draw here
-        glUniform1i(1, u);
+        glUniform1i(mUniformLocation.DrawID, u);
 
         if (texIt == mTexHandles.end()) {
             texIt = mTexHandles.begin();
@@ -130,7 +133,7 @@ void TexturedQuadsGLBindless::Render(const std::vector<Matrix>& _transforms)
         GLuint64 activeTex = *texIt;
         ++texIt;
 
-        glUniformHandleui64ARB(128, activeTex);
+        glUniformHandleui64ARB(mUniformLocation.gTex, activeTex);
         glDrawElements(GL_TRIANGLES, mIndexCount, GL_UNSIGNED_SHORT, 0);
     }
 

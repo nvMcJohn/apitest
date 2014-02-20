@@ -1,33 +1,32 @@
-#version 430
-#extension GL_ARB_separate_shader_objects : enable
+#version 420
+#extension GL_ARB_shader_storage_buffer_object : require
 
-// Uniforms / SSBO --------------------------------------------------------------------------------
+// Uniforms / SSBO ----------------------------------------------------------------------------------------------------
 layout (std140, binding = 0) buffer CB0
 {
     mat4 Transforms[];
 };
 
-layout (location = 0) uniform mat4 ViewProjection;
-layout (location = 1) uniform int DrawID;
+uniform mat4 ViewProjection;
+uniform int DrawID;
 
-// Input ------------------------------------------------------------------------------------------
-layout(location=0) in struct {
-    vec3 v3Pos;
-    vec2 v2TexCoord;
-} In;
+// Input --------------------------------------------------------------------------------------------------------------
+layout(location=0) in vec3 In_v3Pos;
+layout(location=1) in vec2 In_v2TexCoord;
 
-//  Output ----------------------------------------------------------------------------------------
-layout(location=0) out struct {
+//  Output ------------------------------------------------------------------------------------------------------------
+out block {
     vec2 v2TexCoord;
-	int iDrawID;
+    flat int iDrawID;
 } Out;
 
+// Functions ----------------------------------------------------------------------------------------------------------
 void main()
 {
     mat4 World = Transforms[DrawID];
-	vec4 worldPos = World * vec4(In.v3Pos, 1);
+    vec4 worldPos = World * vec4(In_v3Pos, 1);
     gl_Position = ViewProjection * worldPos;
-	
-	Out.v2TexCoord = In.v2TexCoord;
-	Out.iDrawID = DrawID;
+    
+    Out.v2TexCoord = In_v2TexCoord;
+    Out.iDrawID = DrawID;
 }

@@ -23,9 +23,12 @@ bool TexturedQuadsGLNoTex::Init(const std::vector<TexturedQuadsProblem::Vertex>&
         return false;
     }
 
-    // Programs
-    mProgram = CreateProgram("textures_gl_notex_vs.glsl",
-                             "textures_gl_notex_fs.glsl");
+    // Program
+    const char* kUniformNames[] = { "ViewProjection", "DrawID", nullptr };
+
+    mProgram = CreateProgramT("textures_gl_notex_vs.glsl",
+                              "textures_gl_notex_fs.glsl",
+                              kUniformNames, &mUniformLocation);
 
     if (mProgram == 0) {
         console::warn("Unable to initialize solution '%s', shader compilation/linking failed.", GetName().c_str());
@@ -55,7 +58,7 @@ void TexturedQuadsGLNoTex::Render(const std::vector<Matrix>& _transforms)
     Matrix view_proj = mProj * view;
 
     glUseProgram(mProgram);
-    glUniformMatrix4fv(0, 1, GL_TRUE, &view_proj.x.x);
+    glUniformMatrix4fv(mUniformLocation.ViewProjection, 1, GL_TRUE, &view_proj.x.x);
 
     // Input Layout. First the IB
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndexBuffer);
@@ -89,7 +92,7 @@ void TexturedQuadsGLNoTex::Render(const std::vector<Matrix>& _transforms)
 
     for (size_t u = 0; u < xformCount; ++u) {
         // Update the Draw ID (since we cannot use multi_draw here
-        glUniform1i(1, u);
+        glUniform1i(mUniformLocation.DrawID, u);
 
         glDrawElements(GL_TRIANGLES, mIndexCount, GL_UNSIGNED_SHORT, 0);
     }

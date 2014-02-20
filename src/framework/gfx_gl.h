@@ -31,7 +31,25 @@ protected:
 // --------------------------------------------------------------------------------------------------------------------
 // GL Utilities
 GLuint CreateProgram(std::string _vsFilename, std::string _psFilename);
-GLuint CreateProgram(std::string _vsFilename, std::string _tcsFilename, std::string _tesFilename, std::string _fsFilename);
+GLuint CreateProgram(std::string _vsFilename, std::string _psFilename, const char** _uniformNames, GLuint* _outUniformLocations);
+
+template <typename T> 
+GLuint CreateProgramT(std::string _vsFilename, std::string _psFilename, const char** _uniforms, T* _outUniformLocationStruct)
+{
+    assert(_uniforms != nullptr);
+    assert(_outUniformLocationStruct != nullptr);
+
+    int uniformCount = 0;
+    while (_uniforms[uniformCount] != nullptr) {
+        ++uniformCount;
+    }
+
+    // Ensure that the sizes match, otherwise there is a parameter mismatch.
+    assert(uniformCount == (sizeof(T) / sizeof(GLuint)) 
+           && (sizeof(T) % sizeof(GLuint) == 0));
+
+    return CreateProgram(_vsFilename, _psFilename, _uniforms, reinterpret_cast<GLuint*>(_outUniformLocationStruct));
+}
 
 // --------------------------------------------------------------------------------------------------------------------
 template <typename T>

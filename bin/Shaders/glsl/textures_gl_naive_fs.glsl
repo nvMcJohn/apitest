@@ -1,18 +1,18 @@
-#version 430
+#version 420
 
-#extension GL_ARB_separate_shader_objects : enable
+// Uniforms / SSBO ----------------------------------------------------------------------------------------------------
+uniform sampler2D gTex;
 
-layout(location=0) in struct {
+// Input --------------------------------------------------------------------------------------------------------------
+in block {
     vec2 v2TexCoord;
 } In;
 
-layout(location=0) out struct {
-    vec4 v4Color;
-} Out;
+//  Output ------------------------------------------------------------------------------------------------------------
+layout(location = 0) out vec4 Out_v4Color;
 
-layout(location = 128) uniform sampler2D gTex;
-
+// Functions ----------------------------------------------------------------------------------------------------------
 void main()
 {
-	Out.v4Color = vec4(texture(gTex, In.v2TexCoord).xyz,  1);
+    Out_v4Color = vec4(texture(gTex, In.v2TexCoord).xyz,  1);
 }

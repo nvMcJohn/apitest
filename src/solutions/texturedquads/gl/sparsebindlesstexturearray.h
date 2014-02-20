@@ -30,6 +30,12 @@ private:
     GLuint mTransformBuffer;
     GLuint mTexAddressBuffer;
 
+    struct UniformLocations {
+        GLuint ViewProjection;
+        GLuint DrawID;
+        UniformLocations() { memset(this, 0, sizeof(*this)); }
+    } mUniformLocation;
+
     std::vector<Texture2D*> mTextures;
 
     TextureManager mTexManager;

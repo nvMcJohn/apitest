@@ -27,4 +27,10 @@ private:
     GLuint mVertexBuffer;
     GLuint mProgram;
     GLuint mTransformBuffer;
+
+    struct UniformLocations {
+        GLuint ViewProjection;
+        GLuint DrawID;
+        UniformLocations() { memset(this, 0, sizeof(*this)); }
+    } mUniformLocation;
 };

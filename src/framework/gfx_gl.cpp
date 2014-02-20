@@ -321,28 +321,16 @@ GLuint CreateProgram(std::string _vsFilename, std::string _psFilename)
 }
 
 // ------------------------------------------------------------------------------------------------
-GLuint CreateProgram(std::string _vsFilename, std::string _tcsFilename, std::string _tesFilename, std::string _fsFilename)
+GLuint CreateProgram(std::string _vsFilename, std::string _psFilename, const char** _uniformNames, GLuint* _outUniformLocations)
 {
-    GLuint vs = CompileShaderFromFile(GL_VERTEX_SHADER, _vsFilename),
-           tcs = CompileShaderFromFile(GL_TESS_CONTROL_SHADER, _tcsFilename),
-           tes = CompileShaderFromFile(GL_TESS_EVALUATION_SHADER, _tesFilename),
-           fs = CompileShaderFromFile(GL_FRAGMENT_SHADER, _fsFilename);
-
-    // If any are 0, dump out early.
-    if ((vs * tcs * tes * fs) == 0) {
-        return 0;
+    GLuint retProg = CreateProgram(_vsFilename, _psFilename);
+    if (retProg != 0) {
+        for (int i = 0; _uniformNames[i] != nullptr; ++i) {
+            _outUniformLocations[i] = glGetUniformLocation(retProg, _uniformNames[i]);
+        }
     }
 
-    GLuint retProgram = LinkShaders(vs, tcs, tes, fs);
-
-    // Flag these now, they're either attached (linked in) and will be cleaned up with the link, or the
-    // link failed and we're about to lose track of them anyways.
-    glDeleteShader(fs);
-    glDeleteShader(tes);
-    glDeleteShader(tcs);
-    glDeleteShader(vs);
-
-    return retProgram;
+    return retProg;
 }
 
 // ------------------------------------------------------------------------------------------------

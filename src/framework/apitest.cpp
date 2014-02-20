@@ -444,6 +444,8 @@ static void Cleanup()
     SDL_Quit();
 }
 
+#include "framework/gfx_gl.h"
+
 // ------------------------------------------------------------------------------------------------
 int main(int argc, char* argv[])
 {

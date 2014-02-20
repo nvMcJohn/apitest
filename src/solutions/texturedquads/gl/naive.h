@@ -28,5 +28,12 @@ private:
     GLuint mProgram;
     GLuint mTransformBuffer;
 
+    struct UniformLocations {
+        GLuint ViewProjection;
+        GLuint DrawID;
+        GLuint gTex;
+        UniformLocations() { memset(this, 0, sizeof(*this)); }
+    } mUniformLocation;
+
     std::vector<GLuint> mTextures;
 };
