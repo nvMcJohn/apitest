@@ -6,6 +6,8 @@
 #include "problems/texturedquads.h"
 #include "problems/untexturedobjects.h"
 
+#include "solutions/dynamicstreaming/gl/persistent.h"
+
 #include "solutions/nullsoln.h"
 #include "solutions/untexturedobjects/gl/bindless.h"
 #include "solutions/untexturedobjects/gl/bindlessindirect.h"
@@ -42,6 +44,16 @@ ProblemFactory::ProblemFactory()
     }
 
     // DynamicStreaming
+    newProb = new DynamicStreamingProblem();
+    if (newProb->Init()) {
+        newProb->Shutdown();
+        mProblems.push_back(newProb);
+        mSolutions[mProblems.back()->GetName()].push_back(new DynamicStreamingPersistent());
+    } else {
+        newProb->Shutdown();
+        SafeDelete(newProb);
+    }
+
     // UntexturedObjects
     newProb = new UntexturedObjectsProblem();
     if (newProb->Init()) {

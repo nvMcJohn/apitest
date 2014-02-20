@@ -12,10 +12,14 @@ DynamicStreamingProblem::DynamicStreamingProblem()
 
 }
 
+DynamicStreamingProblem::~DynamicStreamingProblem()
+{
+}
+
 // --------------------------------------------------------------------------------------------------------------------
 bool DynamicStreamingProblem::Init()
 {
-    mVertexData.resize(kParticleCount);
+    mVertexData.resize(kParticleCount * kVertsPerParticle);
 
     return true;
 }
@@ -29,6 +33,23 @@ void DynamicStreamingProblem::Render()
     if (mActiveSolution) {
         reinterpret_cast<DynamicStreamingSolution*>(mActiveSolution)->Render(mVertexData);
     }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+bool DynamicStreamingProblem::SetSolution(Solution* _solution)
+{
+    if (!Problem::SetSolution(_solution)) {
+        return false;
+    }
+
+    if (mActiveSolution) {
+        console::log("Solution %s - Initializing.", mActiveSolution->GetName().c_str());
+        bool retVal = reinterpret_cast<DynamicStreamingSolution*>(mActiveSolution)->Init();
+        console::log("Solution %s - Initialize complete (Success: %s).", mActiveSolution->GetName().c_str(), retVal ? "true" : "false");
+        return retVal;
+    }
+
+    return true;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
