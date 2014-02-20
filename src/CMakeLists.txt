@@ -1,6 +1,39 @@
 
 include( ${apitest_SOURCE_DIR}/build/CMakeCommon.txt )
 
+set( SHADERS
+    ../bin/Shaders/glsl/cubes_gl_bindless_vs.glsl
+    ../bin/Shaders/glsl/cubes_gl_bindless_fs.glsl
+    ../bin/Shaders/glsl/cubes_gl_bindless_indirect_vs.glsl
+    ../bin/Shaders/glsl/cubes_gl_bindless_indirect_fs.glsl
+    ../bin/Shaders/glsl/cubes_gl_buffer_range_vs.glsl
+    ../bin/Shaders/glsl/cubes_gl_buffer_range_fs.glsl
+    ../bin/Shaders/glsl/cubes_gl_buffer_storage_vs.glsl
+    ../bin/Shaders/glsl/cubes_gl_buffer_storage_fs.glsl
+    ../bin/Shaders/glsl/cubes_gl_dynamic_buffer_vs.glsl
+    ../bin/Shaders/glsl/cubes_gl_dynamic_buffer_fs.glsl
+    ../bin/Shaders/glsl/cubes_gl_multi_draw_vs.glsl
+    ../bin/Shaders/glsl/cubes_gl_multi_draw_fs.glsl
+    ../bin/Shaders/glsl/cubes_gl_tex_coord_vs.glsl
+    ../bin/Shaders/glsl/cubes_gl_tex_coord_fs.glsl
+    ../bin/Shaders/glsl/cubes_gl_uniform_vs.glsl
+    ../bin/Shaders/glsl/cubes_gl_uniform_fs.glsl
+    ../bin/Shaders/glsl/streaming_vb_gl_vs.glsl
+    ../bin/Shaders/glsl/streaming_vb_gl_fs.glsl
+    ../bin/Shaders/glsl/textures_gl_bindless_vs.glsl
+    ../bin/Shaders/glsl/textures_gl_bindless_fs.glsl
+    ../bin/Shaders/glsl/textures_gl_bindless_multidraw_vs.glsl
+    ../bin/Shaders/glsl/textures_gl_bindless_multidraw_fs.glsl
+    ../bin/Shaders/glsl/textures_gl_naive_vs.glsl
+    ../bin/Shaders/glsl/textures_gl_naive_fs.glsl
+    ../bin/Shaders/glsl/textures_gl_notex_vs.glsl
+    ../bin/Shaders/glsl/textures_gl_notex_fs.glsl
+    ../bin/Shaders/glsl/textures_gl_sparse_bindless_texture_array_vs.glsl    
+    ../bin/Shaders/glsl/textures_gl_sparse_bindless_texture_array_fs.glsl
+    ../bin/Shaders/glsl/textures_gl_sparse_bindless_texture_array_multidraw_vs.glsl
+    ../bin/Shaders/glsl/textures_gl_sparse_bindless_texture_array_multidraw_fs.glsl
+)
+
 set( SRCS
     framework/apitest.cpp
     framework/console.cpp
@@ -38,6 +71,8 @@ set( SRCS
     solutions/untexturedobjects/gl/multidraw.cpp
     solutions/untexturedobjects/gl/texcoord.cpp
     solutions/untexturedobjects/gl/uniform.cpp
+
+    ${SHADERS}
 )
 
 if( MSVC )
@@ -116,31 +151,43 @@ source_group( "Solutions\\TexturedQuads" FILES
 source_group( "Solutions\\TexturedQuads\\Bindless" FILES 
     solutions/texturedquads/gl/bindless.cpp
     solutions/texturedquads/gl/bindless.h
+    ../bin/Shaders/glsl/textures_gl_bindless_vs.glsl
+    ../bin/Shaders/glsl/textures_gl_bindless_fs.glsl
 )
 
 source_group( "Solutions\\TexturedQuads\\BindlessMultidraw" FILES 
     solutions/texturedquads/gl/bindlessmultidraw.cpp
     solutions/texturedquads/gl/bindlessmultidraw.h
+    ../bin/Shaders/glsl/textures_gl_bindless_multidraw_vs.glsl
+    ../bin/Shaders/glsl/textures_gl_bindless_multidraw_fs.glsl
 )
 
 source_group( "Solutions\\TexturedQuads\\Naive" FILES 
     solutions/texturedquads/gl/naive.cpp
     solutions/texturedquads/gl/naive.h
+    ../bin/Shaders/glsl/textures_gl_naive_vs.glsl
+    ../bin/Shaders/glsl/textures_gl_naive_fs.glsl
 )
 
 source_group( "Solutions\\TexturedQuads\\Notex (SOL)" FILES 
     solutions/texturedquads/gl/notex.cpp
     solutions/texturedquads/gl/notex.h
+    ../bin/Shaders/glsl/textures_gl_notex_vs.glsl
+    ../bin/Shaders/glsl/textures_gl_notex_fs.glsl
 )
 
 source_group( "Solutions\\TexturedQuads\\SparseBindlessTextureArray" FILES 
     solutions/texturedquads/gl/sparsebindlesstexturearray.cpp
     solutions/texturedquads/gl/sparsebindlesstexturearray.h
+    ../bin/Shaders/glsl/textures_gl_sparse_bindless_texture_array_vs.glsl    
+    ../bin/Shaders/glsl/textures_gl_sparse_bindless_texture_array_fs.glsl
 )
 
 source_group( "Solutions\\TexturedQuads\\SparseBindlessTextureArrayMultidraw" FILES 
     solutions/texturedquads/gl/sparsebindlesstexturearraymultidraw.cpp
     solutions/texturedquads/gl/sparsebindlesstexturearraymultidraw.h
+    ../bin/Shaders/glsl/textures_gl_sparse_bindless_texture_array_multidraw_vs.glsl
+    ../bin/Shaders/glsl/textures_gl_sparse_bindless_texture_array_multidraw_fs.glsl
 )
 
 source_group( "Solutions\\UntexturedObjects" FILES 
@@ -151,41 +198,57 @@ source_group( "Solutions\\UntexturedObjects" FILES
 source_group( "Solutions\\UntexturedObjects\\GL\\Bindless" FILES 
     solutions/untexturedobjects/gl/bindless.cpp
     solutions/untexturedobjects/gl/bindless.h
+    ../bin/Shaders/glsl/cubes_gl_bindless_vs.glsl
+    ../bin/Shaders/glsl/cubes_gl_bindless_fs.glsl
 )
 
 source_group( "Solutions\\UntexturedObjects\\GL\\BindlessIndirect" FILES 
     solutions/untexturedobjects/gl/bindlessindirect.cpp
 	solutions/untexturedobjects/gl/bindlessindirect.h
+    ../bin/Shaders/glsl/cubes_gl_bindless_indirect_vs.glsl
+    ../bin/Shaders/glsl/cubes_gl_bindless_indirect_fs.glsl
 )
 
 source_group( "Solutions\\UntexturedObjects\\GL\\BufferRange" FILES 
     solutions/untexturedobjects/gl/bufferrange.cpp
     solutions/untexturedobjects/gl/bufferrange.h
+    ../bin/Shaders/glsl/cubes_gl_buffer_range_vs.glsl
+    ../bin/Shaders/glsl/cubes_gl_buffer_range_fs.glsl
 )
 
 source_group( "Solutions\\UntexturedObjects\\GL\\BufferStorage" FILES 
     solutions/untexturedobjects/gl/bufferstorage.cpp
     solutions/untexturedobjects/gl/bufferstorage.h
+    ../bin/Shaders/glsl/cubes_gl_buffer_storage_vs.glsl
+    ../bin/Shaders/glsl/cubes_gl_buffer_storage_fs.glsl
 )
 
 source_group( "Solutions\\UntexturedObjects\\GL\\DynamicBuffer" FILES 
     solutions/untexturedobjects/gl/dynamicbuffer.cpp
     solutions/untexturedobjects/gl/dynamicbuffer.h
+    ../bin/Shaders/glsl/cubes_gl_dynamic_buffer_vs.glsl
+    ../bin/Shaders/glsl/cubes_gl_dynamic_buffer_fs.glsl
 )
 
 source_group( "Solutions\\UntexturedObjects\\GL\\MultiDraw" FILES 
     solutions/untexturedobjects/gl/multidraw.cpp
     solutions/untexturedobjects/gl/multidraw.h
+    ../bin/Shaders/glsl/cubes_gl_multi_draw_vs.glsl
+    ../bin/Shaders/glsl/cubes_gl_multi_draw_fs.glsl
 )
 
 source_group( "Solutions\\UntexturedObjects\\GL\\TexCoord" FILES 
     solutions/untexturedobjects/gl/texcoord.cpp
     solutions/untexturedobjects/gl/texcoord.h
+    ../bin/Shaders/glsl/cubes_gl_tex_coord_vs.glsl
+    ../bin/Shaders/glsl/cubes_gl_tex_coord_fs.glsl
 )
 
 source_group( "Solutions\\UntexturedObjects\\GL\\Uniforms" FILES 
     solutions/untexturedobjects/gl/uniform.cpp
     solutions/untexturedobjects/gl/uniform.h
+    ../bin/Shaders/glsl/cubes_gl_uniform_vs.glsl
+    ../bin/Shaders/glsl/cubes_gl_uniform_fs.glsl
 )
 
 
