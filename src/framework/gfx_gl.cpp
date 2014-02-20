@@ -180,7 +180,7 @@ std::string FileContentsToString(std::string _filename)
         return retBuffer;
     }
 
-    console::error("Unable to locate file '%s'", _filename);
+    console::error("Unable to locate file '%s'", _filename.c_str());
 
     return retBuffer;
 }
