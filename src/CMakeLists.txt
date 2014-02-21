@@ -56,6 +56,10 @@ set( SRCS
     solutions/texturedquadssoln.cpp
     solutions/untexturedobjectssoln.cpp
 
+    solutions/dynamicstreaming/gl/dynamic.cpp
+    solutions/dynamicstreaming/gl/dynamicmap.cpp
+    solutions/dynamicstreaming/gl/persistent.cpp
+
     solutions/texturedquads/gl/bindless.cpp
     solutions/texturedquads/gl/bindlessmultidraw.cpp
     solutions/texturedquads/gl/naive.cpp

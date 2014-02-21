@@ -11,7 +11,7 @@ public:
     DynamicStreamingSolution() { }
     virtual ~DynamicStreamingSolution() { }
 
-    virtual bool Init(Problem* _problem) = 0;
+    virtual bool Init() = 0;
     virtual void Render(const std::vector<Vec2>& _vertices) = 0;
     virtual void Shutdown() = 0;
 

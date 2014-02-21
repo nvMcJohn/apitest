@@ -19,8 +19,15 @@ public:
     // The name of the problem this solution addresses.
     virtual std::string GetProblemName() const = 0;
 
-    inline void SetProjectionMatrix(const Matrix& _proj) { mProj = _proj; }
+    inline void SetSize(size_t width, size_t height)
+    {
+        mWidth = width;
+        mHeight = height;
+        mProj = matrix_perspective_rh_gl(radians(45.0f), (float)width / (float)height, 0.1f, 10000.0f);
+    }
 
 protected:
     Matrix mProj;
+    size_t mWidth;
+    size_t mHeight;
 };

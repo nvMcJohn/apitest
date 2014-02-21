@@ -240,9 +240,7 @@ private:
         if (mActiveSolution) {
             size_t width = mActiveApi->GetWidth();
             size_t height = mActiveApi->GetHeight();
-            Matrix proj = matrix_perspective_rh_gl(radians(45.0f), (float)width / (float)height, 0.1f, 10000.0f);
-
-            mActiveSolution->SetProjectionMatrix(proj);
+            mActiveSolution->SetSize(width, height);
         }
     }
 

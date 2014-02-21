@@ -8,6 +8,8 @@
 
 # Build results
 _out/
+/bin/SDL2.dll
+/bin/apitest*.exe
 
 # Enable "build/" folder in the NuGet Packages folder since NuGet packages use it for MSBuild targets
 !packages/*/build/
