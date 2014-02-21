@@ -9,6 +9,8 @@
 UntexturedObjectsGLBufferStorage::UntexturedObjectsGLBufferStorage()
     : m_ib()
     , m_vb()
+    , m_varray()
+    , m_drawid()
     , m_prog()
     , m_transform_buffer()
     , m_transform_ptr()
@@ -32,19 +34,41 @@ bool UntexturedObjectsGLBufferStorage::Init(const std::vector<UntexturedObjectsP
                             "cubes_gl_buffer_storage_fs.glsl",
                             kUniformNames, &mUniformLocation);
 
-
     if (m_prog == 0) {
         console::warn("Unable to initialize solution '%s', shader compilation/linking failed.", GetName().c_str());
         return false;
     }
 
+    glGenVertexArrays(1, &m_varray);
+    glBindVertexArray(m_varray);
+
+    // Buffers
     glGenBuffers(1, &m_vb);
     glBindBuffer(GL_ARRAY_BUFFER, m_vb);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(UntexturedObjectsProblem::Vertex) * _vertices.size(), &*_vertices.begin(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, _vertices.size() * sizeof(UntexturedObjectsProblem::Vertex), &*_vertices.begin(), GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(UntexturedObjectsProblem::Vertex), (void*) offsetof(UntexturedObjectsProblem::Vertex, pos));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(UntexturedObjectsProblem::Vertex), (void*) offsetof(UntexturedObjectsProblem::Vertex, color));
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+
+#define USE_ARB_DRAWID 1
+#if !USE_ARB_DRAWID
+    std::vector<uint32_t> drawids(_objectCount);
+    for (uint32_t i = 0; i < _objectCount; ++i) {
+        drawids[i] = i;
+    }
+
+    glGenBuffers(1, &m_drawid);
+    glBindBuffer(GL_ARRAY_BUFFER, m_drawid);
+    glBufferData(GL_ARRAY_BUFFER, drawids.size() * sizeof(uint32_t), drawids.data(), GL_STATIC_DRAW);
+    glVertexAttribIPointer(2, 1, GL_UNSIGNED_INT, sizeof(uint32_t), 0);
+    glVertexAttribDivisor(2, 1);
+    glEnableVertexAttribArray(2);
+#endif
 
     glGenBuffers(1, &m_ib);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ib);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(UntexturedObjectsProblem::Index) * _indices.size(), &*_indices.begin(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, _indices.size() * sizeof(UntexturedObjectsProblem::Index), &*_indices.begin(), GL_STATIC_DRAW);
 
     glGenBuffers(1, &m_transform_buffer);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, m_transform_buffer);
@@ -56,6 +80,7 @@ bool UntexturedObjectsGLBufferStorage::Init(const std::vector<UntexturedObjectsP
     glBufferStorage(GL_DRAW_INDIRECT_BUFFER, _objectCount * sizeof(DrawElementsIndirectCommand), nullptr, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_DYNAMIC_STORAGE_BIT);
     m_cmd_ptr = glMapBufferRange(GL_DRAW_INDIRECT_BUFFER, 0, _objectCount * sizeof(DrawElementsIndirectCommand), GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT);
 
+    // Set the command buffer size.
     m_commands.resize(_objectCount);
 
     return glGetError() == GL_NO_ERROR;
@@ -80,15 +105,6 @@ void UntexturedObjectsGLBufferStorage::Render(const std::vector<Matrix>& _transf
     glUseProgram(m_prog);
     glUniformMatrix4fv(mUniformLocation.ViewProjection, 1, GL_TRUE, &view_proj.x.x);
 
-    // Input Layout
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ib);
-    glBindBuffer(GL_ARRAY_BUFFER, m_vb);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(UntexturedObjectsProblem::Vertex), (void*)offsetof(UntexturedObjectsProblem::Vertex, pos));
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(UntexturedObjectsProblem::Vertex), (void*)offsetof(UntexturedObjectsProblem::Vertex, color));
-
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-
     // Rasterizer State
     glEnable(GL_CULL_FACE);
     glCullFace(GL_FRONT);
@@ -102,13 +118,14 @@ void UntexturedObjectsGLBufferStorage::Render(const std::vector<Matrix>& _transf
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
 
-    for (auto it = m_commands.begin(); it != m_commands.end(); ++it) {
-        DrawElementsIndirectCommand *cmd = &*it;
+    for (size_t u = 0; u < objCount; ++u)
+    {
+        DrawElementsIndirectCommand *cmd = &m_commands[u];
         cmd->count = mIndexCount;
         cmd->instanceCount = 1;
         cmd->firstIndex = 0;
         cmd->baseVertex = 0;
-        cmd->baseInstance = 0;
+        cmd->baseInstance = u;
     }
 
     memcpy(m_transform_ptr, &*_transforms.begin(), sizeof(Matrix) * xformCount);
@@ -135,6 +152,8 @@ void UntexturedObjectsGLBufferStorage::Shutdown()
 
     glDeleteBuffers(1, &m_ib);
     glDeleteBuffers(1, &m_vb);
+    glDeleteVertexArrays(1, &m_varray);
+    glDeleteBuffers(1, &m_drawid);
     glDeleteBuffers(1, &m_transform_buffer);
     glDeleteBuffers(1, &m_cmd_buffer);
     glDeleteProgram(m_prog);
