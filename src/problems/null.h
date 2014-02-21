@@ -12,7 +12,7 @@ public:
 
     inline virtual void GetClearValues(Vec4* _outCol, GLfloat* _outDepth) const override 
     {
-        Vec4 clearCol = { 0.1f, 0.0f, 0.0f, 1.0f };
+        Vec4 clearCol = { 0.2f, 0.0f, 0.0f, 1.0f };
         (*_outCol) = clearCol;
         (*_outDepth) = 1.0f;
     }

@@ -65,8 +65,11 @@ void DynamicStreamingProblem::Update()
     const float w = 1.0f;
     const float h = 1.0f;
 
-    const float offsetX = (mIteration % 2) * w;
-    const float offsetY = ((mIteration / 2) % 2) * h;
+    const int kMarchPixelsX = 24;
+    const int kMarchPixelsY = 128;
+
+    const float offsetX = (mIteration % kMarchPixelsX) * w;
+    const float offsetY = ((mIteration / kMarchPixelsX) % kMarchPixelsY) * h;
 
     size_t address = 0;
     for (int yPos = 0; yPos < kParticleCountY; ++yPos) {

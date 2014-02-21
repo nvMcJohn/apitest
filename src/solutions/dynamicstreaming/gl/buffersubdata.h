@@ -5,18 +5,18 @@
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
-class DynamicStreamingDynamicMap : public DynamicStreamingSolution
+class DynamicStreamingGLBufferSubData : public DynamicStreamingSolution
 {
 public:
-    DynamicStreamingDynamicMap();
-    virtual ~DynamicStreamingDynamicMap();
+    DynamicStreamingGLBufferSubData();
+    virtual ~DynamicStreamingGLBufferSubData();
 
     virtual bool Init() override;
     virtual void Render(const std::vector<Vec2>& _vertices) override;
     virtual void Shutdown() override;
 
     // The name of this solution.
-    virtual std::string GetName() const override { return "DynamicStreamingDynamicMap"; }
+    virtual std::string GetName() const override { return "DynamicStreamingGLBufferSubData"; }
 
 private:
     struct Constants

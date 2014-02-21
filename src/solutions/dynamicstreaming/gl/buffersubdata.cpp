@@ -1,24 +1,24 @@
 #include "pch.h"
 
 #include "problems/dynamicstreaming.h"
-#include "dynamic.h"
+#include "buffersubdata.h"
 #include "framework/gfx_gl.h"
 
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
-DynamicStreamingDynamic::DynamicStreamingDynamic()
-    : mUniformBuffer()
-    , mProgram()
-    , mVertexBuffer()
+DynamicStreamingGLBufferSubData::DynamicStreamingGLBufferSubData()
+: mUniformBuffer()
+, mProgram()
+, mVertexBuffer()
 { }
 
 // --------------------------------------------------------------------------------------------------------------------
-DynamicStreamingDynamic::~DynamicStreamingDynamic()
+DynamicStreamingGLBufferSubData::~DynamicStreamingGLBufferSubData()
 { }
 
 // --------------------------------------------------------------------------------------------------------------------
-bool DynamicStreamingDynamic::Init()
+bool DynamicStreamingGLBufferSubData::Init()
 {
     // Uniform Buffer
     glGenBuffers(1, &mUniformBuffer);
@@ -44,7 +44,7 @@ bool DynamicStreamingDynamic::Init()
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-void DynamicStreamingDynamic::Render(const std::vector<Vec2>& _vertices)
+void DynamicStreamingGLBufferSubData::Render(const std::vector<Vec2>& _vertices)
 {
     // Program
     glUseProgram(mProgram);
@@ -91,7 +91,7 @@ void DynamicStreamingDynamic::Render(const std::vector<Vec2>& _vertices)
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-void DynamicStreamingDynamic::Shutdown()
+void DynamicStreamingGLBufferSubData::Shutdown()
 {
     glDeleteBuffers(1, &mVertexBuffer);
 

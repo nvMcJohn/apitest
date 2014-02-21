@@ -56,9 +56,9 @@ set( SRCS
     solutions/texturedquadssoln.cpp
     solutions/untexturedobjectssoln.cpp
 
-    solutions/dynamicstreaming/gl/dynamic.cpp
-    solutions/dynamicstreaming/gl/dynamicmap.cpp
-    solutions/dynamicstreaming/gl/persistent.cpp
+    solutions/dynamicstreaming/gl/buffersubdata.cpp
+    solutions/dynamicstreaming/gl/mapunsynchronized.cpp
+    solutions/dynamicstreaming/gl/mappersistent.cpp
 
     solutions/texturedquads/gl/bindless.cpp
     solutions/texturedquads/gl/bindlessmultidraw.cpp
@@ -140,6 +140,27 @@ source_group( "Solutions" FILES
 source_group( "Solutions\\DynamicStreaming" FILES 
     solutions/dynamicstreamingsoln.cpp
     solutions/dynamicstreamingsoln.h
+)
+
+source_group( "Solutions\\DynamicStreaming\\BufferSubData" FILES 
+    solutions/dynamicstreaming/gl/buffersubdata.cpp
+    solutions/dynamicstreaming/gl/buffersubdata.h
+    ../bin/Shaders/glsl/streaming_vb_gl_vs.glsl
+    ../bin/Shaders/glsl/streaming_vb_gl_fs.glsl
+)
+
+source_group( "Solutions\\DynamicStreaming\\MapUnsynchronized" FILES 
+    solutions/dynamicstreaming/gl/mapunsynchronized.cpp
+    solutions/dynamicstreaming/gl/mapunsynchronized.h
+    ../bin/Shaders/glsl/streaming_vb_gl_vs.glsl
+    ../bin/Shaders/glsl/streaming_vb_gl_fs.glsl
+)
+
+source_group( "Solutions\\DynamicStreaming\\MapPersistent" FILES 
+    solutions/dynamicstreaming/gl/mappersistent.cpp
+    solutions/dynamicstreaming/gl/mappersistent.h
+    ../bin/Shaders/glsl/streaming_vb_gl_vs.glsl
+    ../bin/Shaders/glsl/streaming_vb_gl_fs.glsl
 )
 
 source_group( "Solutions\\Null" FILES 

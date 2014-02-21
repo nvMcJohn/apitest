@@ -2,8 +2,8 @@
 
 #include "problems/problem.h"
 
-const size_t kParticleCountX = 1000;
-const size_t kParticleCountY = 160;
+const size_t kParticleCountX = 500;
+const size_t kParticleCountY = 320;
 const size_t kParticleCount = (kParticleCountX * kParticleCountY);
 const size_t kVertsPerParticle = 6;
 const size_t kVertexCount = kParticleCount * kVertsPerParticle;
@@ -20,7 +20,7 @@ public:
 
     inline virtual void GetClearValues(Vec4* _outCol, GLfloat* _outDepth) const override
     {
-        Vec4 clearCol = { 0.0f, 0.0f, 0.1f, 1.0f };
+        Vec4 clearCol = { 0.3f, 0.0f, 0.3f, 1.0f };
         (*_outCol) = clearCol;
         (*_outDepth) = 1.0f;
     }
