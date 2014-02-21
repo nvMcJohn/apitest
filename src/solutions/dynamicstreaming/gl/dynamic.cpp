@@ -1,24 +1,24 @@
 #include "pch.h"
 
 #include "problems/dynamicstreaming.h"
-#include "persistent.h"
+#include "dynamic.h"
 #include "framework/gfx_gl.h"
 
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
-DynamicStreamingPersistent::DynamicStreamingPersistent()
+DynamicStreamingDynamic::DynamicStreamingDynamic()
     : mUniformBuffer()
     , mProgram()
     , mVertexBuffer()
 { }
 
 // --------------------------------------------------------------------------------------------------------------------
-DynamicStreamingPersistent::~DynamicStreamingPersistent()
+DynamicStreamingDynamic::~DynamicStreamingDynamic()
 { }
 
 // --------------------------------------------------------------------------------------------------------------------
-bool DynamicStreamingPersistent::Init()
+bool DynamicStreamingDynamic::Init()
 {
     // Uniform Buffer
     glGenBuffers(1, &mUniformBuffer);
@@ -38,16 +38,13 @@ bool DynamicStreamingPersistent::Init()
     // Dynamic vertex buffer
     glGenBuffers(1, &mVertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
-
-    GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
-    glBufferStorage(GL_ARRAY_BUFFER, kParticleBufferSize, NULL, flags);
-    mVertexDataPtr = glMapBufferRange(GL_ARRAY_BUFFER, 0, kParticleBufferSize, flags); 
+    glBufferData(GL_ARRAY_BUFFER, kParticleBufferSize, nullptr, GL_DYNAMIC_DRAW);
 
     return glGetError() == GL_NO_ERROR;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-void DynamicStreamingPersistent::Render(const std::vector<Vec2>& _vertices)
+void DynamicStreamingDynamic::Render(const std::vector<Vec2>& _vertices)
 {
     // Program
     glUseProgram(mProgram);
@@ -87,18 +84,15 @@ void DynamicStreamingPersistent::Render(const std::vector<Vec2>& _vertices)
         int byte_offset = vertex_offset * sizeof(Vec2);
         int partVertSize = kVertsPerParticle * sizeof(Vec2);
 
-        void* dst = (unsigned char*) mVertexDataPtr + byte_offset;
-        memcpy(dst, &_vertices[vertex_offset], partVertSize);
+        glBufferSubData(GL_ARRAY_BUFFER, byte_offset, partVertSize, &_vertices[vertex_offset]);
 
         glDrawArrays(GL_TRIANGLES, vertex_offset, kVertsPerParticle);
     }
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-void DynamicStreamingPersistent::Shutdown()
+void DynamicStreamingDynamic::Shutdown()
 {
-    glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
-    glUnmapBuffer(GL_ARRAY_BUFFER);
     glDeleteBuffers(1, &mVertexBuffer);
 
     glDeleteBuffers(1, &mUniformBuffer);

@@ -6,6 +6,8 @@
 #include "problems/texturedquads.h"
 #include "problems/untexturedobjects.h"
 
+#include "solutions/dynamicstreaming/gl/dynamic.h"
+#include "solutions/dynamicstreaming/gl/dynamicmap.h"
 #include "solutions/dynamicstreaming/gl/persistent.h"
 
 #include "solutions/nullsoln.h"
@@ -48,6 +50,8 @@ ProblemFactory::ProblemFactory()
     if (newProb->Init()) {
         newProb->Shutdown();
         mProblems.push_back(newProb);
+        mSolutions[mProblems.back()->GetName()].push_back(new DynamicStreamingDynamic());
+        mSolutions[mProblems.back()->GetName()].push_back(new DynamicStreamingDynamicMap());
         mSolutions[mProblems.back()->GetName()].push_back(new DynamicStreamingPersistent());
     } else {
         newProb->Shutdown();

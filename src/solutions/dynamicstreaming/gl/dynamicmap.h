@@ -5,18 +5,18 @@
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
-class DynamicStreamingPersistent : public DynamicStreamingSolution
+class DynamicStreamingDynamicMap : public DynamicStreamingSolution
 {
 public:
-    DynamicStreamingPersistent();
-    virtual ~DynamicStreamingPersistent();
+    DynamicStreamingDynamicMap();
+    virtual ~DynamicStreamingDynamicMap();
 
     virtual bool Init() override;
     virtual void Render(const std::vector<Vec2>& _vertices) override;
     virtual void Shutdown() override;
 
     // The name of this solution.
-    virtual std::string GetName() const override { return "DynamicStreamingPersistent"; }
+    virtual std::string GetName() const override { return "DynamicStreamingDynamicMap"; }
 
 private:
     struct Constants
@@ -34,6 +34,4 @@ private:
         GLuint CB0;
         UniformLocations() { memset(this, 0, sizeof(*this)); }
     } mUniformLocation;
-
-    void* mVertexDataPtr;
 };
