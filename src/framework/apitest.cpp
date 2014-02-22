@@ -5,6 +5,7 @@
 #include "gfx.h"
 #include "problems/problem.h"
 #include "solutions/solution.h"
+#include "options.h"
 #include "os.h"
 #include "timer.h"
 #include "wgl.h"
@@ -27,15 +28,16 @@
 class ApplicationState
 {
 public:
-    ApplicationState(GfxBaseApi* _activeApi)
+    ApplicationState(GfxBaseApi* _activeApi, const Options& _opts)
     : mActiveProblem()
     , mActiveSolution()
     , mActiveApi(_activeApi)
+    , mBenchmarkMode(_opts.BenchmarkMode)
     {
         mProblems = mFactory.GetProblems();
         assert(GetProblemCount() > 0);
 
-        setProblemByIndex(0);
+        setInitialProblemAndSolution(_opts.InitialProblem, _opts.InitialSolution);
     }
 
     ~ApplicationState()
@@ -142,7 +144,6 @@ public:
     }
 
     void BenchmarkAllProblemsAndSolutions();
-    void BenchmarkThisProblem();
 
     void Update()
     {
@@ -150,29 +151,93 @@ public:
     }
 
 private:
-    void setProblemByIndex(size_t _index)
+    void setInitialProblemAndSolution(const std::string _prob, const std::string _soln)
     {
-        // Turn off the existing solution, if running one.
-        if (mActiveProblem) {
-            mActiveProblem->SetSolution(nullptr);
+        // TODO: This should be cleaned up. It's error prone.
+        assert(mActiveProblem == nullptr);
+        if (!_prob.empty()) {
+            for (auto it = mProblems.begin(); it != mProblems.end(); ++it) {
+                if ((*it)->GetName() == _prob) {
+                    mActiveProblem = *it;
+                    break;
+                }
+            }
+
+            if (mActiveProblem == nullptr) {
+                console::error("Couldn't locate problem named '%s'. Run with -h to see all valid problem names.", _prob.c_str());
+            }
+            
+            if (!mActiveProblem->Init()) {
+                console::error("Failed to initialize problem '%s', exiting.", _prob.c_str());
+            }
+
+            // We set the problem, now try to find the solution.
+            mSolutions = mFactory.GetSolutions(mActiveProblem);
+            if (!_soln.empty()) {
+                for (auto it = mSolutions.begin(); it != mSolutions.end(); ++it) {
+                    if ((*it)->GetName() == _soln) {
+                        mActiveSolution = *it;
+                        if (!mActiveProblem->SetSolution(mActiveSolution)) {
+                            console::error("Unable to initialize solution '%s', exiting.", _soln.c_str());
+                        }
+                        onSetProblemOrSolution();
+                        break;
+                    }
+                }
+            } else {
+                mActiveSolution = findFirstValidSolution();
+                onSetProblemOrSolution();
+            }
+
+            if (mActiveSolution == nullptr) {
+                console::error("Couldn't locate solution named '%s' for problem '%s'. Run with -h to see all valid problem and solution names.", _soln.c_str(), _prob.c_str());
+            }
+        } else if (!_soln.empty()) {
+            Solution* solution = nullptr;
+            mActiveProblem = findProblemWithSolution(_soln, &solution);
+
+            if (solution == nullptr) {
+                console::error("Unable to find solution '%s'. Run with -h to see all valid solution names.", _soln.c_str());
+            }
+
+            if (mActiveProblem == nullptr) {
+                console::error("Couldn't locate problem that had solution '%s'", _soln.c_str());
+            }
+
+            if (!mActiveProblem->Init()) {
+                console::error("Failed to initialize problem '%s', exiting.", _prob.c_str());
+            }
+
+            mSolutions = mFactory.GetSolutions(mActiveProblem);
+            mActiveSolution = solution;
+            if (!mActiveProblem->SetSolution(mActiveSolution)) {
+                console::error("Unable to initialize solution '%s', exiting.", _soln.c_str());
+            }
+
+            onSetProblemOrSolution();
+
+            assert(mActiveProblem && mActiveSolution);
         }
 
-        // null it out, we're not running one now.
-        mActiveSolution = nullptr;
-        
-        // Set the new active problem
-        mActiveProblem = mProblems[_index];
+        // Having neither is also okay. The PrintHelp code may create an App for itself that has no selected problem 
+        // or solution in order to query all of them to print as part of the help message.
+    }
 
-        // And init it.
-        mActiveProblem->Init();
+    Problem* findProblemWithSolution(const std::string _soln, Solution** _outSolution)
+    {
+        for (auto probIt = mProblems.cbegin(); probIt != mProblems.cend(); ++probIt) {
+            auto allSolutions = mFactory.GetSolutions(*probIt);
+            for (auto solnIt = allSolutions.cbegin(); solnIt != allSolutions.cend(); ++solnIt) {
+                if ((*solnIt)->GetName() == _soln) {
+                    if (_outSolution) {
+                        (*_outSolution) = (*solnIt);
+                    }
+                    return (*probIt);
+                }
+            }
+        };
 
-        // Get the list of possible solutions.
-        mSolutions = mFactory.GetSolutions(mActiveProblem);
-
-        // And set one as active
-        mActiveSolution = findFirstValidSolution();
-
-        onSetProblemOrSolution();
+        return nullptr;
     }
 
     template<typename ItType>
@@ -253,6 +318,8 @@ private:
     Solution* mActiveSolution;
 
     GfxBaseApi* mActiveApi;
+
+    bool mBenchmarkMode;
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -371,7 +438,7 @@ void OnEvent(SDL_Event* _event, ApplicationState* _appState)
 }
 
 // ------------------------------------------------------------------------------------------------
-static void update_fps()
+static void UpdateFPS()
 {
     static int s_frame_count;
     static unsigned long long s_last_frame_time;
@@ -405,16 +472,17 @@ static void Render(Problem* _activeProblem, GfxBaseApi* _activeApi)
     // Present the results.
     _activeApi->SwapBuffers();
     
-    update_fps();
+    UpdateFPS();
 }
 
+// ------------------------------------------------------------------------------------------------
 static bool InitSDL()
 {
     return SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) >= 0;
 }
 
 // ------------------------------------------------------------------------------------------------
-static bool Init(char* _exeName)
+static bool Init(const char* _exeName)
 {
     // This forces the working directory to the directory the executable is in. This is necessary
     // to deal with people running from the wrong place (or debuggers).
@@ -451,6 +519,8 @@ int main(int argc, char* argv[])
         console::error("Cannot tell where the executable is, exiting.");
     }
 
+    Options opts = ProcessCommandLine(argc, argv);
+
     if (!Init(argv[0])) {
         // Technically shouldn't get here--error should exit() if called, and all false cases
         // should emit a message as to why they are exiting. But better safe than sorry.
@@ -466,7 +536,7 @@ int main(int argc, char* argv[])
     activeApi->Activate();
 
     // TODO: Move all Api management into ApplicationState
-    ApplicationState* app = new ApplicationState(activeApi);
+    ApplicationState* app = new ApplicationState(activeApi, opts);
 
     for (;;) {
         SDL_Event sdl_event;
@@ -488,6 +558,3 @@ int main(int argc, char* argv[])
 
     return 0;
 }
-
-#if 0
-#endif

@@ -39,6 +39,7 @@ set( SRCS
     framework/console.cpp
     framework/factory.cpp
     framework/gfx_gl.cpp
+    framework/options.cpp
     framework/os.cpp
     framework/sparse_bindless_texarray.cpp
     framework/timer.cpp
@@ -109,6 +110,8 @@ source_group( "Framework" FILES
     framework/gfx_gl.cpp
     framework/gfx_gl.h
     framework/mathlib.h
+    framework/options.cpp
+    framework/options.h
     framework/os.cpp
     framework/os.h
     framework/sparse_bindless_texarray.cpp
@@ -117,6 +120,17 @@ source_group( "Framework" FILES
     framework/timer.h
     framework/wgl.cpp
     framework/wgl.h
+)
+
+source_group( "GL" FILES
+    GL/glcorearb.h
+    GL/glext.h
+    GL/wglext.h
+)
+
+source_group( "PCH" FILES 
+    pch.cpp
+    pch.h
 )
 
 source_group( "Problems" FILES 
