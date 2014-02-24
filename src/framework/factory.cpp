@@ -30,13 +30,15 @@
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
-ProblemFactory::ProblemFactory()
+ProblemFactory::ProblemFactory(bool _skipInit)
 {
     Problem* newProb = nullptr;
     // Null
     newProb = new NullProblem();
-    if (newProb->Init()) {
-        newProb->Shutdown();
+    if (_skipInit || newProb->Init()) {
+        if (!_skipInit) {
+            newProb->Shutdown();
+        }
         mProblems.push_back(newProb);
         mSolutions[mProblems.back()->GetName()].push_back(new NullSolution());
     } else {
@@ -47,8 +49,10 @@ ProblemFactory::ProblemFactory()
 
     // DynamicStreaming
     newProb = new DynamicStreamingProblem();
-    if (newProb->Init()) {
-        newProb->Shutdown();
+    if (_skipInit || newProb->Init()) {
+        if (!_skipInit) {
+            newProb->Shutdown();
+        }
         mProblems.push_back(newProb);
         mSolutions[mProblems.back()->GetName()].push_back(new DynamicStreamingGLBufferSubData());
         mSolutions[mProblems.back()->GetName()].push_back(new DynamicStreamingGLMapUnsynchronized());
@@ -60,8 +64,10 @@ ProblemFactory::ProblemFactory()
 
     // UntexturedObjects
     newProb = new UntexturedObjectsProblem();
-    if (newProb->Init()) {
-        newProb->Shutdown();
+    if (_skipInit || newProb->Init()) {
+        if (!_skipInit) {
+            newProb->Shutdown();
+        }
         mProblems.push_back(newProb);
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLUniform());
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLMultiDraw());
@@ -78,8 +84,10 @@ ProblemFactory::ProblemFactory()
 
     // Textured Quads
     newProb = new TexturedQuadsProblem();
-    if (newProb->Init()) {
-        newProb->Shutdown();
+    if (_skipInit || newProb->Init()) {
+        if (!_skipInit) {
+            newProb->Shutdown();
+        }
         mProblems.push_back(newProb);
         mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLBindless());
         mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLBindlessMultiDraw());

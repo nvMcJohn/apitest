@@ -33,6 +33,7 @@ public:
     , mActiveSolution()
     , mActiveApi(_activeApi)
     , mBenchmarkMode(_opts.BenchmarkMode)
+    , mFactory(false)
     {
         mProblems = mFactory.GetProblems();
         assert(GetProblemCount() > 0);
@@ -217,10 +218,12 @@ private:
             onSetProblemOrSolution();
 
             assert(mActiveProblem && mActiveSolution);
+        } else {
+            console::error("You went through some effort to specify a blank initial problem and initial solution.\n"
+                           "Congratulations, that doesn't work."
+            );
         }
 
-        // Having neither is also okay. The PrintHelp code may create an App for itself that has no selected problem 
-        // or solution in order to query all of them to print as part of the help message.
     }
 
     Problem* findProblemWithSolution(const std::string _soln, Solution** _outSolution)

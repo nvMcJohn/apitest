@@ -11,7 +11,7 @@ class Solution;
 class ProblemFactory
 {
 public:
-    ProblemFactory();
+    ProblemFactory(bool _skipInit);
     ~ProblemFactory();
 
     std::vector<Problem*> GetProblems();

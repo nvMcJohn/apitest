@@ -1,6 +1,9 @@
 #include "pch.h"
 
 #include "options.h"
+#include "factory.h"
+#include "problems/problem.h"
+#include "solutions/solution.h"
 
 const char* Options::DefaultInitialProblem = "NullProblem";
 const char* Options::DefaultInitialSolution = "NullSolution";
@@ -135,6 +138,25 @@ void PrintHelp()
     console::log("Options");
     for (int i = 0; gClOpts[i].OptionShort != nullptr; ++i) {
         console::log("  %s, %-20s %s", gClOpts[i].OptionShort, gClOpts[i].OptionLong, gClOpts[i].HelpText);
+    }
+
+    const char* kTableFormat = "%-27s%-20s";
+    console::log("");
+    console::log(kTableFormat, "Problems", "Solutions");
+    ProblemFactory problemsAndSolutions(true);
+    auto allProblems = problemsAndSolutions.GetProblems();
+
+    for (auto probIt = allProblems.cbegin(); probIt != allProblems.cend(); ++probIt) {
+        console::log("");
+        Problem* prob = (*probIt);
+        // console::log(kTableFormat, prob->GetName().c_str(), "");
+
+        auto solutions = problemsAndSolutions.GetSolutions(prob);
+        for (auto solnIt = solutions.cbegin(); solnIt != solutions.cend(); ++solnIt) {
+            Solution* soln = (*solnIt);
+            console::log(kTableFormat, prob->GetName().c_str(), soln->GetName().c_str());
+
+        }
     }
 }
 
