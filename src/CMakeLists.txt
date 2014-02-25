@@ -158,17 +158,17 @@ source_group( "Solutions\\DynamicStreaming" FILES
     ../bin/Shaders/glsl/streaming_vb_gl_fs.glsl
 )
 
-source_group( "Solutions\\DynamicStreaming\\BufferSubData" FILES 
+source_group( "Solutions\\DynamicStreaming\\GL\\BufferSubData" FILES 
     solutions/dynamicstreaming/gl/buffersubdata.cpp
     solutions/dynamicstreaming/gl/buffersubdata.h
 )
 
-source_group( "Solutions\\DynamicStreaming\\MapUnsynchronized" FILES 
+source_group( "Solutions\\DynamicStreaming\\GL\\MapUnsynchronized" FILES 
     solutions/dynamicstreaming/gl/mapunsynchronized.cpp
     solutions/dynamicstreaming/gl/mapunsynchronized.h
 )
 
-source_group( "Solutions\\DynamicStreaming\\MapPersistent" FILES 
+source_group( "Solutions\\DynamicStreaming\\GL\\MapPersistent" FILES 
     solutions/dynamicstreaming/gl/mappersistent.cpp
     solutions/dynamicstreaming/gl/mappersistent.h
 )
@@ -183,42 +183,42 @@ source_group( "Solutions\\TexturedQuads" FILES
     solutions/texturedquadssoln.h
 )
 
-source_group( "Solutions\\TexturedQuads\\Bindless" FILES 
+source_group( "Solutions\\TexturedQuads\\GL\\Bindless" FILES 
     solutions/texturedquads/gl/bindless.cpp
     solutions/texturedquads/gl/bindless.h
     ../bin/Shaders/glsl/textures_gl_bindless_vs.glsl
     ../bin/Shaders/glsl/textures_gl_bindless_fs.glsl
 )
 
-source_group( "Solutions\\TexturedQuads\\BindlessMultidraw" FILES 
+source_group( "Solutions\\TexturedQuads\\GL\\BindlessMultidraw" FILES 
     solutions/texturedquads/gl/bindlessmultidraw.cpp
     solutions/texturedquads/gl/bindlessmultidraw.h
     ../bin/Shaders/glsl/textures_gl_bindless_multidraw_vs.glsl
     ../bin/Shaders/glsl/textures_gl_bindless_multidraw_fs.glsl
 )
 
-source_group( "Solutions\\TexturedQuads\\Naive" FILES 
+source_group( "Solutions\\TexturedQuads\\GL\\Naive" FILES 
     solutions/texturedquads/gl/naive.cpp
     solutions/texturedquads/gl/naive.h
     ../bin/Shaders/glsl/textures_gl_naive_vs.glsl
     ../bin/Shaders/glsl/textures_gl_naive_fs.glsl
 )
 
-source_group( "Solutions\\TexturedQuads\\Notex (SOL)" FILES 
+source_group( "Solutions\\TexturedQuads\\GL\\Notex (SOL)" FILES 
     solutions/texturedquads/gl/notex.cpp
     solutions/texturedquads/gl/notex.h
     ../bin/Shaders/glsl/textures_gl_notex_vs.glsl
     ../bin/Shaders/glsl/textures_gl_notex_fs.glsl
 )
 
-source_group( "Solutions\\TexturedQuads\\SparseBindlessTextureArray" FILES 
+source_group( "Solutions\\TexturedQuads\\GL\\SparseBindlessTextureArray" FILES 
     solutions/texturedquads/gl/sparsebindlesstexturearray.cpp
     solutions/texturedquads/gl/sparsebindlesstexturearray.h
     ../bin/Shaders/glsl/textures_gl_sparse_bindless_texture_array_vs.glsl    
     ../bin/Shaders/glsl/textures_gl_sparse_bindless_texture_array_fs.glsl
 )
 
-source_group( "Solutions\\TexturedQuads\\SparseBindlessTextureArrayMultidraw" FILES 
+source_group( "Solutions\\TexturedQuads\\GL\\SparseBindlessTextureArrayMultidraw" FILES 
     solutions/texturedquads/gl/sparsebindlesstexturearraymultidraw.cpp
     solutions/texturedquads/gl/sparsebindlesstexturearraymultidraw.h
     ../bin/Shaders/glsl/textures_gl_sparse_bindless_texture_array_multidraw_vs.glsl

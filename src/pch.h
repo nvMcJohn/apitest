@@ -5,6 +5,7 @@
 
 #include <assert.h>
 
+#include <algorithm>
 #include <list>
 #include <map>
 #include <stdint.h>

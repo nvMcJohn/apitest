@@ -30,13 +30,6 @@ GfxApiDirect3D11::GfxApiDirect3D11()
 // --------------------------------------------------------------------------------------------------------------------
 GfxApiDirect3D11::~GfxApiDirect3D11()
 {
-    if (g_d3d_context) {
-        g_d3d_context->ClearState();
-    }
-
-    SafeRelease(g_d3d_context);
-    SafeRelease(g_d3d_device);
-    SafeRelease(g_dxgi_factory);
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -46,7 +39,7 @@ bool GfxApiDirect3D11::Init(const std::string& _title, int _x, int _y, int _widt
         return false;
     }
 
-    SDL_CreateWindow(_title.c_str(), _x, _y, _width, _height, SDL_WINDOW_HIDDEN);
+    mWnd = SDL_CreateWindow(_title.c_str(), _x, _y, _width, _height, SDL_WINDOW_HIDDEN);
 
     HRESULT hr = CreateDXGIFactory(__uuidof(IDXGIFactory), reinterpret_cast<void**>(&g_dxgi_factory));
     if (FAILED(hr))
@@ -99,8 +92,20 @@ void GfxApiDirect3D11::Shutdown()
 {
     SafeRelease(mColorView);
     SafeRelease(mDepthStencilView);
-
     SafeRelease(mSwapChain);
+
+    if (g_d3d_context) {
+        g_d3d_context->ClearState();
+    }
+
+    SafeRelease(g_d3d_context);
+    SafeRelease(g_d3d_device);
+    SafeRelease(g_dxgi_factory);
+
+    if (mWnd) {
+        SDL_DestroyWindow(mWnd);
+        mWnd = nullptr;
+    }
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -133,23 +138,20 @@ void GfxApiDirect3D11::SwapBuffers()
 // --------------------------------------------------------------------------------------------------------------------
 bool GfxApiDirect3D11::CreateSwapChain()
 {
-    HWND hWnd = GetHwnd(mWnd);
-
-    RECT rc;
-    GetClientRect(hWnd, &rc);
-    UINT width = rc.right - rc.left;
-    UINT height = rc.bottom - rc.top;
+    int width = 1;
+    int height = 1;
+    SDL_GetWindowSize(mWnd, &width, &height);
 
     // Create Swap Chain
     DXGI_SWAP_CHAIN_DESC swap_chain_desc;
-    swap_chain_desc.BufferDesc.Width = width;
-    swap_chain_desc.BufferDesc.Height = height;
+    swap_chain_desc.BufferDesc.Width = UINT(width);
+    swap_chain_desc.BufferDesc.Height = UINT(height);
     swap_chain_desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     swap_chain_desc.SampleDesc.Count = 1;
     swap_chain_desc.SampleDesc.Quality = 0;
     swap_chain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
     swap_chain_desc.BufferCount = 1;
-    swap_chain_desc.OutputWindow = hWnd;
+    swap_chain_desc.OutputWindow = GetHwnd(mWnd);
     swap_chain_desc.Windowed = TRUE;
     swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
     swap_chain_desc.Flags = 0;
