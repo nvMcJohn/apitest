@@ -93,8 +93,7 @@ void UntexturedObjectsGLBufferRange::Render(const std::vector<Matrix>& _transfor
 
     GLint align;
     glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &align);
-    int stride = align;
-    assert(stride >= sizeof(Matrix));
+    int stride = align * int((sizeof(Matrix) + align - 1) / align);
 
     GLint maxSize;
     glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &maxSize);

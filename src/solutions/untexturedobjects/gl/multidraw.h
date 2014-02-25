@@ -24,6 +24,8 @@ public:
 private:
     GLuint m_ib;
     GLuint m_vb;
+    GLuint m_varray;
+    GLuint m_drawid;
     GLuint m_prog;
 
     GLuint m_transform_buffer;

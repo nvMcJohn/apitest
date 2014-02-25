@@ -9,6 +9,8 @@
 UntexturedObjectsGLMultiDraw::UntexturedObjectsGLMultiDraw()
 : m_ib()
 , m_vb()
+, m_varray()
+, m_drawid()
 , m_prog()
 , m_transform_buffer()
 { }
@@ -34,10 +36,32 @@ bool UntexturedObjectsGLMultiDraw::Init(const std::vector<UntexturedObjectsProbl
         return false;
     }
 
+    glGenVertexArrays(1, &m_varray);
+    glBindVertexArray(m_varray);
+
     // Buffers
     glGenBuffers(1, &m_vb);
     glBindBuffer(GL_ARRAY_BUFFER, m_vb);
     glBufferData(GL_ARRAY_BUFFER, _vertices.size() * sizeof(UntexturedObjectsProblem::Vertex), &*_vertices.begin(), GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(UntexturedObjectsProblem::Vertex), (void*) offsetof(UntexturedObjectsProblem::Vertex, pos));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(UntexturedObjectsProblem::Vertex), (void*) offsetof(UntexturedObjectsProblem::Vertex, color));
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+
+#define USE_ARB_DRAWID 1
+#if !USE_ARB_DRAWID
+    std::vector<uint32_t> drawids(_objectCount);
+    for (uint32_t i = 0; i < _objectCount; ++i) {
+        drawids[i] = i;
+    }
+
+    glGenBuffers(1, &m_drawid);
+    glBindBuffer(GL_ARRAY_BUFFER, m_drawid);
+    glBufferData(GL_ARRAY_BUFFER, drawids.size() * sizeof(uint32_t), drawids.data(), GL_STATIC_DRAW);
+    glVertexAttribIPointer(2, 1, GL_UNSIGNED_INT, sizeof(uint32_t), 0);
+    glVertexAttribDivisor(2, 1);
+    glEnableVertexAttribArray(2);
+#endif
 
     glGenBuffers(1, &m_ib);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ib);
@@ -70,15 +94,6 @@ void UntexturedObjectsGLMultiDraw::Render(const std::vector<Matrix>& _transforms
     glUseProgram(m_prog);
     glUniformMatrix4fv(mUniformLocation.ViewProjection, 1, GL_TRUE, &view_proj.x.x);
 
-    // Input Layout
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ib);
-    glBindBuffer(GL_ARRAY_BUFFER, m_vb);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(UntexturedObjectsProblem::Vertex), (void*)offsetof(UntexturedObjectsProblem::Vertex, pos));
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(UntexturedObjectsProblem::Vertex), (void*)offsetof(UntexturedObjectsProblem::Vertex, color));
-
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-
     // Rasterizer State
     glEnable(GL_CULL_FACE);
     glCullFace(GL_FRONT);
@@ -99,7 +114,7 @@ void UntexturedObjectsGLMultiDraw::Render(const std::vector<Matrix>& _transforms
         cmd->instanceCount = 1;
         cmd->firstIndex = 0;
         cmd->baseVertex = 0;
-        cmd->baseInstance = 0;
+        cmd->baseInstance = u;
     }
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_transform_buffer);
@@ -113,6 +128,8 @@ void UntexturedObjectsGLMultiDraw::Shutdown()
 {
     glDeleteBuffers(1, &m_ib);
     glDeleteBuffers(1, &m_vb);
+    glDeleteVertexArrays(1, &m_varray);
+    glDeleteBuffers(1, &m_drawid);
     glDeleteBuffers(1, &m_transform_buffer);
     glDeleteProgram(m_prog);
 }
