@@ -7,11 +7,14 @@
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 UntexturedObjectsGLBufferRange::UntexturedObjectsGLBufferRange()
-    : m_ib()
-    , m_vb()
-    , m_ub()
-    , m_prog()
-{}
+: mIndexBuffer()
+, mVertexBuffer()
+, mUniformBuffer()
+, mProgram()
+, mMatrixStride()
+, mMaxUniformBlockSize()
+, mMaxBatchSize()
+{ }
 
 // --------------------------------------------------------------------------------------------------------------------
 bool UntexturedObjectsGLBufferRange::Init(const std::vector<UntexturedObjectsProblem::Vertex>& _vertices,
@@ -25,29 +28,35 @@ bool UntexturedObjectsGLBufferRange::Init(const std::vector<UntexturedObjectsPro
     // Program
     const char* kUniformNames[] = { "ViewProjection", nullptr };
 
-    m_prog = CreateProgramT("cubes_gl_buffer_range_vs.glsl",
-                            "cubes_gl_buffer_range_fs.glsl",
-                            kUniformNames, &mUniformLocation);
+    mProgram = CreateProgramT("cubes_gl_buffer_range_vs.glsl",
+                              "cubes_gl_buffer_range_fs.glsl",
+                              kUniformNames, &mUniformLocation);
 
-    if (m_prog == 0) {
+    if (mProgram == 0) {
         console::warn("Unable to initialize solution '%s', shader compilation/linking failed.", GetName().c_str());
         return false;
     }
 
-    GLuint UB0 = glGetUniformBlockIndex(m_prog, "UB0");
-    glUniformBlockBinding(m_prog, UB0, 0);
+    GLuint UB0 = glGetUniformBlockIndex(mProgram, "UB0");
+    glUniformBlockBinding(mProgram, UB0, 0);
 
-    glGenBuffers(1, &m_vb);
-    glGenBuffers(1, &m_ib);
+    glGenBuffers(1, &mVertexBuffer);
+    glGenBuffers(1, &mIndexBuffer);
 
-    glBindBuffer(GL_ARRAY_BUFFER, m_vb);
+    glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, _vertices.size() * sizeof(UntexturedObjectsProblem::Vertex), &*_vertices.begin(), GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ib);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndexBuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, _indices.size() * sizeof(UntexturedObjectsProblem::Index), &*_indices.begin(), GL_STATIC_DRAW);
 
+    GLint uniformBufferOffsetAlignment = 0;
+    glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &uniformBufferOffsetAlignment);
+    glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &mMaxUniformBlockSize);
+    mMatrixStride = iceil(sizeof(Matrix), uniformBufferOffsetAlignment);
+    mMaxBatchSize = mMaxUniformBlockSize / mMatrixStride;
 
-    glGenBuffers(1, &m_ub);
+    glGenBuffers(1, &mUniformBuffer);
+    mStorage.resize(mMatrixStride * mMaxBatchSize);
 
     return glGetError() == GL_NO_ERROR;
 }
@@ -66,12 +75,12 @@ void UntexturedObjectsGLBufferRange::Render(const std::vector<Matrix>& _transfor
     Matrix view = matrix_look_at(eye, at, up);
     Matrix view_proj = mProj * view;
 
-    glUseProgram(m_prog);
+    glUseProgram(mProgram);
     glUniformMatrix4fv(mUniformLocation.ViewProjection, 1, GL_TRUE, &view_proj.x.x);
 
     // Input Layout
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ib);
-    glBindBuffer(GL_ARRAY_BUFFER, m_vb);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(UntexturedObjectsProblem::Vertex), (void*)offsetof(UntexturedObjectsProblem::Vertex, pos));
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(UntexturedObjectsProblem::Vertex), (void*)offsetof(UntexturedObjectsProblem::Vertex, color));
 
@@ -91,35 +100,23 @@ void UntexturedObjectsGLBufferRange::Render(const std::vector<Matrix>& _transfor
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
 
-    GLint align;
-    glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &align);
-    int stride = align;
-    assert(stride >= sizeof(Matrix));
+    glBindBuffer(GL_UNIFORM_BUFFER, mUniformBuffer);
 
-    GLint maxSize;
-    glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &maxSize);
-    m_storage.resize(maxSize);
-
-    glBindBuffer(GL_UNIFORM_BUFFER, m_ub);
-
-    int batchMax = maxSize / stride;
-    for (size_t batchStart = 0; batchStart < xformCount; batchStart += batchMax)
+    for (size_t batchStart = 0; batchStart < xformCount; batchStart += mMaxBatchSize)
     {
-        int batchCount = xformCount - batchStart;
-        if (batchCount > batchMax)
-            batchCount = batchMax;
+        int batchCount = std::min(xformCount - batchStart, mMaxBatchSize);
 
         for (int i = 0; i < batchCount; ++i)
         {
-            char *dst = &m_storage[stride * i];
+            char *dst = &mStorage[mMatrixStride * i];
             *(Matrix *)dst = _transforms[batchStart + i];
         }
 
-        glBufferData(GL_UNIFORM_BUFFER, stride * batchCount, m_storage.data(), GL_DYNAMIC_DRAW);
+        BufferData(GL_UNIFORM_BUFFER, mStorage, GL_DYNAMIC_DRAW);
 
         for (int i = 0; i < batchCount; ++i)
         {
-            glBindBufferRange(GL_UNIFORM_BUFFER, 0, m_ub, stride * i, sizeof(Matrix));
+            glBindBufferRange(GL_UNIFORM_BUFFER, 0, mUniformBuffer, mMatrixStride * i, sizeof(Matrix));
 
             glDrawElements(GL_TRIANGLES, mIndexCount, GL_UNSIGNED_SHORT, nullptr);
         }
@@ -129,8 +126,8 @@ void UntexturedObjectsGLBufferRange::Render(const std::vector<Matrix>& _transfor
 // --------------------------------------------------------------------------------------------------------------------
 void UntexturedObjectsGLBufferRange::Shutdown()
 {
-    glDeleteBuffers(1, &m_ib);
-    glDeleteBuffers(1, &m_vb);
-    glDeleteBuffers(1, &m_ub);
-    glDeleteProgram(m_prog);
+    glDeleteBuffers(1, &mIndexBuffer);
+    glDeleteBuffers(1, &mVertexBuffer);
+    glDeleteBuffers(1, &mUniformBuffer);
+    glDeleteProgram(mProgram);
 }

@@ -22,12 +22,16 @@ public:
     virtual std::string GetName() const { return "UntexturedObjectsGLBufferRange"; }
 
 private:
-    GLuint m_ib;
-    GLuint m_vb;
-    GLuint m_ub;
-    GLuint m_prog;
+    GLuint mIndexBuffer;
+    GLuint mVertexBuffer;
+    GLuint mUniformBuffer;
+    GLuint mProgram;
 
-    std::vector<char> m_storage;
+    GLint mMatrixStride;
+    GLint mMaxUniformBlockSize;
+    GLuint mMaxBatchSize;
+
+    std::vector<char> mStorage;
 
     struct UniformLocations {
         GLuint ViewProjection;
