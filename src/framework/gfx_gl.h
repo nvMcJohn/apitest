@@ -56,7 +56,7 @@ template <typename T>
 inline void BufferData(GLenum _target, const std::vector<T>& _data, GLenum _usage)
 {
     if (_data.size() > 0) {
-        glBufferData(_target, sizeof(T)* _data.size(), &*_data.cbegin(), _usage);
+        glBufferData(_target, sizeof(T) * _data.size(), &*_data.cbegin(), _usage);
     }
     else {
         glBufferData(_target, 0, nullptr, _usage);

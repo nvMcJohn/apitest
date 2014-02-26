@@ -44,10 +44,10 @@ bool UntexturedObjectsGLBufferRange::Init(const std::vector<UntexturedObjectsPro
     glGenBuffers(1, &mIndexBuffer);
 
     glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, _vertices.size() * sizeof(UntexturedObjectsProblem::Vertex), &*_vertices.begin(), GL_STATIC_DRAW);
-
+    BufferData(GL_ARRAY_BUFFER, _vertices, GL_STATIC_DRAW);
+    
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndexBuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, _indices.size() * sizeof(UntexturedObjectsProblem::Index), &*_indices.begin(), GL_STATIC_DRAW);
+    BufferData(GL_ELEMENT_ARRAY_BUFFER, _indices, GL_STATIC_DRAW);
 
     GLint uniformBufferOffsetAlignment = 0;
     glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &uniformBufferOffsetAlignment);
@@ -64,7 +64,8 @@ bool UntexturedObjectsGLBufferRange::Init(const std::vector<UntexturedObjectsPro
 // --------------------------------------------------------------------------------------------------------------------
 void UntexturedObjectsGLBufferRange::Render(const std::vector<Matrix>& _transforms)
 {
-    const auto xformCount = _transforms.size();
+    assert(_transforms.size() <= INT_MAX);
+    int xformCount = (int)_transforms.size();
 
     // Program
     Vec3 dir = { -0.5f, -1, 1 };
@@ -102,7 +103,7 @@ void UntexturedObjectsGLBufferRange::Render(const std::vector<Matrix>& _transfor
 
     glBindBuffer(GL_UNIFORM_BUFFER, mUniformBuffer);
 
-    for (size_t batchStart = 0; batchStart < xformCount; batchStart += mMaxBatchSize)
+    for (int batchStart = 0; batchStart < xformCount; batchStart += mMaxBatchSize)
     {
         int batchCount = std::min(xformCount - batchStart, mMaxBatchSize);
 

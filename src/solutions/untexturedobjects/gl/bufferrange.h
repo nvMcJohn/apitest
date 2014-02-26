@@ -29,7 +29,7 @@ private:
 
     GLint mMatrixStride;
     GLint mMaxUniformBlockSize;
-    GLuint mMaxBatchSize;
+    int mMaxBatchSize;
 
     std::vector<char> mStorage;
 
