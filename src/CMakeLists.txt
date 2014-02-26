@@ -66,6 +66,7 @@ set( SRCS
     solutions/texturedquads/gl/bindlessmultidraw.cpp
     solutions/texturedquads/gl/naive.cpp
     solutions/texturedquads/gl/notex.cpp
+    solutions/texturedquads/gl/texturearray.cpp
     solutions/texturedquads/gl/sparsebindlesstexturearray.cpp
     solutions/texturedquads/gl/sparsebindlesstexturearraymultidraw.cpp
 
@@ -211,6 +212,13 @@ source_group( "Solutions\\TexturedQuads\\GL\\Notex (SOL)" FILES
     solutions/texturedquads/gl/notex.h
     ../bin/Shaders/glsl/textures_gl_notex_vs.glsl
     ../bin/Shaders/glsl/textures_gl_notex_fs.glsl
+)
+
+source_group( "Solutions\\TexturedQuads\\GL\\TextureArray" FILES 
+    solutions/texturedquads/gl/texturearray.cpp
+    solutions/texturedquads/gl/texturearray.h
+    ../bin/Shaders/glsl/textures_gl_texture_array_vs.glsl    
+    ../bin/Shaders/glsl/textures_gl_texture_array_fs.glsl
 )
 
 source_group( "Solutions\\TexturedQuads\\GL\\SparseBindlessTextureArray" FILES 
