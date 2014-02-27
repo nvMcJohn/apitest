@@ -1,5 +1,6 @@
 #include "pch.h"
 
+#include "appstate.h"
 #include "console.h"
 #include "factory.h"
 #include "gfx.h"
@@ -9,6 +10,8 @@
 #include "os.h"
 #include "timer.h"
 #include "wgl.h"
+
+#include <stdio.h>
 
 #define NAME_OPENGLGENERIC      "OpenGL (Generic)"
 #define NAME_DIRECT3D11         "Direct3D 11"
@@ -22,312 +25,16 @@
     GfxBaseApi *CreateGfxDirect3D11()       { return nullptr; }
 #endif
 
-// ------------------------------------------------------------------------------------------------
-// ------------------------------------------------------------------------------------------------
-// ------------------------------------------------------------------------------------------------
-class ApplicationState
-{
-public:
-    ApplicationState(GfxBaseApi* _activeApi, const Options& _opts)
-    : mActiveProblem()
-    , mActiveSolution()
-    , mActiveApi(_activeApi)
-    , mBenchmarkMode(_opts.BenchmarkMode)
-    , mFactory(false)
-    {
-        mProblems = mFactory.GetProblems();
-        assert(GetProblemCount() > 0);
+#ifdef _WIN32
+#   define snprintf _snprintf
+#endif
 
-        setInitialProblemAndSolution(_opts.InitialProblem, _opts.InitialSolution);
-    }
 
-    ~ApplicationState()
-    {
-        mActiveProblem->SetSolution(nullptr);
-        mActiveProblem->Shutdown();
+std::string asTable(BenchmarkResults _results);
 
-        mActiveSolution = nullptr;
-        mActiveProblem = nullptr;
-    }
-
-    Problem* GetActiveProblem() const { return mActiveProblem; }
-
-    size_t GetProblemCount() const { return mProblems.size(); }
-
-    void NextProblem() 
-    { 
-        assert(mActiveProblem);
-        Problem* prevProblem = mActiveProblem;
-        mActiveProblem->SetSolution(nullptr);
-        mActiveSolution = nullptr;
-
-        mActiveProblem = setNextProblem(mProblems.begin(), mProblems.end(), prevProblem, true);
-        if (!mActiveProblem) {
-            mActiveProblem = setNextProblem(mProblems.begin(), mProblems.end(), prevProblem, false);
-        }
-
-        // The previous logic also breaks if the prevProblem and mActiveProblem are the same (double call to Init).
-        assert(prevProblem != mActiveProblem);
-        prevProblem->Shutdown();
-
-        // Must have a valid problem now.
-        assert(mActiveProblem);
-
-        // Get the list of possible solutions.
-        mSolutions = mFactory.GetSolutions(mActiveProblem);
-
-        // And set one as active
-        mActiveSolution = findFirstValidSolution();
-
-        onSetProblemOrSolution();
-    }
-
-    void PrevProblem() 
-    { 
-        assert(mActiveProblem);
-        Problem* prevProblem = mActiveProblem;
-        mActiveProblem->SetSolution(nullptr);
-        mActiveSolution = nullptr;
-
-        mActiveProblem = setNextProblem(mProblems.rbegin(), mProblems.rend(), prevProblem, true);
-        if (!mActiveProblem) {
-            mActiveProblem = setNextProblem(mProblems.rbegin(), mProblems.rend(), prevProblem, false);
-        }
-
-        // The previous logic also breaks if the prevProblem and mActiveProblem are the same (double call to Init).
-        assert(prevProblem != mActiveProblem);
-        prevProblem->Shutdown();
-
-        // Must have a valid problem now.
-        assert(mActiveProblem);
-
-        // Get the list of possible solutions.
-        mSolutions = mFactory.GetSolutions(mActiveProblem);
-
-        // And set one as active
-        mActiveSolution = findFirstValidSolution();
-
-        onSetProblemOrSolution();
-    }
-
-    size_t GetSolutionCount() const { return mSolutions.size(); }
-
-    void NextSolution() 
-    { 
-        assert(mActiveProblem);
-        Solution* prevSolution = mActiveSolution;
-        
-
-        mActiveSolution = setNextSolution(mSolutions.begin(), mSolutions.end(), prevSolution, true);
-        if (!mActiveSolution) {
-            mActiveSolution = setNextSolution(mSolutions.begin(), mSolutions.end(), prevSolution, false);
-        }
-
-        onSetProblemOrSolution();
-    }
-
-    void PrevSolution() 
-    {
-        assert(mActiveProblem);
-        Solution* prevSolution = mActiveSolution;
-
-        mActiveSolution = setNextSolution(mSolutions.rbegin(), mSolutions.rend(), prevSolution, true);
-        if (!mActiveSolution) {
-            mActiveSolution = setNextSolution(mSolutions.rbegin(), mSolutions.rend(), prevSolution, false);
-        }
-
-        onSetProblemOrSolution();
-    }
-    
-    void SetActiveApi(GfxBaseApi* _activeApi)
-    {
-        mActiveApi = _activeApi;
-    }
-
-    void BenchmarkAllProblemsAndSolutions();
-
-    void Update()
-    {
-
-    }
-
-private:
-    void setInitialProblemAndSolution(const std::string _prob, const std::string _soln)
-    {
-        // TODO: This should be cleaned up. It's error prone.
-        assert(mActiveProblem == nullptr);
-        if (!_prob.empty()) {
-            for (auto it = mProblems.begin(); it != mProblems.end(); ++it) {
-                if ((*it)->GetName() == _prob) {
-                    mActiveProblem = *it;
-                    break;
-                }
-            }
-
-            if (mActiveProblem == nullptr) {
-                console::error("Couldn't locate problem named '%s'. Run with -h to see all valid problem names.", _prob.c_str());
-            }
-            
-            if (!mActiveProblem->Init()) {
-                console::error("Failed to initialize problem '%s', exiting.", _prob.c_str());
-            }
-
-            // We set the problem, now try to find the solution.
-            mSolutions = mFactory.GetSolutions(mActiveProblem);
-            if (!_soln.empty()) {
-                for (auto it = mSolutions.begin(); it != mSolutions.end(); ++it) {
-                    if ((*it)->GetName() == _soln) {
-                        mActiveSolution = *it;
-                        if (!mActiveProblem->SetSolution(mActiveSolution)) {
-                            console::error("Unable to initialize solution '%s', exiting.", _soln.c_str());
-                        }
-                        onSetProblemOrSolution();
-                        break;
-                    }
-                }
-            } else {
-                mActiveSolution = findFirstValidSolution();
-                onSetProblemOrSolution();
-            }
-
-            if (mActiveSolution == nullptr) {
-                console::error("Couldn't locate solution named '%s' for problem '%s'. Run with -h to see all valid problem and solution names.", _soln.c_str(), _prob.c_str());
-            }
-        } else if (!_soln.empty()) {
-            Solution* solution = nullptr;
-            mActiveProblem = findProblemWithSolution(_soln, &solution);
-
-            if (solution == nullptr) {
-                console::error("Unable to find solution '%s'. Run with -h to see all valid solution names.", _soln.c_str());
-            }
-
-            if (mActiveProblem == nullptr) {
-                console::error("Couldn't locate problem that had solution '%s'", _soln.c_str());
-            }
-
-            if (!mActiveProblem->Init()) {
-                console::error("Failed to initialize problem '%s', exiting.", _prob.c_str());
-            }
-
-            mSolutions = mFactory.GetSolutions(mActiveProblem);
-            mActiveSolution = solution;
-            if (!mActiveProblem->SetSolution(mActiveSolution)) {
-                console::error("Unable to initialize solution '%s', exiting.", _soln.c_str());
-            }
-
-            onSetProblemOrSolution();
-
-            assert(mActiveProblem && mActiveSolution);
-        } else {
-            console::error("You went through some effort to specify a blank initial problem and initial solution.\n"
-                           "Congratulations, that doesn't work."
-            );
-        }
-
-    }
-
-    Problem* findProblemWithSolution(const std::string _soln, Solution** _outSolution)
-    {
-        for (auto probIt = mProblems.cbegin(); probIt != mProblems.cend(); ++probIt) {
-            auto allSolutions = mFactory.GetSolutions(*probIt);
-            for (auto solnIt = allSolutions.cbegin(); solnIt != allSolutions.cend(); ++solnIt) {
-                if ((*solnIt)->GetName() == _soln) {
-                    if (_outSolution) {
-                        (*_outSolution) = (*solnIt);
-                    }
-                    return (*probIt);
-                }
-            }
-        };
-
-        return nullptr;
-    }
-
-    template<typename ItType>
-    Problem* setNextProblem(ItType _beginIt, ItType _endIt, Problem* _curProblem, bool _after)
-    {
-        bool processing = !_after;
-        for (auto it = _beginIt; it != _endIt; ++it) {
-            if (*it == _curProblem) {
-                processing = !processing;
-                continue;
-            }
-
-            if (!processing) {
-                continue;
-            }
-
-            if ((*it)->Init()) {
-                return *it;
-            } else {
-                (*it)->Shutdown();
-            }
-        }
-
-        return nullptr;
-    }
-
-    template<typename ItType>
-    Solution* setNextSolution(ItType _beginIt, ItType _endIt, Solution* _curProblem, bool _after)
-    {
-        bool processing = !_after;
-        for (auto it = _beginIt; it != _endIt; ++it) {
-            if (*it == _curProblem) {
-                processing = !processing;
-                continue;
-            }
-
-            if (!processing) {
-                continue;
-            }
-
-            if (mActiveProblem->SetSolution(*it)) {
-                return *it;
-            } 
-        }
-
-        return nullptr;
-    }
-
-    Solution* findFirstValidSolution()
-    {
-        for (auto it = mSolutions.begin(); it != mSolutions.end(); ++it) {
-            if (mActiveProblem->SetSolution(*it)) {
-                return *it;
-            }
-        }
-
-        return nullptr;
-    }
-
-    void onSetProblemOrSolution()
-    {
-        assert(mActiveApi);
-        mActiveApi->OnProblemOrSolutionSet(mActiveProblem->GetName(), mActiveSolution ? mActiveSolution->GetName() : std::string(""));
-
-        if (mActiveSolution) {
-            size_t width = mActiveApi->GetWidth();
-            size_t height = mActiveApi->GetHeight();
-            mActiveSolution->SetSize(width, height);
-        }
-    }
-
-    ProblemFactory mFactory;
-
-    std::vector<Problem*> mProblems;
-    std::vector<Solution*> mSolutions;
-
-    Problem* mActiveProblem;
-    Solution* mActiveSolution;
-
-    GfxBaseApi* mActiveApi;
-
-    bool mBenchmarkMode;
-};
-
-// ------------------------------------------------------------------------------------------------
-// ------------------------------------------------------------------------------------------------
-// ------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 std::map<std::string, GfxBaseApi*> CreateGfxApis()
 {
     std::map<std::string, GfxBaseApi*> retMap;
@@ -355,7 +62,7 @@ std::map<std::string, GfxBaseApi*> CreateGfxApis()
     return retMap;
 }
 
-// ------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 void DestroyGfxApis(std::map<std::string, GfxBaseApi*>* _apis)
 {
     assert(_apis);
@@ -416,19 +123,27 @@ void OnEvent(SDL_Event* _event, ApplicationState* _appState)
                 break;
 
             case SDLK_LEFT:
-                _appState->PrevProblem();
+                if (!_appState->IsBenchmarkMode()) {
+                    _appState->PrevProblem();
+                }
                 break;
 
             case SDLK_RIGHT:
-                _appState->NextProblem();
+                if (!_appState->IsBenchmarkMode()) {
+                    _appState->NextProblem();
+                }
                 break;
 
             case SDLK_UP:
-                _appState->PrevSolution();
+                if (!_appState->IsBenchmarkMode()) {
+                    _appState->PrevSolution();
+                }
                 break;
 
             case SDLK_DOWN:
-                _appState->NextSolution();
+                if (!_appState->IsBenchmarkMode()) {
+                    _appState->NextSolution();
+                }
                 break;
 
             default:
@@ -440,24 +155,7 @@ void OnEvent(SDL_Event* _event, ApplicationState* _appState)
     };
 }
 
-// ------------------------------------------------------------------------------------------------
-static void UpdateFPS()
-{
-    static int s_frame_count;
-    static unsigned long long s_last_frame_time;
-
-    ++s_frame_count;
-    unsigned long long now = timer::Read();
-    double dt = timer::ToSec(now - s_last_frame_time);
-    if (dt >= 1.0)
-    {
-        console::log("FPS: %g", s_frame_count / dt);
-        s_frame_count = 0;
-        s_last_frame_time = now;
-    }
-}
-
-// ------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 static void Render(Problem* _activeProblem, GfxBaseApi* _activeApi)
 {
     assert(_activeProblem);
@@ -474,17 +172,15 @@ static void Render(Problem* _activeProblem, GfxBaseApi* _activeApi)
     
     // Present the results.
     _activeApi->SwapBuffers();
-    
-    UpdateFPS();
 }
 
-// ------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 static bool InitSDL()
 {
     return SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) >= 0;
 }
 
-// ------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 static bool Init(const char* _exeName)
 {
     // This forces the working directory to the directory the executable is in. This is necessary
@@ -507,7 +203,7 @@ static bool Init(const char* _exeName)
     return true;
 }
 
-// ------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 static void Cleanup()
 {
     SDL_Quit();
@@ -515,7 +211,7 @@ static void Cleanup()
 
 #include "framework/gfx_gl.h"
 
-// ------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
     if (argc == 0) {
@@ -541,17 +237,25 @@ int main(int argc, char* argv[])
     // TODO: Move all Api management into ApplicationState
     ApplicationState* app = new ApplicationState(activeApi, opts);
 
+    bool shouldQuit = false;
     for (;;) {
         SDL_Event sdl_event;
-        if (SDL_PollEvent(&sdl_event)) {
-            if (sdl_event.type == SDL_QUIT) {
-                break;
-            }
+        shouldQuit = shouldQuit || app->IsBenchmarkMode() && app->IsBenchmarkModeComplete();
+        if (shouldQuit) {
+            break;
+        }
 
+        if (SDL_PollEvent(&sdl_event)) {
+            shouldQuit = shouldQuit || sdl_event.type == SDL_QUIT;
             OnEvent(&sdl_event, app);
         } else {
+            app->Update();
             Render(app->GetActiveProblem(), activeApi);
         }
+    }
+
+    if (app->IsBenchmarkMode()) {
+        console::log("%s", asTable(app->GetBenchmarkResults()).c_str());
     }
 
     SafeDelete(app);
@@ -560,4 +264,31 @@ int main(int argc, char* argv[])
     Cleanup();
 
     return 0;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+std::string asTable(BenchmarkResults _results)
+{
+    char buffer[1024];
+    std::string retStr;
+    const char* kHeaderFmt = "  %-23s %-51s %-7s %-15s %-9s %-7s\n";
+    const char* kRowFmt =    "  %-23s %-51s %-7d %-15.3f %-9.3f %-7.3f\n";
+
+    snprintf(buffer, sizeof(buffer)-1, kHeaderFmt, "Problem", "Solution", "Frames", "Elapsed (s)", "fps", "ms/f");
+    retStr += buffer;
+
+    for (auto it = _results.cbegin(); it != _results.cend(); ++it) {
+        const char* problemName = it->first.first.c_str();
+        const char* solutionName = it->first.second.c_str();
+        const unsigned int frameCount = it->second.first;
+        const double elapsedS = it->second.second;
+
+        const double fps = frameCount / elapsedS;
+        const double mspf = elapsedS * 1000.0 / frameCount;
+
+        snprintf(buffer, sizeof(buffer), kRowFmt, problemName, solutionName, frameCount, elapsedS, fps, mspf);
+        retStr += buffer;
+    }
+
+    return retStr;
 }

@@ -155,7 +155,6 @@ void PrintHelp()
         for (auto solnIt = solutions.cbegin(); solnIt != solutions.cend(); ++solnIt) {
             Solution* soln = (*solnIt);
             console::log(kTableFormat, prob->GetName().c_str(), soln->GetName().c_str());
-
         }
     }
 }
