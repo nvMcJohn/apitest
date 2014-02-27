@@ -13,6 +13,7 @@ bool Problem::SetSolution(Solution* _solution)
     if (mActiveSolution) {
         console::log("Solution %s - shutdown beginning.", mActiveSolution->GetName().c_str());
         mActiveSolution->Shutdown();
+        auto err = glGetError();
         console::log("Solution %s shutdown complete.", mActiveSolution->GetName().c_str());
     }
 
@@ -26,9 +27,6 @@ bool Problem::SetSolution(Solution* _solution)
 // --------------------------------------------------------------------------------------------------------------------
 void Problem::Shutdown()
 {
-    if (mActiveSolution) {
-        mActiveSolution->Shutdown();
-        mActiveSolution = nullptr;
-    }
+    SetSolution(nullptr);
 }
 

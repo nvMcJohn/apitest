@@ -20,6 +20,11 @@ DynamicStreamingGLMapPersistent::~DynamicStreamingGLMapPersistent()
 // --------------------------------------------------------------------------------------------------------------------
 bool DynamicStreamingGLMapPersistent::Init()
 {
+    if (glBufferStorage == nullptr) {
+        console::warn("Unable to initialize solution '%s', glBufferStorage() unavailable.", GetName().c_str());
+        return false;
+    }
+
     // Uniform Buffer
     glGenBuffers(1, &mUniformBuffer);
 
