@@ -55,6 +55,7 @@ bool DynamicStreamingProblem::SetSolution(Solution* _solution)
 // --------------------------------------------------------------------------------------------------------------------
 void DynamicStreamingProblem::Shutdown()
 {
+    Problem::Shutdown();
     mVertexData.clear();
 }
 

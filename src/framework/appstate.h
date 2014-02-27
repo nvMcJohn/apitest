@@ -10,6 +10,9 @@ class Solution;
 
 typedef std::map<std::pair<std::string, std::string>, std::pair<unsigned int, double>> BenchmarkResults;
 
+const int kInactiveProblem = -1;
+const int kInactiveSolution = -1;
+
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
@@ -19,7 +22,9 @@ public:
     ApplicationState(GfxBaseApi* _activeApi, const Options& _opts);
     ~ApplicationState();
 
-    inline Problem* GetActiveProblem() const { return mActiveProblem; }
+    inline Problem* GetActiveProblem() const { return getProblem(mActiveProblem); }
+    inline Solution* GetActiveSolution() const { return getSolution(mActiveSolution); }
+
     inline size_t GetProblemCount() const { return mProblems.size(); }
     inline size_t GetSolutionCount() const { return mSolutions.size(); }
 
@@ -38,57 +43,15 @@ public:
     BenchmarkResults GetBenchmarkResults() const;
 
 private:
-    void setInitialProblemAndSolution(const std::string _prob, const std::string _soln);
-    Problem* findProblemWithSolution(const std::string _soln, Solution** _outSolution);
+    inline Problem* getProblem(int _index) const { return _index != kInactiveProblem ? mProblems[_index] : nullptr; }
+    inline Solution* getSolution(int _index) const { return _index != kInactiveSolution ? mSolutions[_index] : nullptr; }
 
-    template<typename ItType>
-    Problem* setNextProblem(ItType _beginIt, ItType _endIt, Problem* _curProblem, bool _after)
-    {
-        bool processing = !_after;
-        for (auto it = _beginIt; it != _endIt; ++it) {
-            if (*it == _curProblem) {
-                processing = !processing;
-                continue;
-            }
+    void setInitialProblemAndSolution(const std::string _probName, const std::string _solnName);
+    int findProblemWithSolution(const std::string _solnName, int* _outSolution);
 
-            if (!processing) {
-                continue;
-            }
+    void changeProblem(int _offset);
+    void changeSolution(int _offset);
 
-            if ((*it)->Init()) {
-                return *it;
-            }
-            else {
-                (*it)->Shutdown();
-            }
-        }
-
-        return nullptr;
-    }
-
-    template<typename ItType>
-    Solution* setNextSolution(ItType _beginIt, ItType _endIt, Solution* _curProblem, bool _after)
-    {
-        bool processing = !_after;
-        for (auto it = _beginIt; it != _endIt; ++it) {
-            if (*it == _curProblem) {
-                processing = !processing;
-                continue;
-            }
-
-            if (!processing) {
-                continue;
-            }
-
-            if (mActiveProblem->SetSolution(*it)) {
-                return *it;
-            }
-        }
-
-        return nullptr;
-    }
-
-    Solution* findFirstValidSolution();
     void onSetProblemOrSolution();
     void updateFPS();
     void resetTimer();
@@ -99,8 +62,8 @@ private:
     std::vector<Problem*> mProblems;
     std::vector<Solution*> mSolutions;
 
-    Problem* mActiveProblem;
-    Solution* mActiveSolution;
+    int mActiveProblem;
+    int mActiveSolution;
 
     GfxBaseApi* mActiveApi;
 

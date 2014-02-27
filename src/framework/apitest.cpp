@@ -255,6 +255,7 @@ int main(int argc, char* argv[])
     }
 
     if (app->IsBenchmarkMode()) {
+        console::log("\n\nResults");
         console::log("%s", asTable(app->GetBenchmarkResults()).c_str());
     }
 
@@ -271,8 +272,9 @@ std::string asTable(BenchmarkResults _results)
 {
     char buffer[1024];
     std::string retStr;
-    const char* kHeaderFmt = "  %-23s %-51s %-7s %-15s %-9s %-7s\n";
-    const char* kRowFmt =    "  %-23s %-51s %-7d %-15.3f %-9.3f %-7.3f\n";
+    const char* kHeaderFmt =  " %-23s %-51s %-7s %-15s %-9s %-7s\n";
+    const char* kRowFmt =     " %-23s %-51s %-7d %-15.3f %-9.3f %-7.3f\n";
+    const char* kRowFailFmt = " %-23s %-51s %-7s %-15s %-9s %-7s\n";
 
     snprintf(buffer, sizeof(buffer)-1, kHeaderFmt, "Problem", "Solution", "Frames", "Elapsed (s)", "fps", "ms/f");
     retStr += buffer;
@@ -283,10 +285,14 @@ std::string asTable(BenchmarkResults _results)
         const unsigned int frameCount = it->second.first;
         const double elapsedS = it->second.second;
 
-        const double fps = frameCount / elapsedS;
-        const double mspf = elapsedS * 1000.0 / frameCount;
+        if (frameCount != 0 && elapsedS != 0.0) {
+            const double fps = frameCount / elapsedS;
+            const double mspf = elapsedS * 1000.0 / frameCount;
 
-        snprintf(buffer, sizeof(buffer), kRowFmt, problemName, solutionName, frameCount, elapsedS, fps, mspf);
+            snprintf(buffer, sizeof(buffer), kRowFmt, problemName, solutionName, frameCount, elapsedS, fps, mspf);
+        } else {
+            snprintf(buffer, sizeof(buffer), kRowFailFmt, problemName, solutionName, "N/A", "N/A", "N/A", "N/A");
+        }
         retStr += buffer;
     }
 

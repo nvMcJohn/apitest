@@ -28,6 +28,7 @@ void Problem::Shutdown()
 {
     if (mActiveSolution) {
         mActiveSolution->Shutdown();
+        mActiveSolution = nullptr;
     }
 }
 
