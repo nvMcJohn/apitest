@@ -30,11 +30,19 @@ protected:
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // GL Utilities
-GLuint CreateProgram(std::string _vsFilename, std::string _psFilename);
-GLuint CreateProgram(std::string _vsFilename, std::string _psFilename, const char** _uniformNames, GLuint* _outUniformLocations);
+GLuint CreateProgram(const std::string& _vsFilename, const std::string& _psFilename);
+GLuint CreateProgram(const std::string& _vsFilename, const std::string& _psFilename, const std::string& _shaderPrefix);
+GLuint CreateProgram(const std::string& _vsFilename, const std::string& _psFilename, const char** _uniformNames, GLuint* _outUniformLocations);
+GLuint CreateProgram(const std::string& _vsFilename, const std::string& _psFilename, const std::string& _shaderPrefix, const char** _uniformNames, GLuint* _outUniformLocations);
 
 template <typename T> 
-GLuint CreateProgramT(std::string _vsFilename, std::string _psFilename, const char** _uniforms, T* _outUniformLocationStruct)
+GLuint CreateProgramT(const std::string& _vsFilename, const std::string& _psFilename, const char** _uniforms, T* _outUniformLocationStruct)
+{
+    return CreateProgramT(_vsFilename, _psFilename, std::string(""), _uniforms, _outUniformLocationStruct);
+}
+
+template <typename T>
+GLuint CreateProgramT(const std::string& _vsFilename, const std::string& _psFilename, const std::string& _shaderPrefix, const char** _uniforms, T* _outUniformLocationStruct)
 {
     assert(_uniforms != nullptr);
     assert(_outUniformLocationStruct != nullptr);
@@ -45,10 +53,10 @@ GLuint CreateProgramT(std::string _vsFilename, std::string _psFilename, const ch
     }
 
     // Ensure that the sizes match, otherwise there is a parameter mismatch.
-    assert(uniformCount == (sizeof(T) / sizeof(GLuint)) 
+    assert(uniformCount == (sizeof(T) / sizeof(GLuint))
            && (sizeof(T) % sizeof(GLuint) == 0));
 
-    return CreateProgram(_vsFilename, _psFilename, _uniforms, reinterpret_cast<GLuint*>(_outUniformLocationStruct));
+    return CreateProgram(_vsFilename, _psFilename, _shaderPrefix, _uniforms, reinterpret_cast<GLuint*>(_outUniformLocationStruct));
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -82,3 +90,4 @@ inline GLuint NewBufferFromVector(GLenum _target, const std::vector<T>& _data, G
 }
 
 GLuint NewTex2DFromDetails(const TextureDetails& _texDetails);
+bool HasExtension(const char* _extension);

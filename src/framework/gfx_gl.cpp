@@ -2,8 +2,10 @@
 
 #include "gfx_gl.h"
 #include "console.h"
+#include <regex>
 
 GfxBaseApi *CreateGfxOpenGLGeneric() { return new GfxApiOpenGLGeneric; }
+std::tuple<std::string, std::string> regexSplit(const char* _regex, const std::string& _srcString);
 
 // --------------------------------------------------------------------------------------------------------------------
 static SDL_Window* CreateGLWindow(const char* _title, int _x, int _y, int _width, int _height)
@@ -160,7 +162,7 @@ void GfxApiOpenGLGeneric::SwapBuffers()
     SDL_GL_SwapWindow(mWnd);
 }
 
-// ------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 std::string FileContentsToString(std::string _filename)
 {
     std::string retBuffer;
@@ -185,17 +187,30 @@ std::string FileContentsToString(std::string _filename)
     return retBuffer;
 }
 
-// ------------------------------------------------------------------------------------------------
-GLuint CompileShaderFromFile(GLenum _shaderType, std::string _shaderFilename)
+// --------------------------------------------------------------------------------------------------------------------
+GLuint CompileShaderFromFile(GLenum _shaderType, std::string _shaderFilename, std::string _shaderPrefix)
 {
     std::string shaderFullPath = "Shaders/glsl/" + _shaderFilename;
 
+    const char* shaderPrefix = _shaderPrefix.c_str();
+
     GLuint retVal = glCreateShader(_shaderType);
     std::string fileContents = FileContentsToString(shaderFullPath);
-    const char* fileContentsCstr = fileContents.c_str();
     const char* includePath = ".";
 
-    glShaderSource(retVal, 1, &fileContentsCstr, NULL);
+    auto strTuple = regexSplit("\\s*#\\s*version\\s+\\d+", fileContents);
+    std::string versionStr = std::get<0>(strTuple);
+    std::string shaderContents = std::get<1>(strTuple);
+
+    const char* shaderStrings[] = {
+        versionStr.c_str(),
+        "\n",
+        _shaderPrefix.c_str(),
+        "\n",
+        shaderContents.c_str()
+    };
+
+    glShaderSource(retVal, ArraySize(shaderStrings), shaderStrings, nullptr);
     glCompileShader(retVal);
 
     GLint compileStatus = 0;
@@ -217,9 +232,6 @@ GLuint CompileShaderFromFile(GLenum _shaderType, std::string _shaderFilename)
     }
 
     if (compileStatus != GL_TRUE) {
-        #ifndef POSIX
-       	     assert(!"Shader failed compilation, here's an assert to break you in the debugger.");
-        #endif
         glDeleteShader(retVal);
         retVal = 0;
     }
@@ -227,7 +239,7 @@ GLuint CompileShaderFromFile(GLenum _shaderType, std::string _shaderFilename)
     return retVal;
 }
 
-// ------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 GLuint LinkShaders(GLuint _vs, GLuint _fs)
 {
     GLuint retVal = glCreateProgram();
@@ -266,48 +278,17 @@ GLuint LinkShaders(GLuint _vs, GLuint _fs)
     return retVal;
 }
 
-// ------------------------------------------------------------------------------------------------
-GLuint LinkShaders(GLuint _vs, GLuint _tcs, GLuint _tes, GLuint _fs)
+// --------------------------------------------------------------------------------------------------------------------
+GLuint CreateProgram(const std::string& _vsFilename, const std::string& _psFilename)
 {
-    GLuint retVal = glCreateProgram();
-    glAttachShader(retVal, _vs);
-    glAttachShader(retVal, _tcs);
-    glAttachShader(retVal, _tes);
-    glAttachShader(retVal, _fs);
-    glLinkProgram(retVal);
-
-    GLint linkStatus = 0;
-    glGetProgramiv(retVal, GL_LINK_STATUS, &linkStatus);
-
-    GLint glinfoLogLength = 0;
-    glGetProgramiv(retVal, GL_INFO_LOG_LENGTH, &glinfoLogLength);
-    if (glinfoLogLength > 1) {
-        GLchar* buffer = new GLchar[glinfoLogLength];
-        glGetProgramInfoLog(retVal, glinfoLogLength, &glinfoLogLength, buffer);
-        if (linkStatus != GL_TRUE) {
-            console::warn("Shader Linking failed with the following errors:");
-        }
-        else {
-            console::log("Shader Linking succeeded, with following warnings/messages:");
-        }
-        delete[] buffer;
-    }
-
-    if (linkStatus != GL_TRUE) {
-        assert(!"Shader failed linking, here's an assert to break you in the debugger.");
-
-        glDeleteProgram(retVal);
-        retVal = 0;
-    }
-
-    return retVal;
+    return CreateProgram(_vsFilename, _psFilename, std::string(""));
 }
 
-// ------------------------------------------------------------------------------------------------
-GLuint CreateProgram(std::string _vsFilename, std::string _psFilename)
+// --------------------------------------------------------------------------------------------------------------------
+GLuint CreateProgram(const std::string& _vsFilename, const std::string& _psFilename, const std::string& _shaderPrefix)
 {
-    GLuint vs = CompileShaderFromFile(GL_VERTEX_SHADER, _vsFilename),
-           fs = CompileShaderFromFile(GL_FRAGMENT_SHADER, _psFilename);
+    GLuint vs = CompileShaderFromFile(GL_VERTEX_SHADER, _vsFilename, _shaderPrefix),
+           fs = CompileShaderFromFile(GL_FRAGMENT_SHADER, _psFilename, _shaderPrefix);
 
     // If any are 0, dump out early.
     if ((vs * fs) == 0) {
@@ -324,10 +305,16 @@ GLuint CreateProgram(std::string _vsFilename, std::string _psFilename)
     return retProgram;
 }
 
-// ------------------------------------------------------------------------------------------------
-GLuint CreateProgram(std::string _vsFilename, std::string _psFilename, const char** _uniformNames, GLuint* _outUniformLocations)
+// --------------------------------------------------------------------------------------------------------------------
+GLuint CreateProgram(const std::string& _vsFilename, const std::string& _psFilename, const char** _uniformNames, GLuint* _outUniformLocations)
 {
-    GLuint retProg = CreateProgram(_vsFilename, _psFilename);
+    return CreateProgram(_vsFilename, _psFilename, std::string(""), _uniformNames, _outUniformLocations);
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+GLuint CreateProgram(const std::string& _vsFilename, const std::string& _psFilename, const std::string& _shaderPrefix, const char** _uniformNames, GLuint* _outUniformLocations)
+{
+    GLuint retProg = CreateProgram(_vsFilename, _psFilename, _shaderPrefix);
     if (retProg != 0) {
         for (int i = 0; _uniformNames[i] != nullptr; ++i) {
             _outUniformLocations[i] = glGetUniformLocation(retProg, _uniformNames[i]);
@@ -337,7 +324,7 @@ GLuint CreateProgram(std::string _vsFilename, std::string _psFilename, const cha
     return retProg;
 }
 
-// ------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 GLuint NewTex2DFromDetails(const TextureDetails& _texDetails)
 {
     GLuint retVal = 0;
@@ -364,4 +351,41 @@ GLuint NewTex2DFromDetails(const TextureDetails& _texDetails)
     return retVal;
 }
 
+// --------------------------------------------------------------------------------------------------------------------
+bool HasExtension(const char* _extension)
+{
+    // TODO: This could be done more efficiently, for example by caching the extension strings. 
+    // I'm not really worried about it.
+    const char* extensionString = (const char*)glGetString(GL_EXTENSIONS);
+    char* easierToParseExtensionString = new char[strlen(extensionString) + 2 + 1];
+    sprintf(easierToParseExtensionString, " %s ", extensionString);
 
+    char* findString = new char[strlen((const char*)_extension) + 2 + 1];
+    sprintf(findString, " %s ", _extension);
+    bool found = strstr(easierToParseExtensionString, findString) != nullptr;
+    delete[] findString;
+    delete[] easierToParseExtensionString;
+
+    return found;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+std::tuple<std::string, std::string> regexSplit(const char* _regex, const std::string& _srcString)
+{
+
+    std::regex matchRE(_regex);
+    std::smatch matches;
+
+    if (std::regex_search(_srcString, matches, matchRE)) {
+        if (matches.size() > 1) {
+            console::error("Somehow matched multiple #version strings in shader.");
+        }
+        
+        std::string prefix = _srcString.substr(0, matches.position(0) + matches.length(0));
+        std::string suffix = _srcString.substr(matches.position(0) + matches.length(0), std::string::npos);
+
+        return std::make_tuple(prefix, suffix);
+    }
+
+    return std::make_tuple(std::string(""), _srcString);
+}

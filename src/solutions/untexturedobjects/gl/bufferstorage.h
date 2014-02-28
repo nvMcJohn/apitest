@@ -8,7 +8,7 @@
 class UntexturedObjectsGLBufferStorage : public UntexturedObjectsSolution
 {
 public:
-    UntexturedObjectsGLBufferStorage();
+    UntexturedObjectsGLBufferStorage(bool _useShaderDrawParameters);
     virtual ~UntexturedObjectsGLBufferStorage() { }
 
     virtual bool Init(const std::vector<UntexturedObjectsProblem::Vertex>& _vertices,
@@ -19,15 +19,19 @@ public:
     virtual void Shutdown();
 
     // The name of this solution.
-    virtual std::string GetName() const { return "UntexturedObjectsGLBufferStorage"; }
+    virtual std::string GetName() const;
 
 private:
     GLuint m_ib;
     GLuint m_vb;
+    GLuint m_varray;
+    GLuint m_drawid;
     GLuint m_prog;
 
     GLuint m_transform_buffer;
     void *m_transform_ptr;
+
+    bool mUseShaderDrawParameters;
 
     std::vector<DrawElementsIndirectCommand> m_commands;
     GLuint m_cmd_buffer;
@@ -37,5 +41,4 @@ private:
         GLuint ViewProjection;
         UniformLocations() { memset(this, 0, sizeof(*this)); }
     } mUniformLocation;
-
 };

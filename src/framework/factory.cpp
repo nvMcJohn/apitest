@@ -71,11 +71,13 @@ ProblemFactory::ProblemFactory(bool _skipInit)
         }
         mProblems.push_back(newProb);
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLUniform());
-        mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLMultiDraw());
+        mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLMultiDraw(true));
+        mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLMultiDraw(false));
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLBindless());
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLBindlessIndirect());
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLBufferRange());
-        mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLBufferStorage());
+        mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLBufferStorage(true));
+        mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLBufferStorage(false));
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLDynamicBuffer());
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLTexCoord());
     } else {
