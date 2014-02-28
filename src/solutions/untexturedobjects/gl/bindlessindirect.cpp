@@ -26,6 +26,17 @@ bool UntexturedObjectsGLBindlessIndirect::Init(const std::vector<UntexturedObjec
                                                const std::vector<UntexturedObjectsProblem::Index>& _indices,
                                                size_t _objectCount)
 {
+    if (glBufferStorage == nullptr) {
+        console::warn("Unable to initialize solution '%s', glBufferStorage() unavailable.", GetName().c_str());
+        return false;
+    }
+
+    if (glGetBufferParameterui64vNV == nullptr ||
+        glMakeBufferResidentNV == nullptr) {
+        console::warn("Unable to initialize solution '%s', GL_NV_shader_buffer_load unavailable.", GetName().c_str());
+        return false;
+    }
+
     if (!UntexturedObjectsSolution::Init(_vertices, _indices, _objectCount)) {
         return false;
     }

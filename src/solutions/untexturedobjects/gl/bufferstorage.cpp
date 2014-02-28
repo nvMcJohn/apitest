@@ -21,6 +21,11 @@ bool UntexturedObjectsGLBufferStorage::Init(const std::vector<UntexturedObjectsP
                                             const std::vector<UntexturedObjectsProblem::Index>& _indices,
                                             size_t _objectCount)
 {
+    if (glBufferStorage == nullptr) {
+        console::warn("Unable to initialize solution '%s', glBufferStorage() unavailable.", GetName().c_str());
+        return false;
+    }
+
     if (!UntexturedObjectsSolution::Init(_vertices, _indices, _objectCount)) {
         return false;
     }
