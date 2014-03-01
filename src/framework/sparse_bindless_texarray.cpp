@@ -238,9 +238,7 @@ bool TextureManager::Init(bool sparse, GLsizei maxNumTextures)
     mSparse = sparse;
 
     if (sparse) {
-        GLboolean gl_texture_sparse_arb = GL_FALSE;
-        glGetBooleanv(GL_TEXTURE_SPARSE_ARB, &gl_texture_sparse_arb);
-        if (glGetError() == GL_INVALID_ENUM || gl_texture_sparse_arb == GL_FALSE) {
+        if (!HasExtension("GL_ARB_sparse_texture")) {
             return false;
         }
     }
