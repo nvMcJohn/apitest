@@ -37,6 +37,7 @@ set( SHADERS
 set( SRCS
     framework/apitest.cpp
 	framework/appstate.cpp
+	framework/bufferlock.cpp
     framework/console.cpp
     framework/factory.cpp
     framework/gfx_gl.cpp
@@ -102,6 +103,8 @@ add_executable( apitest ${SRCS} ${HDRS} )
 source_group( "Framework" FILES 
     framework/apitest.cpp
 	framework/appstate.cpp
+	framework/bufferlock.cpp
+	framework/bufferlock.h
     framework/console.cpp
     framework/console.h
     framework/dds_helper.h

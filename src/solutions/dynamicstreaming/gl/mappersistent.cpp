@@ -15,6 +15,7 @@ DynamicStreamingGLMapPersistent::DynamicStreamingGLMapPersistent()
 , mProgram()
 , mStartDestOffset()
 , mParticleBufferSize()
+, mBufferLockManager(true)
 { }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -95,6 +96,8 @@ void DynamicStreamingGLMapPersistent::Render(const std::vector<Vec2>& _vertices)
     const int kParticleSizeBytes = int(kVertsPerParticle * sizeof(Vec2));
     const int kStartIndex = mStartDestOffset / sizeof(Vec2);
 
+    mBufferLockManager.WaitForLockedRange(mStartDestOffset, _vertices.size() * sizeof(Vec2));
+
     for (int i = 0; i < kParticleCount; ++i)
     {
         const int vertexOffset = i * kVertsPerParticle;
@@ -106,6 +109,8 @@ void DynamicStreamingGLMapPersistent::Render(const std::vector<Vec2>& _vertices)
 
         glDrawArrays(GL_TRIANGLES, kStartIndex + vertexOffset, kVertsPerParticle);
     }
+
+    mBufferLockManager.LockRange(mStartDestOffset, _vertices.size() * sizeof(Vec2));
 
     mStartDestOffset = (mStartDestOffset + (kParticleCount * kParticleSizeBytes)) % mParticleBufferSize;
 }

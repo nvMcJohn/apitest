@@ -1,6 +1,7 @@
 #pragma once
 
 #include "solutions/dynamicstreamingsoln.h"
+#include "framework/bufferlock.h"
 
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
@@ -33,10 +34,13 @@ private:
     size_t mStartDestOffset;
     size_t mParticleBufferSize;
 
+    BufferLockManager mBufferLockManager;
+
     struct UniformLocations {
         GLuint CB0;
         UniformLocations() { memset(this, 0, sizeof(*this)); }
     } mUniformLocation;
 
     void* mVertexDataPtr;
+    BufferLock* mBufferLock;
 };

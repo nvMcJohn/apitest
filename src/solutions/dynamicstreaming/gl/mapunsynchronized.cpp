@@ -15,6 +15,7 @@ DynamicStreamingGLMapUnsynchronized::DynamicStreamingGLMapUnsynchronized()
 , mProgram()
 , mStartDestOffset()
 , mParticleBufferSize()
+, mBufferLockManager(true)
 
 { }
 
@@ -89,6 +90,8 @@ void DynamicStreamingGLMapUnsynchronized::Render(const std::vector<Vec2>& _verti
     const int kStartIndex = mStartDestOffset / sizeof(Vec2);
     const GLbitfield kAccess = GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_UNSYNCHRONIZED_BIT;
 
+    mBufferLockManager.WaitForLockedRange(mStartDestOffset, _vertices.size() * sizeof(Vec2));
+
     for (int i = 0; i < kParticleCount; ++i)
     {
         const int vertexOffset = i * kVertsPerParticle;
@@ -103,6 +106,8 @@ void DynamicStreamingGLMapUnsynchronized::Render(const std::vector<Vec2>& _verti
             glDrawArrays(GL_TRIANGLES, kStartIndex + vertexOffset, kVertsPerParticle);
         }
     }
+
+    mBufferLockManager.LockRange(mStartDestOffset, _vertices.size() * sizeof(Vec2));
 
     mStartDestOffset = (mStartDestOffset + (kParticleCount * kParticleSizeBytes)) % mParticleBufferSize;
 }
