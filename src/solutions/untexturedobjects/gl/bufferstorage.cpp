@@ -35,6 +35,7 @@ bool UntexturedObjectsGLBufferStorage::Init(const std::vector<UntexturedObjectsP
 
     if (mUseShaderDrawParameters && !HasExtension("GL_ARB_shader_draw_parameters")) {
         console::warn("Unable to initialize solution, ARB_shader_draw_parameters is required but not available.");
+        return false;
     }
 
     // Program
