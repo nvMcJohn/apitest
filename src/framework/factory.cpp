@@ -16,6 +16,7 @@
 #include "solutions/untexturedobjects/gl/bufferrange.h"
 #include "solutions/untexturedobjects/gl/bufferstorage.h"
 #include "solutions/untexturedobjects/gl/dynamicbuffer.h"
+#include "solutions/untexturedobjects/gl/mapunsynchronized.h"
 #include "solutions/untexturedobjects/gl/drawloop.h"
 #include "solutions/untexturedobjects/gl/multidraw.h"
 #include "solutions/untexturedobjects/gl/multidrawbuffer.h"
@@ -88,6 +89,7 @@ ProblemFactory::ProblemFactory(bool _skipInit)
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLBufferStorage(true));
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLBufferStorage(false));
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLDynamicBuffer());
+        mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLMapUnsynchronized());
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLTexCoord());
     } else {
         newProb->Shutdown();
