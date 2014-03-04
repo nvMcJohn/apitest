@@ -94,6 +94,7 @@ set( SRCS
     solutions/untexturedobjects/gl/dynamicbuffer.cpp
     solutions/untexturedobjects/gl/drawloop.cpp
     solutions/untexturedobjects/gl/mapunsynchronized.cpp
+    solutions/untexturedobjects/gl/mappersistent.cpp
     solutions/untexturedobjects/gl/multidraw.cpp
     solutions/untexturedobjects/gl/multidrawbuffer.cpp
     solutions/untexturedobjects/gl/texcoord.cpp
@@ -330,6 +331,11 @@ source_group( "Solutions\\UntexturedObjects\\GL\\MapUnsynchronized" FILES
     solutions/untexturedobjects/gl/mapunsynchronized.h
     ../bin/Shaders/glsl/cubes_gl_map_vs.glsl
     ../bin/Shaders/glsl/cubes_gl_map_fs.glsl
+)
+
+source_group( "Solutions\\UntexturedObjects\\GL\\MapPersistent" FILES 
+    solutions/untexturedobjects/gl/mappersistent.cpp
+    solutions/untexturedobjects/gl/mappersistent.h
 )
 
 source_group( "Solutions\\UntexturedObjects\\GL\\DrawLoop" FILES 
