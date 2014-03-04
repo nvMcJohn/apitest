@@ -3,6 +3,12 @@
 #include "problems/dynamicstreaming.h"
 #include "solutions/dynamicstreamingsoln.h"
 
+const size_t kParticleCountX = 500;
+const size_t kParticleCountY = 320;
+const size_t kParticleCount = (kParticleCountX * kParticleCountY);
+const size_t kVertexCount = kParticleCount * kVertsPerParticle;
+const size_t kParticleBufferSize = sizeof(Vec2) * kVertexCount;
+
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
@@ -44,7 +50,7 @@ bool DynamicStreamingProblem::SetSolution(Solution* _solution)
 
     if (mActiveSolution) {
         console::log("Solution %s - Initializing.", mActiveSolution->GetName().c_str());
-        bool retVal = reinterpret_cast<DynamicStreamingSolution*>(mActiveSolution)->Init();
+        bool retVal = reinterpret_cast<DynamicStreamingSolution*>(mActiveSolution)->Init(kVertexCount);
         console::log("Solution %s - Initialize complete (Success: %s).", mActiveSolution->GetName().c_str(), retVal ? "true" : "false");
         return retVal;
     }

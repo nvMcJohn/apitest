@@ -218,7 +218,7 @@ void ApplicationState::setInitialProblemAndSolution(const std::string _probName,
 
         onSetProblemOrSolution();
 
-        assert(mActiveProblem && mActiveSolution);
+        assert(mActiveProblem >= 0 && mActiveSolution >= 0);
     } else {
         console::error("You went through some effort to specify a blank initial problem and initial solution.\n"
                        "Congratulations, that doesn't work."

@@ -4,13 +4,18 @@
 #include "mapunsynchronized.h"
 #include "framework/gfx_gl.h"
 
+const size_t kTripleBuffer = 3;
+
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 DynamicStreamingGLMapUnsynchronized::DynamicStreamingGLMapUnsynchronized()
-    : mUniformBuffer()
-    , mProgram()
-    , mVertexBuffer()
+: mUniformBuffer()
+, mVertexBuffer()
+, mProgram()
+, mStartDestOffset()
+, mParticleBufferSize()
+
 { }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -18,7 +23,7 @@ DynamicStreamingGLMapUnsynchronized::~DynamicStreamingGLMapUnsynchronized()
 { }
 
 // --------------------------------------------------------------------------------------------------------------------
-bool DynamicStreamingGLMapUnsynchronized::Init()
+bool DynamicStreamingGLMapUnsynchronized::Init(size_t _maxVertexCount)
 {
     // Uniform Buffer
     glGenBuffers(1, &mUniformBuffer);
@@ -36,10 +41,10 @@ bool DynamicStreamingGLMapUnsynchronized::Init()
     }
 
     // Dynamic vertex buffer
+    mParticleBufferSize = kTripleBuffer * sizeof(Vec2) * _maxVertexCount;
     glGenBuffers(1, &mVertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
-
-    glBufferData(GL_ARRAY_BUFFER, kParticleBufferSize, nullptr, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, mParticleBufferSize, nullptr, GL_DYNAMIC_DRAW);
 
     return glGetError() == GL_NO_ERROR;
 }
@@ -79,22 +84,27 @@ void DynamicStreamingGLMapUnsynchronized::Render(const std::vector<Vec2>& _verti
     glDisable(GL_DEPTH_TEST);
     glDepthMask(0);
 
+    const int kParticleCount = int(_vertices.size()) / kVertsPerParticle;
+    const int kParticleSizeBytes = int(kVertsPerParticle * sizeof(Vec2));
+    const int kStartIndex = mStartDestOffset / sizeof(Vec2);
+    const GLbitfield kAccess = GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_UNSYNCHRONIZED_BIT;
+
     for (int i = 0; i < kParticleCount; ++i)
     {
-        int vertex_offset = i * kVertsPerParticle;
-        int byte_offset = vertex_offset * sizeof(Vec2);
-        int partVertSize = kVertsPerParticle * sizeof(Vec2);
+        const int vertexOffset = i * kVertsPerParticle;
+        const int srcOffset = vertexOffset;
+        const int dstOffset = mStartDestOffset + (i * kParticleSizeBytes);
 
-        GLbitfield access = GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_UNSYNCHRONIZED_BIT;
-        void* dst = glMapBufferRange(GL_ARRAY_BUFFER, byte_offset, partVertSize, access);
-        if (dst)
-        {
-            memcpy(dst, &_vertices[vertex_offset], partVertSize);
+        void* dst = glMapBufferRange(GL_ARRAY_BUFFER, dstOffset, kParticleSizeBytes, kAccess);
+        if (dst) {
+            memcpy(dst, &_vertices[vertexOffset], kParticleSizeBytes);
             glUnmapBuffer(GL_ARRAY_BUFFER);
-        }
 
-        glDrawArrays(GL_TRIANGLES, vertex_offset, kVertsPerParticle);
+            glDrawArrays(GL_TRIANGLES, kStartIndex + vertexOffset, kVertsPerParticle);
+        }
     }
+
+    mStartDestOffset = (mStartDestOffset + (kParticleCount * kParticleSizeBytes)) % mParticleBufferSize;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
