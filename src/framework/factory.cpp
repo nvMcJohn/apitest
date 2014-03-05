@@ -129,8 +129,22 @@ std::vector<Problem*> ProblemFactory::GetProblems()
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-std::vector<Solution*> ProblemFactory::GetSolutions(Problem* _problem)
+std::vector<Solution*> ProblemFactory::GetSolutions(Problem* _problem, GfxBaseApi* _activeApi)
 {
     assert(_problem);
-    return mSolutions[_problem->GetName()];
+    std::vector<Solution*> tmpProblems = mSolutions[_problem->GetName()];
+    if (_activeApi) {
+        EGfxApi apiType = _activeApi->GetApiType();
+        std::vector<Solution*> retProblems;
+
+        for (auto it = tmpProblems.cbegin(); it != tmpProblems.cend(); ++it) {
+            if ((*it)->SupportsApi(apiType)) {
+                retProblems.push_back((*it));
+            }
+        }
+
+        return retProblems;
+    }
+    
+    return tmpProblems;
 }

@@ -5,30 +5,6 @@
 
 #include "mathlib.h"
 
-class GfxBaseApi;
-
-// --------------------------------------------------------------------------------------------------------------------
-// Test Case
-
-enum class TestId
-{
-    StreamingVB,
-    CubesUniform,
-    CubesDynamicBuffer,
-    CubesBufferRange,
-    CubesTexCoord,
-    CubesMultiDraw,
-    CubesBufferStorage,
-    CubesBindless,
-    CubesBindlessIndirect,
-    TexturesNoTex,
-    TexturesForward,
-    TexturesBindless,
-    TexturesBindlessMultiDraw,
-    TexturesSparseBindlessTextureArray,
-    TexturesSparseBindlessTextureArrayMultiDraw
-};
-
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
@@ -39,6 +15,8 @@ enum class EGfxApi
     Direct3D11,
     OpenGLGeneric
 };
+
+bool IsOpenGL(EGfxApi _api);
 
 // --------------------------------------------------------------------------------------------------------------------
 class GfxBaseApi

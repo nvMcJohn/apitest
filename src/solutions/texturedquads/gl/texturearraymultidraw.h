@@ -20,8 +20,8 @@ public:
     virtual void Render(const std::vector<Matrix>& _transforms) override;
     virtual void Shutdown() override;
 
-    // The name of this solution.
     virtual std::string GetName() const override;
+    virtual bool SupportsApi(EGfxApi _api) const override { return IsOpenGL(_api); }
 
 private:
     GLuint mIndexBuffer;

@@ -505,3 +505,18 @@ std::tuple<std::string, std::string> versionSplit(const std::string& _srcString)
 
     return std::make_tuple(std::string(""), _srcString);
 }
+
+// --------------------------------------------------------------------------------------------------------------------
+bool IsOpenGL(EGfxApi _api)
+{
+    switch (_api)
+    {
+        case EGfxApi::Direct3D11:
+            return false;
+        case EGfxApi::OpenGLGeneric:
+            return true;
+        default:
+            assert(!"Need to update IsOpenGL with new API type.");
+            return false;
+    };
+}

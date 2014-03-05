@@ -151,7 +151,7 @@ void PrintHelp()
         Problem* prob = (*probIt);
         // console::log(kTableFormat, prob->GetName().c_str(), "");
 
-        auto solutions = problemsAndSolutions.GetSolutions(prob);
+        auto solutions = problemsAndSolutions.GetSolutions(prob, nullptr);
         for (auto solnIt = solutions.cbegin(); solnIt != solutions.cend(); ++solnIt) {
             Solution* soln = (*solnIt);
             console::log(kTableFormat, prob->GetName().c_str(), soln->GetName().c_str());

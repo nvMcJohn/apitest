@@ -20,6 +20,7 @@ public:
 
     // The name of this solution.
     virtual std::string GetName() const { return "UntexturedObjectsGLBufferRange"; }
+    virtual bool SupportsApi(EGfxApi _api) const override { return IsOpenGL(_api); }
 
 private:
     GLuint mIndexBuffer;

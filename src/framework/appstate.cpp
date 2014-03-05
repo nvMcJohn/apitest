@@ -169,7 +169,7 @@ void ApplicationState::setInitialProblemAndSolution(const std::string _probName,
         }
 
         // We set the problem, now try to find the solution.
-        mSolutions = mFactory.GetSolutions(GetActiveProblem());
+        mSolutions = mFactory.GetSolutions(GetActiveProblem(), mActiveApi);
         if (!_solnName.empty()) {
             int i = 0;
             for (auto it = mSolutions.begin(); it != mSolutions.end(); ++it, ++i) {
@@ -210,7 +210,7 @@ void ApplicationState::setInitialProblemAndSolution(const std::string _probName,
             console::error("Failed to initialize problem '%s', exiting.", _probName.c_str());
         }
 
-        mSolutions = mFactory.GetSolutions(GetActiveProblem());
+        mSolutions = mFactory.GetSolutions(GetActiveProblem(), mActiveApi);
         mActiveSolution = solution;
         if (!GetActiveProblem()->SetSolution(GetActiveSolution())) {
             console::error("Unable to initialize solution '%s', exiting.", _solnName.c_str());
@@ -232,7 +232,7 @@ int ApplicationState::findProblemWithSolution(const std::string _solnName, int* 
     int probi = 0;
     for (auto probIt = mProblems.cbegin(); probIt != mProblems.cend(); ++probIt, ++probi) {
         int solni = 0;
-        auto allSolutions = mFactory.GetSolutions(*probIt);
+        auto allSolutions = mFactory.GetSolutions(*probIt, mActiveApi);
         for (auto solnIt = allSolutions.cbegin(); solnIt != allSolutions.cend(); ++solnIt, ++solni) {
             if ((*solnIt)->GetName() == _solnName) {
                 if (_outSolution) {
@@ -269,7 +269,7 @@ void ApplicationState::changeProblem(int _offset)
         Problem* newProb = getProblem(newProblem);
         if (newProb->Init()) {
             mActiveProblem = newProblem;
-            mSolutions = mFactory.GetSolutions(newProb);
+            mSolutions = mFactory.GetSolutions(newProb, mActiveApi);
 
             changeSolution(1);
             if (mActiveSolution != kInactiveSolution) {
