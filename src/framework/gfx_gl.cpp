@@ -147,9 +147,11 @@ void GfxApiOpenGLGeneric::Clear(Vec4 _clearColor, GLfloat _clearDepth)
     // TODO: This should go elsewhere.
     glViewport(0, 0, GetWidth(), GetHeight());
 
-    static_assert(sizeof(Vec4) == 4 * sizeof(GLfloat), "Unexpected size difference. Waaaat");
-    glClearBufferfv(GL_COLOR, 0, &_clearColor.x);
-    glClearBufferfv(GL_DEPTH, 0, &_clearDepth);
+    glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.w);
+    glClearDepthf(_clearDepth);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    GLenum err = glGetError();
 }
 
 // --------------------------------------------------------------------------------------------------------------------
