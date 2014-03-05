@@ -1,35 +1,33 @@
 #include "pch.h"
 
-#include "notex.h"
+#include "notexuniform.h"
 #include "framework/gfx_gl.h"
 
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
-TexturedQuadsGLNoTex::TexturedQuadsGLNoTex()
+TexturedQuadsGLNoTexUniform::TexturedQuadsGLNoTexUniform()
 : mIndexBuffer()
 , mVertexBuffer()
-, mDrawIDBuffer()
-, mVertexArray()
 , mProgram()
 , mTransformBuffer()
 {}
 
 // --------------------------------------------------------------------------------------------------------------------
-bool TexturedQuadsGLNoTex::Init(const std::vector<TexturedQuadsProblem::Vertex>& _vertices,
-                                const std::vector<TexturedQuadsProblem::Index>& _indices,
-                                const std::vector<TextureDetails*>& _textures,
-                                size_t _objectCount)
+bool TexturedQuadsGLNoTexUniform::Init(const std::vector<TexturedQuadsProblem::Vertex>& _vertices,
+                                       const std::vector<TexturedQuadsProblem::Index>& _indices,
+                                       const std::vector<TextureDetails*>& _textures,
+                                       size_t _objectCount)
 {
     if (!TexturedQuadsSolution::Init(_vertices, _indices, _textures, _objectCount)) {
         return false;
     }
 
     // Program
-    const char* kUniformNames[] = { "ViewProjection", nullptr };
+    const char* kUniformNames[] = { "ViewProjection", "DrawID", nullptr };
 
-    mProgram = CreateProgramT("textures_gl_notex_vs.glsl",
-                              "textures_gl_notex_fs.glsl",
+    mProgram = CreateProgramT("textures_gl_notex_uniform_vs.glsl",
+                              "textures_gl_notex_uniform_fs.glsl",
                               kUniformNames, &mUniformLocation);
 
     if (mProgram == 0) {
@@ -38,25 +36,7 @@ bool TexturedQuadsGLNoTex::Init(const std::vector<TexturedQuadsProblem::Vertex>&
     }
 
     // Buffers
-    glGenVertexArrays(1, &mVertexArray);
-    glBindVertexArray(mVertexArray);
-
     mVertexBuffer = NewBufferFromVector(GL_ARRAY_BUFFER, _vertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedQuadsProblem::Vertex), (void*)offsetof(TexturedQuadsProblem::Vertex, pos));
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedQuadsProblem::Vertex), (void*)offsetof(TexturedQuadsProblem::Vertex, tex));
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-
-    std::vector<uint32_t> drawids(_objectCount);
-    for (uint32_t i = 0; i < _objectCount; ++i) {
-        drawids[i] = i;
-    }
-
-    mDrawIDBuffer = NewBufferFromVector(GL_ARRAY_BUFFER, drawids, GL_STATIC_DRAW);
-    glVertexAttribIPointer(2, 1, GL_UNSIGNED_INT, sizeof(uint32_t), 0);
-    glVertexAttribDivisor(2, 1);
-    glEnableVertexAttribArray(2);
-
     mIndexBuffer = NewBufferFromVector(GL_ELEMENT_ARRAY_BUFFER, _indices, GL_STATIC_DRAW);
 
     glGenBuffers(1, &mTransformBuffer);
@@ -66,7 +46,7 @@ bool TexturedQuadsGLNoTex::Init(const std::vector<TexturedQuadsProblem::Vertex>&
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-void TexturedQuadsGLNoTex::Render(const std::vector<Matrix>& _transforms)
+void TexturedQuadsGLNoTexUniform::Render(const std::vector<Matrix>& _transforms)
 {
     // Program
     Vec3 dir = { 0, 0, 1 };
@@ -79,6 +59,16 @@ void TexturedQuadsGLNoTex::Render(const std::vector<Matrix>& _transforms)
 
     glUseProgram(mProgram);
     glUniformMatrix4fv(mUniformLocation.ViewProjection, 1, GL_TRUE, &view_proj.x.x);
+
+    // Input Layout. First the IB
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndexBuffer);
+
+    // Then the VBs.
+    glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedQuadsProblem::Vertex), (void*)offsetof(TexturedQuadsProblem::Vertex, pos));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedQuadsProblem::Vertex), (void*)offsetof(TexturedQuadsProblem::Vertex, tex));
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
 
     // Rasterizer State
     glEnable(GL_CULL_FACE);
@@ -101,19 +91,20 @@ void TexturedQuadsGLNoTex::Render(const std::vector<Matrix>& _transforms)
     assert(xformCount <= mObjectCount);
 
     for (size_t u = 0; u < xformCount; ++u) {
-        glDrawElementsInstancedBaseInstance(GL_TRIANGLES, mIndexCount, GL_UNSIGNED_SHORT, 0, 1, u);
+        // Update the Draw ID (since we cannot use multi_draw here
+        glUniform1i(mUniformLocation.DrawID, u);
+
+        glDrawElements(GL_TRIANGLES, mIndexCount, GL_UNSIGNED_SHORT, 0);
     }
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-void TexturedQuadsGLNoTex::Shutdown()
+void TexturedQuadsGLNoTexUniform::Shutdown()
 {
     // No textures to clean up here.
 
     glDeleteBuffers(1, &mIndexBuffer);
     glDeleteBuffers(1, &mVertexBuffer);
-    glDeleteBuffers(1, &mDrawIDBuffer);
-    glDeleteVertexArrays(1, &mVertexArray);
     glDeleteBuffers(1, &mTransformBuffer);
     glDeleteProgram(mProgram);
 }
