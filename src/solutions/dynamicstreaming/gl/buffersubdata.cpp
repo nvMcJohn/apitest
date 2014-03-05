@@ -4,13 +4,17 @@
 #include "buffersubdata.h"
 #include "framework/gfx_gl.h"
 
+const size_t kTripleBuffer = 3;
+
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 DynamicStreamingGLBufferSubData::DynamicStreamingGLBufferSubData()
 : mUniformBuffer()
-, mProgram()
 , mVertexBuffer()
+, mProgram()
+, mStartDestOffset()
+, mParticleBufferSize()
 { }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -18,7 +22,7 @@ DynamicStreamingGLBufferSubData::~DynamicStreamingGLBufferSubData()
 { }
 
 // --------------------------------------------------------------------------------------------------------------------
-bool DynamicStreamingGLBufferSubData::Init()
+bool DynamicStreamingGLBufferSubData::Init(size_t _maxVertexCount)
 {
     // Uniform Buffer
     glGenBuffers(1, &mUniformBuffer);
@@ -36,9 +40,12 @@ bool DynamicStreamingGLBufferSubData::Init()
     }
 
     // Dynamic vertex buffer
+    mStartDestOffset = 0;
+    mParticleBufferSize = kTripleBuffer * sizeof(Vec2) * _maxVertexCount;
+
     glGenBuffers(1, &mVertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, kParticleBufferSize, nullptr, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, mParticleBufferSize, nullptr, GL_DYNAMIC_DRAW);
 
     return glGetError() == GL_NO_ERROR;
 }
@@ -78,15 +85,25 @@ void DynamicStreamingGLBufferSubData::Render(const std::vector<Vec2>& _vertices)
     glDisable(GL_DEPTH_TEST);
     glDepthMask(0);
 
+    const int kParticleCount = int(_vertices.size()) / kVertsPerParticle;
+    const int kParticleSizeBytes = int(kVertsPerParticle * sizeof(Vec2));
+    const int kStartIndex = mStartDestOffset / sizeof(Vec2);
+
     for (int i = 0; i < kParticleCount; ++i)
     {
-        int vertex_offset = i * kVertsPerParticle;
-        int byte_offset = vertex_offset * sizeof(Vec2);
-        int partVertSize = kVertsPerParticle * sizeof(Vec2);
+        const int vertexOffset = i * kVertsPerParticle;
+        const int srcOffset = vertexOffset;
+        const int dstOffset = mStartDestOffset + (i * kParticleSizeBytes);
 
-        glBufferSubData(GL_ARRAY_BUFFER, byte_offset, partVertSize, &_vertices[vertex_offset]);
+        glBufferSubData(GL_ARRAY_BUFFER, dstOffset, kParticleSizeBytes, &_vertices[srcOffset]);
 
-        glDrawArrays(GL_TRIANGLES, vertex_offset, kVertsPerParticle);
+        glDrawArrays(GL_TRIANGLES, kStartIndex + vertexOffset, kVertsPerParticle);
+    }
+
+    mStartDestOffset = (mStartDestOffset + (kParticleCount * kParticleSizeBytes)) % mParticleBufferSize;
+
+    if (mStartDestOffset == 0) {
+        glBufferData(GL_ARRAY_BUFFER, mParticleBufferSize, nullptr, GL_DYNAMIC_DRAW);
     }
 }
 

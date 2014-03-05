@@ -1,6 +1,7 @@
 #pragma once
 
 #include "solutions/dynamicstreamingsoln.h"
+#include "framework/bufferlock.h"
 
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
@@ -11,7 +12,7 @@ public:
     DynamicStreamingGLMapUnsynchronized();
     virtual ~DynamicStreamingGLMapUnsynchronized();
 
-    virtual bool Init() override;
+    virtual bool Init(size_t _maxVertexCount) override;
     virtual void Render(const std::vector<Vec2>& _vertices) override;
     virtual void Shutdown() override;
 
@@ -29,6 +30,11 @@ private:
     GLuint mUniformBuffer;
     GLuint mVertexBuffer;
     GLuint mProgram;
+
+    size_t mStartDestOffset;
+    size_t mParticleBufferSize;
+
+    BufferLockManager mBufferLockManager;
 
     struct UniformLocations {
         GLuint CB0;

@@ -37,6 +37,7 @@ set( SHADERS
 set( SRCS
     framework/apitest.cpp
 	framework/appstate.cpp
+	framework/bufferlock.cpp
     framework/console.cpp
     framework/factory.cpp
     framework/gfx_gl.cpp
@@ -67,6 +68,7 @@ set( SRCS
     solutions/texturedquads/gl/naive.cpp
     solutions/texturedquads/gl/notex.cpp
     solutions/texturedquads/gl/texturearray.cpp
+    solutions/texturedquads/gl/texturearraymultidraw.cpp
     solutions/texturedquads/gl/sparsebindlesstexturearray.cpp
     solutions/texturedquads/gl/sparsebindlesstexturearraymultidraw.cpp
 
@@ -102,6 +104,8 @@ add_executable( apitest ${SRCS} ${HDRS} )
 source_group( "Framework" FILES 
     framework/apitest.cpp
 	framework/appstate.cpp
+	framework/bufferlock.cpp
+	framework/bufferlock.h
     framework/console.cpp
     framework/console.h
     framework/dds_helper.h
@@ -219,6 +223,13 @@ source_group( "Solutions\\TexturedQuads\\GL\\TextureArray" FILES
     solutions/texturedquads/gl/texturearray.h
     ../bin/Shaders/glsl/textures_gl_texture_array_vs.glsl    
     ../bin/Shaders/glsl/textures_gl_texture_array_fs.glsl
+)
+
+source_group( "Solutions\\TexturedQuads\\GL\\TextureArrayMultidraw" FILES 
+    solutions/texturedquads/gl/texturearraymultidraw.cpp
+    solutions/texturedquads/gl/texturearraymultidraw.h
+    ../bin/Shaders/glsl/textures_gl_texture_array_multidraw_vs.glsl
+    ../bin/Shaders/glsl/textures_gl_texture_array_multidraw_fs.glsl
 )
 
 source_group( "Solutions\\TexturedQuads\\GL\\SparseBindlessTextureArray" FILES 

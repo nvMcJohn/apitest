@@ -2,10 +2,9 @@
 
 #include "gfx_gl.h"
 #include "console.h"
-#include <regex>
 
 GfxBaseApi *CreateGfxOpenGLGeneric() { return new GfxApiOpenGLGeneric; }
-std::tuple<std::string, std::string> regexSplit(const char* _regex, const std::string& _srcString);
+std::tuple<std::string, std::string> versionSplit(const std::string& _srcString);
 
 // --------------------------------------------------------------------------------------------------------------------
 static SDL_Window* CreateGLWindow(const char* _title, int _x, int _y, int _width, int _height)
@@ -198,7 +197,11 @@ GLuint CompileShaderFromFile(GLenum _shaderType, std::string _shaderFilename, st
     std::string fileContents = FileContentsToString(shaderFullPath);
     const char* includePath = ".";
 
-    auto strTuple = regexSplit("\\s*#\\s*version\\s+\\d+", fileContents);
+    // GLSL has this annoying feature that the #version directive must appear first. But we 
+    // want to inject some #define shenanigans into the shader. 
+    // So to do that, we need to split for the part of the shader up to the end of the #version line,
+    // and everything after that. We can then inject our defines right there.
+    auto strTuple = versionSplit(fileContents);
     std::string versionStr = std::get<0>(strTuple);
     std::string shaderContents = std::get<1>(strTuple);
 
@@ -370,21 +373,134 @@ bool HasExtension(const char* _extension)
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-std::tuple<std::string, std::string> regexSplit(const char* _regex, const std::string& _srcString)
+bool matchVersionLine(const std::string& _srcString, size_t _startPos, size_t _endPos)
 {
+    size_t checkPos = _startPos;
+    assert(_endPos <= _srcString.size());
 
-    std::regex matchRE(_regex);
-    std::smatch matches;
+    // GCC doesn't support regexps yet, so we're doing a hand-coded look for 
+    // ^\s*#\s*version\s+\d+\s*$
+    // Annoying!
 
-    if (std::regex_search(_srcString, matches, matchRE)) {
-        if (matches.size() > 1) {
-            console::error("Somehow matched multiple #version strings in shader.");
+    // ^ was handled by the caller.
+
+    // \s*
+    while (checkPos < _endPos && (_srcString[checkPos] == ' ' || _srcString[checkPos] == '\t')) {
+        ++checkPos;
+    }
+
+    if (checkPos == _endPos) {
+        return false;
+    }
+
+    // #
+    if (_srcString[checkPos] == '#') {
+        ++checkPos;        
+    } else {
+        return false;
+    }
+
+    if (checkPos == _endPos) {
+        return false;
+    }
+
+    // \s*
+    while (checkPos < _endPos && (_srcString[checkPos] == ' ' || _srcString[checkPos] == '\t')) {
+        ++checkPos;
+    }
+
+    if (checkPos == _endPos) {
+        return false;
+    }
+
+    // version
+    const char* kSearchString = "version";
+    const size_t kSearchStringLen = strlen(kSearchString);
+
+    if (checkPos + kSearchStringLen >= _endPos) {
+        return false;
+    }
+
+    if (strncmp(kSearchString, &_srcString[checkPos], kSearchStringLen) == 0) {
+        checkPos += kSearchStringLen;
+    } else {
+        return false;
+    }
+
+    // \s+ (as \s\s*)
+    if (_srcString[checkPos] == ' ' || _srcString[checkPos] == '\t') {
+        ++checkPos;
+    } else {
+        return false;
+    }
+
+    while (checkPos < _endPos && (_srcString[checkPos] == ' ' || _srcString[checkPos] == '\t')) {
+        ++checkPos;
+    }
+
+    if (checkPos == _endPos) {
+        return false;
+    }
+
+    // \d+ (as \d\d*)
+    if (_srcString[checkPos] >= '0' && _srcString[checkPos] <= '9') {
+        ++checkPos;
+    } else {
+        return false;
+    }
+
+    // Check the version number
+    while (checkPos < _endPos && (_srcString[checkPos] >= '0' && _srcString[checkPos] <= '9')) {
+        ++checkPos;
+    }
+
+    while (checkPos < _endPos && (_srcString[checkPos] == ' ' || _srcString[checkPos] == '\t')) {
+        ++checkPos;
+    }
+
+    while (checkPos < _endPos && (_srcString[checkPos] == '\r' || _srcString[checkPos] == '\n')) {
+        ++checkPos;
+    }
+
+    // NOTE that if the string terminates here we're successful (unlike above)
+    if (checkPos == _endPos) {
+        return true;
+    }
+    
+    return false;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+std::tuple<std::string, std::string> strsplit(const std::string& _srcString, size_t _splitEndPos)
+{
+    return std::make_tuple(
+        _srcString.substr(0, _splitEndPos),
+        _srcString.substr(_splitEndPos, std::string::npos)
+    );
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+std::tuple<std::string, std::string> versionSplit(const std::string& _srcString)
+{
+    const size_t StringLen = _srcString.size();
+    size_t matchEndPos = 0;
+    size_t substrStartPos = 0;
+    size_t eolPos = 0;
+    for (eolPos = substrStartPos; eolPos < StringLen; ++eolPos) {
+        if (_srcString[eolPos] != '\n') {
+            continue;
         }
-        
-        std::string prefix = _srcString.substr(0, matches.position(0) + matches.length(0));
-        std::string suffix = _srcString.substr(matches.position(0) + matches.length(0), std::string::npos);
 
-        return std::make_tuple(prefix, suffix);
+        if (matchVersionLine(_srcString, substrStartPos, eolPos + 1)) {
+            return strsplit(_srcString, eolPos + 1);
+        }
+
+        substrStartPos = eolPos + 1;
+    }
+
+    // Could be on the last line (not really--the shader will be invalid--but we'll do it anyways)
+    if (matchVersionLine(_srcString, substrStartPos, StringLen)) {
+        return strsplit(_srcString, eolPos + 1);
     }
 
     return std::make_tuple(std::string(""), _srcString);
