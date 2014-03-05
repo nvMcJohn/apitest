@@ -6,11 +6,11 @@
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
-class TexturedQuadsGLTextureArray : public TexturedQuadsSolution
+class TexturedQuadsGLTextureArrayUniform : public TexturedQuadsSolution
 {
 public:
-    TexturedQuadsGLTextureArray();
-    virtual ~TexturedQuadsGLTextureArray() { }
+    TexturedQuadsGLTextureArrayUniform();
+    virtual ~TexturedQuadsGLTextureArrayUniform() { }
 
     virtual bool Init(const std::vector<TexturedQuadsProblem::Vertex>& _vertices,
                       const std::vector<TexturedQuadsProblem::Index>& _indices,
@@ -21,19 +21,18 @@ public:
     virtual void Shutdown();
 
     // The name of this solution.
-    virtual std::string GetName() const { return "TexturedQuadsGLTextureArray"; }
+    virtual std::string GetName() const { return "TexturedQuadsGLTextureArrayUniform"; }
 
 private:
     GLuint mIndexBuffer;
     GLuint mVertexBuffer;
-    GLuint mDrawIDBuffer;
-    GLuint mVertexArray;
     GLuint mProgram;
     GLuint mTransformBuffer;
     GLuint mTexAddressBuffer;
 
     struct UniformLocations {
         GLuint ViewProjection;
+        GLuint DrawID;
         GLuint TexContainer;
         UniformLocations() { memset(this, 0, sizeof(*this)); }
     } mUniformLocation;

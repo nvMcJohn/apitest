@@ -28,6 +28,12 @@ set( SHADERS
     ../bin/Shaders/glsl/textures_gl_naive_fs.glsl
     ../bin/Shaders/glsl/textures_gl_notex_vs.glsl
     ../bin/Shaders/glsl/textures_gl_notex_fs.glsl
+    ../bin/Shaders/glsl/textures_gl_texture_array_vs.glsl
+    ../bin/Shaders/glsl/textures_gl_texture_array_fs.glsl
+    ../bin/Shaders/glsl/textures_gl_texture_array_uniform_vs.glsl
+    ../bin/Shaders/glsl/textures_gl_texture_array_uniform_fs.glsl
+    ../bin/Shaders/glsl/textures_gl_texture_array_multidraw_vs.glsl
+    ../bin/Shaders/glsl/textures_gl_texture_array_multidraw_fs.glsl
     ../bin/Shaders/glsl/textures_gl_sparse_bindless_texture_array_vs.glsl    
     ../bin/Shaders/glsl/textures_gl_sparse_bindless_texture_array_fs.glsl
     ../bin/Shaders/glsl/textures_gl_sparse_bindless_texture_array_multidraw_vs.glsl
@@ -68,6 +74,7 @@ set( SRCS
     solutions/texturedquads/gl/naive.cpp
     solutions/texturedquads/gl/notex.cpp
     solutions/texturedquads/gl/texturearray.cpp
+    solutions/texturedquads/gl/texturearrayuniform.cpp
     solutions/texturedquads/gl/texturearraymultidraw.cpp
     solutions/texturedquads/gl/sparsebindlesstexturearray.cpp
     solutions/texturedquads/gl/sparsebindlesstexturearraymultidraw.cpp
@@ -224,6 +231,13 @@ source_group( "Solutions\\TexturedQuads\\GL\\TextureArray" FILES
     solutions/texturedquads/gl/texturearray.h
     ../bin/Shaders/glsl/textures_gl_texture_array_vs.glsl    
     ../bin/Shaders/glsl/textures_gl_texture_array_fs.glsl
+)
+
+source_group( "Solutions\\TexturedQuads\\GL\\TextureArrayUniform" FILES 
+    solutions/texturedquads/gl/texturearrayuniform.cpp
+    solutions/texturedquads/gl/texturearrayuniform.h
+    ../bin/Shaders/glsl/textures_gl_texture_array_uniform_vs.glsl
+    ../bin/Shaders/glsl/textures_gl_texture_array_uniform_fs.glsl
 )
 
 source_group( "Solutions\\TexturedQuads\\GL\\TextureArrayMultidraw" FILES 
