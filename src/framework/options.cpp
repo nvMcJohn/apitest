@@ -2,6 +2,8 @@
 
 #include "options.h"
 #include "factory.h"
+#include "gfx_dx11.h"
+#include "gfx_gl.h"
 #include "problems/problem.h"
 #include "solutions/solution.h"
 
@@ -44,6 +46,7 @@ Options::Options()
 : BenchmarkMode(false)
 , InitialProblem(Options::DefaultInitialProblem)
 , InitialSolution(Options::DefaultInitialSolution)
+, InitialApi(GfxApiOpenGLCompat::SGetShortName())
 {
 
 }

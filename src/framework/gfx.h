@@ -42,6 +42,9 @@ public:
 
     virtual EGfxApi GetApiType() const = 0;
 
+    virtual const char* GetShortName() const = 0;
+    virtual const char* GetLongName() const = 0;
+
     inline size_t GetWidth() const     { return mWidth; }
     inline size_t GetHeight() const    { return mHeight; }
 

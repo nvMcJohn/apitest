@@ -19,14 +19,16 @@ const int kInactiveSolution = -1;
 class ApplicationState
 {
 public:
-    ApplicationState(GfxBaseApi* _activeApi, const Options& _opts);
+    ApplicationState(const Options& _opts);
     ~ApplicationState();
 
     inline Problem* GetActiveProblem() const { return getProblem(mActiveProblem); }
     inline Solution* GetActiveSolution() const { return getSolution(mActiveSolution); }
+    inline GfxBaseApi* GetActiveApi() const { return mActiveApi; }
 
     inline size_t GetProblemCount() const { return mProblems.size(); }
     inline size_t GetSolutionCount() const { return mSolutions.size(); }
+    inline size_t GetActiveApiCount() const { return mGfxApis.size(); }
 
     void NextProblem();
     void PrevProblem();
@@ -34,7 +36,8 @@ public:
     void NextSolution();
     void PrevSolution();
 
-    void SetActiveApi(GfxBaseApi* _activeApi);
+    void NextAPI();
+
     void Update();
 
     bool IsBenchmarkMode() const { return mBenchmarkMode; }
@@ -56,7 +59,12 @@ private:
     void updateFPS();
     void resetTimer();
 
+    void createGfxApis();
+    void destroyGfxApis();
+
     // ----------------------------------------------------------------------------------------------------------------
+    std::map<std::string, GfxBaseApi*> mGfxApis;
+
     ProblemFactory mFactory;
 
     std::vector<Problem*> mProblems;

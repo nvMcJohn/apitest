@@ -21,8 +21,13 @@ public:
 
     virtual EGfxApi GetApiType() const { return EGfxApi::Direct3D11; }
 
+    inline virtual const char* GetShortName() const override { return SGetShortName(); }
+    inline virtual const char* GetLongName() const override { return SGetLongName(); }
+
+    static const char* SGetShortName() { return "d3d11"; }
+    static const char* SGetLongName() { return "Direct3D 11"; }
+
 protected:
-    SDL_Window* mWnd;
     IDXGISwapChain* mSwapChain;
     ID3D11RenderTargetView* mColorView; 
     ID3D11DepthStencilView* mDepthStencilView;

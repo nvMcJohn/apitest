@@ -6,11 +6,11 @@
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
-class GfxApiOpenGLGeneric : public GfxBaseApi
+class GfxApiOpenGLCompat : public GfxBaseApi
 {
 public:
-    GfxApiOpenGLGeneric();
-    virtual ~GfxApiOpenGLGeneric(); 
+    GfxApiOpenGLCompat();
+    virtual ~GfxApiOpenGLCompat(); 
 
     virtual bool Init(const std::string& _title, int _x, int _y, int _width, int _height) override;
     virtual void Shutdown() override;
@@ -21,6 +21,12 @@ public:
     virtual void SwapBuffers() override;
 
     virtual EGfxApi GetApiType() const { return EGfxApi::OpenGLGeneric; }
+
+    inline virtual const char* GetShortName() const override { return SGetShortName(); }
+    inline virtual const char* GetLongName() const override { return SGetLongName(); }
+
+    static const char* SGetShortName() { return "oglcompat"; }
+    static const char* SGetLongName() { return "OpenGL (Compatability)"; }
 
 protected:
     SDL_GLContext mGLrc;

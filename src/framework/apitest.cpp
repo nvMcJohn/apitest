@@ -13,9 +13,6 @@
 
 #include <stdio.h>
 
-#define NAME_OPENGLGENERIC      "OpenGL (Generic)"
-#define NAME_DIRECT3D11         "Direct3D 11"
-
 #ifdef _WIN32
 #   pragma comment(lib, "imm32.lib")
 #   pragma comment(lib, "version.lib")
@@ -34,45 +31,6 @@ std::string asTable(BenchmarkResults _results);
 
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
-// --------------------------------------------------------------------------------------------------------------------
-std::map<std::string, GfxBaseApi*> CreateGfxApis()
-{
-    std::map<std::string, GfxBaseApi*> retMap;
-    GfxBaseApi* tmpApi = nullptr;
-    
-    tmpApi = CreateGfxOpenGLGeneric();
-    if (tmpApi) { 
-        if (tmpApi->Init("apitest - OpenGL", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 768)) {
-            retMap[NAME_OPENGLGENERIC] = tmpApi;
-        } else {
-            SafeDelete(tmpApi);
-        }
-    }
-
-    tmpApi = CreateGfxDirect3D11();
-    if (tmpApi) { 
-        if (tmpApi->Init("apitest - Direct3D11", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 768)) {
-            retMap[NAME_DIRECT3D11] = tmpApi;
-        }
-        else {
-            SafeDelete(tmpApi);
-        }
-    }
-
-    return retMap;
-}
-
-// --------------------------------------------------------------------------------------------------------------------
-void DestroyGfxApis(std::map<std::string, GfxBaseApi*>* _apis)
-{
-    assert(_apis);
-    for (auto it = _apis->begin(); it != _apis->end(); ++it) {
-        SafeDelete(it->second);
-    }
-
-    _apis->clear();
-}
-
 // --------------------------------------------------------------------------------------------------------------------
 void PostQuitEvent()
 {
@@ -143,6 +101,12 @@ void OnEvent(SDL_Event* _event, ApplicationState* _appState)
             case SDLK_DOWN:
                 if (!_appState->IsBenchmarkMode()) {
                     _appState->NextSolution();
+                }
+                break;
+
+            case SDLK_a:
+                if (!_appState->IsBenchmarkMode()) {
+                    _appState->NextAPI();
                 }
                 break;
 
@@ -226,16 +190,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    auto allGfxApis = CreateGfxApis();
-    if (allGfxApis.find(NAME_OPENGLGENERIC) == allGfxApis.cend()) {
-        console::error("Unable to create at least an OpenGL renderer--exiting");
-    }
-
-    GfxBaseApi* activeApi = allGfxApis[NAME_OPENGLGENERIC];
-    activeApi->Activate();
-
-    // TODO: Move all Api management into ApplicationState
-    ApplicationState* app = new ApplicationState(activeApi, opts);
+    ApplicationState* app = new ApplicationState(opts);
 
     bool shouldQuit = false;
     for (;;) {
@@ -250,7 +205,7 @@ int main(int argc, char* argv[])
             OnEvent(&sdl_event, app);
         } else {
             app->Update();
-            Render(app->GetActiveProblem(), activeApi);
+            Render(app->GetActiveProblem(), app->GetActiveApi());
         }
     }
 
@@ -260,8 +215,6 @@ int main(int argc, char* argv[])
     }
 
     SafeDelete(app);
-    activeApi->Deactivate();
-    DestroyGfxApis(&allGfxApis);
     Cleanup();
 
     return 0;

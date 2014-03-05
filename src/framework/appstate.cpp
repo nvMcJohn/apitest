@@ -5,7 +5,6 @@
 
 const double kBenchmarkTime = 5.0;
 
-
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
@@ -19,14 +18,22 @@ ApplicationState::BenchmarkState::BenchmarkState()
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
-ApplicationState::ApplicationState(GfxBaseApi* _activeApi, const Options& _opts)
+ApplicationState::ApplicationState(const Options& _opts)
 : mActiveProblem(kInactiveProblem)
 , mActiveSolution(kInactiveSolution)
-, mActiveApi(_activeApi)
+, mActiveApi()
 , mFrameCount()
 , mBenchmarkMode(_opts.BenchmarkMode)
 , mFactory(false)
 {
+    createGfxApis();
+    mActiveApi = mGfxApis[_opts.InitialApi];
+    if (mActiveApi) {
+        mActiveApi->Activate();
+    } else {
+        console::error("Failed to select api with name '%s', run with -h to see a list of all APIs.");
+    }
+
     mProblems = mFactory.GetProblems();
     assert(GetProblemCount() > 0);
 
@@ -53,6 +60,8 @@ ApplicationState::~ApplicationState()
 
     mActiveSolution = kInactiveSolution;
     mActiveProblem = kInactiveProblem;
+
+    destroyGfxApis();
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -80,9 +89,43 @@ void ApplicationState::PrevSolution()
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-void ApplicationState::SetActiveApi(GfxBaseApi* _activeApi)
+void ApplicationState::NextAPI()
 {
-    mActiveApi = _activeApi;
+    assert(mActiveApi);
+    assert(mGfxApis.size() > 0);
+
+    // Don't do any of this if we don't have another API to move to.
+    if (mGfxApis.size() == 1) {
+        return;
+    }
+
+    // Shutdown the problem for now, we'll bring it back up in a minute.
+    Problem* activeProb = GetActiveProblem();
+    if (activeProb) {
+        activeProb->SetSolution(nullptr);
+        mActiveSolution = kInactiveSolution;
+        activeProb->Shutdown();
+        // Don't actually clear the active problem here, because we're going to try 
+        // to set it back up shortly.
+    }
+
+    auto it = mGfxApis.find(mActiveApi->GetShortName());
+    assert(it != mGfxApis.end());
+    ++it;
+
+    // In case this is the last one, wrap.
+    if (it == mGfxApis.end()) {
+        it = mGfxApis.begin();
+    }
+
+    // Activate the new before deactivating the old to avoid the window disappearing problem.
+    it->second->Activate();
+    mActiveApi->Deactivate();
+
+    mActiveApi = it->second;
+
+    // Try to select the same problem again.
+    changeProblem(0);
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -251,12 +294,14 @@ int ApplicationState::findProblemWithSolution(const std::string _solnName, int* 
 void ApplicationState::changeProblem(int _offset)
 {
     int prevProblem = mActiveProblem;
-    Problem* prevProblemPtr = GetActiveProblem();
-    if (prevProblemPtr) {
-        prevProblemPtr->SetSolution(nullptr);
-        mActiveSolution = kInactiveSolution;
-        prevProblemPtr->Shutdown();
-        mActiveProblem = kInactiveProblem;
+    if (_offset != 0) {
+        Problem* prevProblemPtr = GetActiveProblem();
+        if (prevProblemPtr) {
+            prevProblemPtr->SetSolution(nullptr);
+            mActiveSolution = kInactiveSolution;
+            prevProblemPtr->Shutdown();
+            mActiveProblem = kInactiveProblem;
+        }
     }
 
     const size_t problemCount = mProblems.size();
@@ -265,6 +310,13 @@ void ApplicationState::changeProblem(int _offset)
     // problem on the way back through.
     int curProbIndex = (_offset >= 0) ? prevProblem : std::max(0, prevProblem);
     int newProblem = (curProbIndex + problemCount + _offset) % problemCount;
+
+    // If the offset was 0 (because we changed gfx apis) change it to 1 in case this problem is inapplicable to this
+    // api and we need to look for the next one.
+    if (_offset == 0) {
+        _offset = 1;
+    }
+
     for (unsigned int u = 0; u < problemCount; ++u) {
         Problem* newProb = getProblem(newProblem);
         if (newProb->Init()) {
@@ -295,11 +347,14 @@ void ApplicationState::changeSolution(int _offset)
     Problem* activeProb = GetActiveProblem();
     assert(activeProb != nullptr);
 
+    const size_t solutionCount = mSolutions.size();
+    if (solutionCount == 0) {
+        return;
+    }
+
     int prevSolution = mActiveSolution;
     activeProb->SetSolution(nullptr);
     mActiveSolution = kInactiveSolution;
-
-    const size_t solutionCount = mSolutions.size();
 
     // If we are going backwards, we need to pretend we have a valid problem picked already, or we won't pick the last
     // problem on the way back through.
@@ -357,4 +412,41 @@ void ApplicationState::resetTimer()
 {
     mFrameCount = 0;
     mTimerStart = timer::Read();
+}
+
+// ------------------------------------------------------------------------------------------------
+void ApplicationState::createGfxApis()
+{
+    assert(mGfxApis.size() == 0);
+
+    GfxBaseApi* tmpApi = nullptr;
+    
+    tmpApi = CreateGfxOpenGLGeneric();
+    if (tmpApi) { 
+        if (tmpApi->Init("apitest - OpenGL (compat)", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 768)) {
+            mGfxApis[tmpApi->GetShortName()] = tmpApi;
+        } else {
+            SafeDelete(tmpApi);
+        }
+    }
+
+    tmpApi = CreateGfxDirect3D11();
+    if (tmpApi) { 
+        if (tmpApi->Init("apitest - Direct3D11", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 768)) {
+            mGfxApis[tmpApi->GetShortName()] = tmpApi;
+        }
+        else {
+            SafeDelete(tmpApi);
+        }
+    }
+}
+
+// ------------------------------------------------------------------------------------------------
+void ApplicationState::destroyGfxApis()
+{
+    for (auto it = mGfxApis.begin(); it != mGfxApis.end(); ++it) {
+        SafeDelete(it->second);
+    }
+
+    mGfxApis.clear();
 }

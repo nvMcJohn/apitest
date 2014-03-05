@@ -3,7 +3,7 @@
 #include "gfx_gl.h"
 #include "console.h"
 
-GfxBaseApi *CreateGfxOpenGLGeneric() { return new GfxApiOpenGLGeneric; }
+GfxBaseApi *CreateGfxOpenGLGeneric() { return new GfxApiOpenGLCompat; }
 std::tuple<std::string, std::string> versionSplit(const std::string& _srcString);
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -28,16 +28,16 @@ static void APIENTRY ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-GfxApiOpenGLGeneric::GfxApiOpenGLGeneric()
+GfxApiOpenGLCompat::GfxApiOpenGLCompat()
 : mGLrc()
 { }
 
 // --------------------------------------------------------------------------------------------------------------------
-GfxApiOpenGLGeneric::~GfxApiOpenGLGeneric()
+GfxApiOpenGLCompat::~GfxApiOpenGLCompat()
 { }
 
 // --------------------------------------------------------------------------------------------------------------------
-bool GfxApiOpenGLGeneric::Init(const std::string& _title, int _x, int _y, int _width, int _height)
+bool GfxApiOpenGLCompat::Init(const std::string& _title, int _x, int _y, int _width, int _height)
 {
     if (!GfxBaseApi::Init(_title, _x, _y, _width, _height)) {
         return false;
@@ -86,7 +86,7 @@ bool GfxApiOpenGLGeneric::Init(const std::string& _title, int _x, int _y, int _w
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-void GfxApiOpenGLGeneric::Shutdown()
+void GfxApiOpenGLCompat::Shutdown()
 {
     SDL_GL_MakeCurrent(nullptr, nullptr);
 
@@ -102,14 +102,14 @@ void GfxApiOpenGLGeneric::Shutdown()
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-void GfxApiOpenGLGeneric::Activate()
+void GfxApiOpenGLCompat::Activate()
 {
     assert(mWnd);
     SDL_ShowWindow(mWnd);
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-void GfxApiOpenGLGeneric::Deactivate()
+void GfxApiOpenGLCompat::Deactivate()
 {
     assert(mWnd);
     SDL_HideWindow(mWnd);
@@ -117,7 +117,7 @@ void GfxApiOpenGLGeneric::Deactivate()
 
 #if 0
 // --------------------------------------------------------------------------------------------------------------------
-TestCase* GfxApiOpenGLGeneric::create_test(TestId id)
+TestCase* GfxApiOpenGLCompat::create_test(TestId id)
 {
     switch (id)
     {
@@ -143,7 +143,7 @@ TestCase* GfxApiOpenGLGeneric::create_test(TestId id)
 #endif
 
 // --------------------------------------------------------------------------------------------------------------------
-void GfxApiOpenGLGeneric::Clear(Vec4 _clearColor, GLfloat _clearDepth)
+void GfxApiOpenGLCompat::Clear(Vec4 _clearColor, GLfloat _clearDepth)
 {
     // TODO: This should go elsewhere.
     glViewport(0, 0, GetWidth(), GetHeight());
@@ -154,7 +154,7 @@ void GfxApiOpenGLGeneric::Clear(Vec4 _clearColor, GLfloat _clearDepth)
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-void GfxApiOpenGLGeneric::SwapBuffers()
+void GfxApiOpenGLCompat::SwapBuffers()
 {
     assert(mWnd);
 

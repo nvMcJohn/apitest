@@ -12,7 +12,7 @@ struct Options
     bool BenchmarkMode;
     std::string InitialProblem;
     std::string InitialSolution;
-
+    std::string InitialApi;
 
     static const char* DefaultInitialProblem;
     static const char* DefaultInitialSolution;
