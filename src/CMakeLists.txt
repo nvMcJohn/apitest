@@ -90,6 +90,7 @@ set( SRCS
     solutions/untexturedobjects/gl/bufferrange.cpp
     solutions/untexturedobjects/gl/bufferstorage.cpp
     solutions/untexturedobjects/gl/dynamicbuffer.cpp
+    solutions/untexturedobjects/gl/drawloop.cpp
     solutions/untexturedobjects/gl/multidraw.cpp
     solutions/untexturedobjects/gl/multidrawbuffer.cpp
     solutions/untexturedobjects/gl/texcoord.cpp
@@ -319,6 +320,11 @@ source_group( "Solutions\\UntexturedObjects\\GL\\DynamicBuffer" FILES
     solutions/untexturedobjects/gl/dynamicbuffer.h
     ../bin/Shaders/glsl/cubes_gl_dynamic_buffer_vs.glsl
     ../bin/Shaders/glsl/cubes_gl_dynamic_buffer_fs.glsl
+)
+
+source_group( "Solutions\\UntexturedObjects\\GL\\DrawLoop" FILES 
+    solutions/untexturedobjects/gl/drawloop.cpp
+    solutions/untexturedobjects/gl/drawloop.h
 )
 
 source_group( "Solutions\\UntexturedObjects\\GL\\MultiDraw" FILES 

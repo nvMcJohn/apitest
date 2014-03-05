@@ -16,6 +16,7 @@
 #include "solutions/untexturedobjects/gl/bufferrange.h"
 #include "solutions/untexturedobjects/gl/bufferstorage.h"
 #include "solutions/untexturedobjects/gl/dynamicbuffer.h"
+#include "solutions/untexturedobjects/gl/drawloop.h"
 #include "solutions/untexturedobjects/gl/multidraw.h"
 #include "solutions/untexturedobjects/gl/multidrawbuffer.h"
 #include "solutions/untexturedobjects/gl/texcoord.h"
@@ -76,6 +77,7 @@ ProblemFactory::ProblemFactory(bool _skipInit)
         }
         mProblems.push_back(newProb);
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLUniform());
+        mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLDrawLoop());
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLMultiDraw(true));
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLMultiDraw(false));
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLMultiDrawBuffer(true));
