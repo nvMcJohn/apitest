@@ -24,6 +24,7 @@
 #include "solutions/texturedquads/gl/bindless.h"
 #include "solutions/texturedquads/gl/bindlessmultidraw.h"
 #include "solutions/texturedquads/gl/naive.h"
+#include "solutions/texturedquads/gl/naiveuniform.h"
 #include "solutions/texturedquads/gl/notex.h"
 #include "solutions/texturedquads/gl/notexuniform.h"
 #include "solutions/texturedquads/gl/sparsebindlesstexturearray.h"
@@ -101,6 +102,7 @@ ProblemFactory::ProblemFactory(bool _skipInit)
         mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLBindless());
         mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLBindlessMultiDraw());
         mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLNaive());
+        mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLNaiveUniform());
         mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLNoTex());
         mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLNoTexUniform());
         mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLSparseBindlessTextureArray());

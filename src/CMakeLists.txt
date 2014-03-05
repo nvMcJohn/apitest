@@ -26,6 +26,8 @@ set( SHADERS
     ../bin/Shaders/glsl/textures_gl_bindless_multidraw_fs.glsl
     ../bin/Shaders/glsl/textures_gl_naive_vs.glsl
     ../bin/Shaders/glsl/textures_gl_naive_fs.glsl
+    ../bin/Shaders/glsl/textures_gl_naive_uniform_vs.glsl
+    ../bin/Shaders/glsl/textures_gl_naive_uniform_fs.glsl
     ../bin/Shaders/glsl/textures_gl_notex_vs.glsl
     ../bin/Shaders/glsl/textures_gl_notex_fs.glsl
     ../bin/Shaders/glsl/textures_gl_notex_uniform_vs.glsl
@@ -74,6 +76,7 @@ set( SRCS
     solutions/texturedquads/gl/bindless.cpp
     solutions/texturedquads/gl/bindlessmultidraw.cpp
     solutions/texturedquads/gl/naive.cpp
+    solutions/texturedquads/gl/naiveuniform.cpp
     solutions/texturedquads/gl/notex.cpp
     solutions/texturedquads/gl/notexuniform.cpp
     solutions/texturedquads/gl/texturearray.cpp
@@ -220,6 +223,13 @@ source_group( "Solutions\\TexturedQuads\\GL\\Naive" FILES
     solutions/texturedquads/gl/naive.h
     ../bin/Shaders/glsl/textures_gl_naive_vs.glsl
     ../bin/Shaders/glsl/textures_gl_naive_fs.glsl
+)
+
+source_group( "Solutions\\TexturedQuads\\GL\\NaiveUniform" FILES 
+    solutions/texturedquads/gl/naiveuniform.cpp
+    solutions/texturedquads/gl/naiveuniform.h
+    ../bin/Shaders/glsl/textures_gl_naive_uniform_vs.glsl
+    ../bin/Shaders/glsl/textures_gl_naive_uniform_fs.glsl
 )
 
 source_group( "Solutions\\TexturedQuads\\GL\\Notex (SOL)" FILES 
