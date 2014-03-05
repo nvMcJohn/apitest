@@ -50,7 +50,12 @@ void OnEvent(SDL_Event* _event, ApplicationState* _appState)
         {
             switch (_event->window.event) 
             {
-                // TODO: Need to deal with moving (to keep windows together).
+                case SDL_WINDOWEVENT_MOVED:
+                {
+                    _appState->BroadcastToOtherWindows(_event);
+                    break;
+                }
+                
                 // TODO: Need to deal with resizing (to keep windows together, and to resize BB).
                 case SDL_WINDOWEVENT_CLOSE:
                 {

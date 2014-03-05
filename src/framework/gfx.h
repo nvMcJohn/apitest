@@ -54,7 +54,7 @@ public:
         mHeight = _newHeight;
     }
 
-    void OnProblemOrSolutionSet(const std::string& _problemName, const std::string& _solutionName)
+    inline void OnProblemOrSolutionSet(const std::string& _problemName, const std::string& _solutionName)
     {
         if (mWnd == nullptr) {
             return;
@@ -67,6 +67,11 @@ public:
         }
 
         SDL_SetWindowTitle(mWnd, newTitle.c_str());
+    }
+
+    inline void MoveWindow(int _x, int _y)
+    {
+        SDL_SetWindowPosition(mWnd, _x, _y);
     }
 
 protected:

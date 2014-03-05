@@ -104,6 +104,7 @@ add_executable( apitest ${SRCS} ${HDRS} )
 source_group( "Framework" FILES 
     framework/apitest.cpp
 	framework/appstate.cpp
+	framework/appstate.h
 	framework/bufferlock.cpp
 	framework/bufferlock.h
     framework/console.cpp

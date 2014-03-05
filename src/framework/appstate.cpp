@@ -190,6 +190,22 @@ BenchmarkResults ApplicationState::GetBenchmarkResults() const
 }
 
 // --------------------------------------------------------------------------------------------------------------------
+void ApplicationState::BroadcastToOtherWindows(SDL_Event* _event)
+{
+    // TODO: Add any other messages as necessary to keep the windows in sync.
+    assert(_event->type == SDL_WINDOWEVENT 
+        && (_event->window.event == SDL_WINDOWEVENT_MOVED));
+
+    for (auto it = mGfxApis.begin(); it != mGfxApis.end(); ++it) {
+        if (it->second == mActiveApi) {
+            continue;
+        }
+
+        it->second->MoveWindow(_event->window.data1, _event->window.data2);
+    }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
 void ApplicationState::setInitialProblemAndSolution(const std::string _probName, const std::string _solnName)
 {
     // TODO: This should be cleaned up. It's error prone.

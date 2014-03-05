@@ -45,6 +45,8 @@ public:
 
     BenchmarkResults GetBenchmarkResults() const;
 
+    void BroadcastToOtherWindows(SDL_Event* _event);
+
 private:
     inline Problem* getProblem(int _index) const { return _index != kInactiveProblem ? mProblems[_index] : nullptr; }
     inline Solution* getSolution(int _index) const { return _index != kInactiveSolution ? mSolutions[_index] : nullptr; }
