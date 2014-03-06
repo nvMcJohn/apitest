@@ -5,11 +5,11 @@
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
-class TexturedQuadsGLNoTex : public TexturedQuadsSolution
+class TexturedQuadsGLNaiveUniform : public TexturedQuadsSolution
 {
 public:
-    TexturedQuadsGLNoTex();
-    virtual ~TexturedQuadsGLNoTex() { }
+    TexturedQuadsGLNaiveUniform();
+    virtual ~TexturedQuadsGLNaiveUniform() { }
 
     virtual bool Init(const std::vector<TexturedQuadsProblem::Vertex>& _vertices,
                       const std::vector<TexturedQuadsProblem::Index>& _indices,
@@ -20,19 +20,20 @@ public:
     virtual void Shutdown();
 
     // The name of this solution.
-    virtual std::string GetName() const { return "TexturedQuadsGLNoTex"; }
-    virtual bool SupportsApi(EGfxApi _api) const override { return IsOpenGL(_api); }
+    virtual std::string GetName() const { return "TexturedQuadsGLNaiveUniform"; }
 
 private:
     GLuint mIndexBuffer;
     GLuint mVertexBuffer;
-    GLuint mDrawIDBuffer;
-    GLuint mVertexArray;
     GLuint mProgram;
     GLuint mTransformBuffer;
 
     struct UniformLocations {
         GLuint ViewProjection;
+        GLuint DrawID;
+        GLuint gTex;
         UniformLocations() { memset(this, 0, sizeof(*this)); }
     } mUniformLocation;
+
+    std::vector<GLuint> mTextures;
 };

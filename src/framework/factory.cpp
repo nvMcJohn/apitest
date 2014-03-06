@@ -16,17 +16,24 @@
 #include "solutions/untexturedobjects/gl/bufferrange.h"
 #include "solutions/untexturedobjects/gl/bufferstorage.h"
 #include "solutions/untexturedobjects/gl/dynamicbuffer.h"
+#include "solutions/untexturedobjects/gl/mapunsynchronized.h"
+#include "solutions/untexturedobjects/gl/mappersistent.h"
+#include "solutions/untexturedobjects/gl/drawloop.h"
 #include "solutions/untexturedobjects/gl/multidraw.h"
+#include "solutions/untexturedobjects/gl/multidrawbuffer.h"
 #include "solutions/untexturedobjects/gl/texcoord.h"
 #include "solutions/untexturedobjects/gl/uniform.h"
 
 #include "solutions/texturedquads/gl/bindless.h"
 #include "solutions/texturedquads/gl/bindlessmultidraw.h"
 #include "solutions/texturedquads/gl/naive.h"
+#include "solutions/texturedquads/gl/naiveuniform.h"
 #include "solutions/texturedquads/gl/notex.h"
+#include "solutions/texturedquads/gl/notexuniform.h"
 #include "solutions/texturedquads/gl/sparsebindlesstexturearray.h"
 #include "solutions/texturedquads/gl/sparsebindlesstexturearraymultidraw.h"
 #include "solutions/texturedquads/gl/texturearray.h"
+#include "solutions/texturedquads/gl/texturearrayuniform.h"
 #include "solutions/texturedquads/gl/texturearraymultidraw.h"
 
 // All D3D11 includes should go here.
@@ -81,14 +88,19 @@ ProblemFactory::ProblemFactory(bool _skipInit)
         }
         mProblems.push_back(newProb);
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLUniform());
+        mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLDrawLoop());
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLMultiDraw(true));
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLMultiDraw(false));
+        mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLMultiDrawBuffer(true));
+        mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLMultiDrawBuffer(false));
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLBindless());
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLBindlessIndirect());
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLBufferRange());
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLBufferStorage(true));
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLBufferStorage(false));
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLDynamicBuffer());
+        mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLMapUnsynchronized());
+        mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLMapPersistent());
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLTexCoord());
     } else {
         newProb->Shutdown();
@@ -105,10 +117,13 @@ ProblemFactory::ProblemFactory(bool _skipInit)
         mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLBindless());
         mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLBindlessMultiDraw());
         mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLNaive());
+        mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLNaiveUniform());
         mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLNoTex());
+        mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLNoTexUniform());
         mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLSparseBindlessTextureArray());
         mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLSparseBindlessTextureArrayMultiDraw());
         mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLTextureArray());
+        mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLTextureArrayUniform());
         mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLTextureArrayMultiDraw(true));
         mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLTextureArrayMultiDraw(false));
     } else {

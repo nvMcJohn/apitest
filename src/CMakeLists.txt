@@ -12,6 +12,8 @@ set( SHADERS
     ../bin/Shaders/glsl/cubes_gl_buffer_storage_fs.glsl
     ../bin/Shaders/glsl/cubes_gl_dynamic_buffer_vs.glsl
     ../bin/Shaders/glsl/cubes_gl_dynamic_buffer_fs.glsl
+    ../bin/Shaders/glsl/cubes_gl_map_vs.glsl
+    ../bin/Shaders/glsl/cubes_gl_map_fs.glsl
     ../bin/Shaders/glsl/cubes_gl_multi_draw_vs.glsl
     ../bin/Shaders/glsl/cubes_gl_multi_draw_fs.glsl
     ../bin/Shaders/glsl/cubes_gl_tex_coord_vs.glsl
@@ -26,8 +28,18 @@ set( SHADERS
     ../bin/Shaders/glsl/textures_gl_bindless_multidraw_fs.glsl
     ../bin/Shaders/glsl/textures_gl_naive_vs.glsl
     ../bin/Shaders/glsl/textures_gl_naive_fs.glsl
+    ../bin/Shaders/glsl/textures_gl_naive_uniform_vs.glsl
+    ../bin/Shaders/glsl/textures_gl_naive_uniform_fs.glsl
     ../bin/Shaders/glsl/textures_gl_notex_vs.glsl
     ../bin/Shaders/glsl/textures_gl_notex_fs.glsl
+    ../bin/Shaders/glsl/textures_gl_notex_uniform_vs.glsl
+    ../bin/Shaders/glsl/textures_gl_notex_uniform_fs.glsl
+    ../bin/Shaders/glsl/textures_gl_texture_array_vs.glsl
+    ../bin/Shaders/glsl/textures_gl_texture_array_fs.glsl
+    ../bin/Shaders/glsl/textures_gl_texture_array_uniform_vs.glsl
+    ../bin/Shaders/glsl/textures_gl_texture_array_uniform_fs.glsl
+    ../bin/Shaders/glsl/textures_gl_texture_array_multidraw_vs.glsl
+    ../bin/Shaders/glsl/textures_gl_texture_array_multidraw_fs.glsl
     ../bin/Shaders/glsl/textures_gl_sparse_bindless_texture_array_vs.glsl    
     ../bin/Shaders/glsl/textures_gl_sparse_bindless_texture_array_fs.glsl
     ../bin/Shaders/glsl/textures_gl_sparse_bindless_texture_array_multidraw_vs.glsl
@@ -69,8 +81,11 @@ set( SRCS
     solutions/texturedquads/gl/bindless.cpp
     solutions/texturedquads/gl/bindlessmultidraw.cpp
     solutions/texturedquads/gl/naive.cpp
+    solutions/texturedquads/gl/naiveuniform.cpp
     solutions/texturedquads/gl/notex.cpp
+    solutions/texturedquads/gl/notexuniform.cpp
     solutions/texturedquads/gl/texturearray.cpp
+    solutions/texturedquads/gl/texturearrayuniform.cpp
     solutions/texturedquads/gl/texturearraymultidraw.cpp
     solutions/texturedquads/gl/sparsebindlesstexturearray.cpp
     solutions/texturedquads/gl/sparsebindlesstexturearraymultidraw.cpp
@@ -80,7 +95,11 @@ set( SRCS
     solutions/untexturedobjects/gl/bufferrange.cpp
     solutions/untexturedobjects/gl/bufferstorage.cpp
     solutions/untexturedobjects/gl/dynamicbuffer.cpp
+    solutions/untexturedobjects/gl/drawloop.cpp
+    solutions/untexturedobjects/gl/mapunsynchronized.cpp
+    solutions/untexturedobjects/gl/mappersistent.cpp
     solutions/untexturedobjects/gl/multidraw.cpp
+    solutions/untexturedobjects/gl/multidrawbuffer.cpp
     solutions/untexturedobjects/gl/texcoord.cpp
     solutions/untexturedobjects/gl/uniform.cpp
 
@@ -229,6 +248,13 @@ source_group( "Solutions\\TexturedQuads\\GL\\Naive" FILES
     ../bin/Shaders/glsl/textures_gl_naive_fs.glsl
 )
 
+source_group( "Solutions\\TexturedQuads\\GL\\NaiveUniform" FILES 
+    solutions/texturedquads/gl/naiveuniform.cpp
+    solutions/texturedquads/gl/naiveuniform.h
+    ../bin/Shaders/glsl/textures_gl_naive_uniform_vs.glsl
+    ../bin/Shaders/glsl/textures_gl_naive_uniform_fs.glsl
+)
+
 source_group( "Solutions\\TexturedQuads\\GL\\Notex (SOL)" FILES 
     solutions/texturedquads/gl/notex.cpp
     solutions/texturedquads/gl/notex.h
@@ -236,11 +262,25 @@ source_group( "Solutions\\TexturedQuads\\GL\\Notex (SOL)" FILES
     ../bin/Shaders/glsl/textures_gl_notex_fs.glsl
 )
 
+source_group( "Solutions\\TexturedQuads\\GL\\NotexUniform" FILES 
+    solutions/texturedquads/gl/notexuniform.cpp
+    solutions/texturedquads/gl/notexuniform.h
+    ../bin/Shaders/glsl/textures_gl_notex_uniform_vs.glsl
+    ../bin/Shaders/glsl/textures_gl_notex_uniform_fs.glsl
+)
+
 source_group( "Solutions\\TexturedQuads\\GL\\TextureArray" FILES 
     solutions/texturedquads/gl/texturearray.cpp
     solutions/texturedquads/gl/texturearray.h
     ../bin/Shaders/glsl/textures_gl_texture_array_vs.glsl    
     ../bin/Shaders/glsl/textures_gl_texture_array_fs.glsl
+)
+
+source_group( "Solutions\\TexturedQuads\\GL\\TextureArrayUniform" FILES 
+    solutions/texturedquads/gl/texturearrayuniform.cpp
+    solutions/texturedquads/gl/texturearrayuniform.h
+    ../bin/Shaders/glsl/textures_gl_texture_array_uniform_vs.glsl
+    ../bin/Shaders/glsl/textures_gl_texture_array_uniform_fs.glsl
 )
 
 source_group( "Solutions\\TexturedQuads\\GL\\TextureArrayMultidraw" FILES 
@@ -304,11 +344,33 @@ source_group( "Solutions\\UntexturedObjects\\GL\\DynamicBuffer" FILES
     ../bin/Shaders/glsl/cubes_gl_dynamic_buffer_fs.glsl
 )
 
+source_group( "Solutions\\UntexturedObjects\\GL\\MapUnsynchronized" FILES 
+    solutions/untexturedobjects/gl/mapunsynchronized.cpp
+    solutions/untexturedobjects/gl/mapunsynchronized.h
+    ../bin/Shaders/glsl/cubes_gl_map_vs.glsl
+    ../bin/Shaders/glsl/cubes_gl_map_fs.glsl
+)
+
+source_group( "Solutions\\UntexturedObjects\\GL\\MapPersistent" FILES 
+    solutions/untexturedobjects/gl/mappersistent.cpp
+    solutions/untexturedobjects/gl/mappersistent.h
+)
+
+source_group( "Solutions\\UntexturedObjects\\GL\\DrawLoop" FILES 
+    solutions/untexturedobjects/gl/drawloop.cpp
+    solutions/untexturedobjects/gl/drawloop.h
+)
+
 source_group( "Solutions\\UntexturedObjects\\GL\\MultiDraw" FILES 
     solutions/untexturedobjects/gl/multidraw.cpp
     solutions/untexturedobjects/gl/multidraw.h
     ../bin/Shaders/glsl/cubes_gl_multi_draw_vs.glsl
     ../bin/Shaders/glsl/cubes_gl_multi_draw_fs.glsl
+)
+
+source_group( "Solutions\\UntexturedObjects\\GL\\MultiDrawBuffer" FILES 
+    solutions/untexturedobjects/gl/multidrawbuffer.cpp
+    solutions/untexturedobjects/gl/multidrawbuffer.h
 )
 
 source_group( "Solutions\\UntexturedObjects\\GL\\TexCoord" FILES 

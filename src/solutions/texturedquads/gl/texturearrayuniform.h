@@ -1,15 +1,16 @@
 #pragma once
 
 #include "solutions/texturedquadssoln.h"
+#include "framework/sparse_bindless_texarray.h"
 
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
-class TexturedQuadsGLNoTex : public TexturedQuadsSolution
+class TexturedQuadsGLTextureArrayUniform : public TexturedQuadsSolution
 {
 public:
-    TexturedQuadsGLNoTex();
-    virtual ~TexturedQuadsGLNoTex() { }
+    TexturedQuadsGLTextureArrayUniform();
+    virtual ~TexturedQuadsGLTextureArrayUniform() { }
 
     virtual bool Init(const std::vector<TexturedQuadsProblem::Vertex>& _vertices,
                       const std::vector<TexturedQuadsProblem::Index>& _indices,
@@ -20,19 +21,24 @@ public:
     virtual void Shutdown();
 
     // The name of this solution.
-    virtual std::string GetName() const { return "TexturedQuadsGLNoTex"; }
-    virtual bool SupportsApi(EGfxApi _api) const override { return IsOpenGL(_api); }
+    virtual std::string GetName() const { return "TexturedQuadsGLTextureArrayUniform"; }
 
 private:
     GLuint mIndexBuffer;
     GLuint mVertexBuffer;
-    GLuint mDrawIDBuffer;
-    GLuint mVertexArray;
     GLuint mProgram;
     GLuint mTransformBuffer;
+    GLuint mTexAddressBuffer;
 
     struct UniformLocations {
         GLuint ViewProjection;
+        GLuint DrawID;
+        GLuint TexContainer;
         UniformLocations() { memset(this, 0, sizeof(*this)); }
     } mUniformLocation;
+
+    std::vector<Texture2D*> mTextures;
+    std::vector<GLint> mTexUnits;
+
+    TextureManager mTexManager;
 };

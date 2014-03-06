@@ -8,23 +8,25 @@ layout (std140, binding = 0) buffer CB0
 };
 
 uniform mat4 ViewProjection;
+uniform int DrawID;
 
 // Input --------------------------------------------------------------------------------------------------------------
-layout(location = 0) in vec3 In_v3Pos;
-layout(location = 1) in vec2 In_v2TexCoord;
-layout(location = 2) in int In_iDrawID;
+layout(location=0) in vec3 In_v3Pos;
+layout(location=1) in vec2 In_v2TexCoord;
 
-// Output -------------------------------------------------------------------------------------------------------------
+//  Output ------------------------------------------------------------------------------------------------------------
 out block {
     vec2 v2TexCoord;
+    flat int iDrawID;
 } Out;
 
 // Functions ----------------------------------------------------------------------------------------------------------
 void main()
 {
-    mat4 World = Transforms[In_iDrawID];
+    mat4 World = Transforms[DrawID];
     vec4 worldPos = World * vec4(In_v3Pos, 1);
     gl_Position = ViewProjection * worldPos;
-
+    
     Out.v2TexCoord = In_v2TexCoord;
+    Out.iDrawID = DrawID;
 }

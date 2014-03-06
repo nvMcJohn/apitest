@@ -2,29 +2,34 @@
 #extension GL_ARB_shader_storage_buffer_object : require
 
 // Uniforms / SSBO ----------------------------------------------------------------------------------------------------
-layout (std140, binding = 0) buffer CB0
+struct Tex2DAddress
 {
-    mat4 Transforms[];
+    uint Container;
+    float Page;
 };
 
-uniform mat4 ViewProjection;
+layout (std140, binding = 1) readonly buffer CB1
+{
+    Tex2DAddress texAddress[];
+};
+
+uniform sampler2DArray TexContainer[16];
 
 // Input --------------------------------------------------------------------------------------------------------------
-layout(location = 0) in vec3 In_v3Pos;
-layout(location = 1) in vec2 In_v2TexCoord;
-layout(location = 2) in int In_iDrawID;
+in block {
+    vec2 v2TexCoord;
+    flat int iDrawID;
+} In;
 
 // Output -------------------------------------------------------------------------------------------------------------
-out block {
-    vec2 v2TexCoord;
-} Out;
+layout(location=0) out vec4 Out_v4Color;
 
 // Functions ----------------------------------------------------------------------------------------------------------
 void main()
 {
-    mat4 World = Transforms[In_iDrawID];
-    vec4 worldPos = World * vec4(In_v3Pos, 1);
-    gl_Position = ViewProjection * worldPos;
-
-    Out.v2TexCoord = In_v2TexCoord;
+    int drawID = int(In.iDrawID);
+    Tex2DAddress addr = texAddress[drawID];
+    vec3 texCoord = vec3(In.v2TexCoord.xy, addr.Page);
+    vec4 t = texture(TexContainer[addr.Container], texCoord);
+    Out_v4Color = vec4(t.xyz, 1);
 }

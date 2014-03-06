@@ -11,12 +11,12 @@ uniform mat4 ViewProjection;
 
 // Input --------------------------------------------------------------------------------------------------------------
 layout(location = 0) in vec3 In_v3Pos;
-layout(location = 1) in vec2 In_v2TexCoord;
+layout(location = 1) in vec3 In_v3Color;
 layout(location = 2) in int In_iDrawID;
 
 // Output -------------------------------------------------------------------------------------------------------------
 out block {
-    vec2 v2TexCoord;
+    vec3 v3Color;
 } Out;
 
 // Functions ----------------------------------------------------------------------------------------------------------
@@ -26,5 +26,5 @@ void main()
     vec4 worldPos = World * vec4(In_v3Pos, 1);
     gl_Position = ViewProjection * worldPos;
 
-    Out.v2TexCoord = In_v2TexCoord;
+    Out.v3Color = In_v3Color;
 }
