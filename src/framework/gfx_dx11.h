@@ -39,6 +39,10 @@ protected:
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // DX11 Utilities
+bool CompileProgram(const std::wstring& _vsFilename, ID3D11VertexShader** _outVertexShader,
+                    const std::wstring& _psFilename, ID3D11PixelShader** _outPixelShader,
+                    UINT _inputElementCount, const D3D11_INPUT_ELEMENT_DESC* _inputElementDescs, ID3D11InputLayout** _outInputLayout);
+
 HRESULT CreateRenderTarget(IDXGISwapChain* dxgi_swap_chain, ID3D11RenderTargetView** out_render_target_view);
 HRESULT CreateDepthBuffer(IDXGISwapChain* dxgi_swap_chain, ID3D11DepthStencilView** out_depth_stencil_view);
 

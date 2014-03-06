@@ -90,6 +90,7 @@ CommandLineOption gClOpts[] = {
     { "-b",     "--benchmark",      StoreTrue,          offsetof(Options, BenchmarkMode),   "Run in benchmark mode, then exit." },
     { "-p",     "--problem",        StoreString,        offsetof(Options, InitialProblem),  "The next argument specifies the initial problem to use."},
     { "-s",     "--solution",       StoreString,        offsetof(Options, InitialSolution), "The next argument specifies the initial solution to show."},
+    { "-a",     "--api",            StoreString,        offsetof(Options, InitialApi),      "The default API to use." },
     { "-h",     "--help",           PrintHelpAndExit,   size_t(0),                          "Display this help text and exit." },
 
     // Sentinel, must be last.
@@ -123,7 +124,7 @@ Options ProcessCommandLine(int _argc, char* _argv[])
         retVal.InitialSolution = "";
     }
 
-    if (retVal.InitialSolution != retVal.DefaultInitialSolution && retVal.InitialProblem == retVal.DefaultInitialProblem) {
+    if (retVal.InitialProblem == retVal.DefaultInitialProblem && retVal.InitialSolution != retVal.DefaultInitialSolution) {
         retVal.InitialProblem = "";
     }
 
@@ -140,25 +141,41 @@ void PrintHelp()
     console::log("");
     console::log("Options");
     for (int i = 0; gClOpts[i].OptionShort != nullptr; ++i) {
-        console::log("  %s, %-20s %s", gClOpts[i].OptionShort, gClOpts[i].OptionLong, gClOpts[i].HelpText);
+        console::log("  %s, %-22s %s", gClOpts[i].OptionShort, gClOpts[i].OptionLong, gClOpts[i].HelpText);
     }
 
-    const char* kTableFormat = "%-27s%-20s";
-    console::log("");
-    console::log(kTableFormat, "Problems", "Solutions");
-    ProblemFactory problemsAndSolutions(true);
-    auto allProblems = problemsAndSolutions.GetProblems();
-
-    for (auto probIt = allProblems.cbegin(); probIt != allProblems.cend(); ++probIt) {
+    {
+        const char* kTableEntry = "  %-27s%-20s";
         console::log("");
-        Problem* prob = (*probIt);
-        // console::log(kTableFormat, prob->GetName().c_str(), "");
+        console::log("Problems & Solutions");
+        console::log(kTableEntry, "Problems", "Solutions");
+        ProblemFactory problemsAndSolutions(true);
+        auto allProblems = problemsAndSolutions.GetProblems();
 
-        auto solutions = problemsAndSolutions.GetSolutions(prob, nullptr);
-        for (auto solnIt = solutions.cbegin(); solnIt != solutions.cend(); ++solnIt) {
-            Solution* soln = (*solnIt);
-            console::log(kTableFormat, prob->GetName().c_str(), soln->GetName().c_str());
+        for (auto probIt = allProblems.cbegin(); probIt != allProblems.cend(); ++probIt) {
+            console::log("");
+            Problem* prob = (*probIt);
+            // console::log(kTableFormat, prob->GetName().c_str(), "");
+
+            auto solutions = problemsAndSolutions.GetSolutions(prob, nullptr);
+            for (auto solnIt = solutions.cbegin(); solnIt != solutions.cend(); ++solnIt) {
+                Solution* soln = (*solnIt);
+                console::log(kTableEntry, prob->GetName().c_str(), soln->GetName().c_str());
+            }
         }
+        console::log("");
+    }
+
+    {
+        const char* kTableEntry = "  %-12s%-20s";
+
+        console::log("");
+        console::log("APIs (use the short name on the command line)");
+        console::log(kTableEntry, "Short Name", "Long Name");
+
+        // This isn't ideal. But it'll work for now.
+        console::log(kTableEntry, GfxApiOpenGLCompat::SGetShortName(), GfxApiOpenGLCompat::SGetLongName());
+        console::log(kTableEntry, GfxApiDirect3D11::SGetShortName(), GfxApiDirect3D11::SGetLongName());
     }
 }
 

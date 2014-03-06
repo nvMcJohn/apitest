@@ -32,6 +32,9 @@ set( SHADERS
     ../bin/Shaders/glsl/textures_gl_sparse_bindless_texture_array_fs.glsl
     ../bin/Shaders/glsl/textures_gl_sparse_bindless_texture_array_multidraw_vs.glsl
     ../bin/Shaders/glsl/textures_gl_sparse_bindless_texture_array_multidraw_fs.glsl
+
+	../bin/Shaders/hlsl/streaming_vb_d3d11_vs.hlsl
+    ../bin/Shaders/hlsl/streaming_vb_d3d11_ps.hlsl
 )
 
 set( SRCS
@@ -59,7 +62,7 @@ set( SRCS
     solutions/texturedquadssoln.cpp
     solutions/untexturedobjectssoln.cpp
 
-    solutions/dynamicstreaming/gl/buffersubdata.cpp
+	solutions/dynamicstreaming/gl/buffersubdata.cpp
     solutions/dynamicstreaming/gl/mapunsynchronized.cpp
     solutions/dynamicstreaming/gl/mappersistent.cpp
 
@@ -86,8 +89,10 @@ set( SRCS
 
 if( MSVC )
         set( SRCS ${SRCS} 
-                framework/gfx_dx11.cpp
-                # streaming_vb_dx11.cpp
+            framework/gfx_dx11.cpp
+
+			solutions/dynamicstreaming/d3d11/mapnooverwrite.cpp
+            # streaming_vb_dx11.cpp
         )
 endif( MSVC )
 
@@ -162,6 +167,19 @@ source_group( "Solutions" FILES
 source_group( "Solutions\\DynamicStreaming" FILES 
     solutions/dynamicstreamingsoln.cpp
     solutions/dynamicstreamingsoln.h
+)
+
+source_group( "Solutions\\DynamicStreaming\\D3D11" FILES
+    ../bin/Shaders/hlsl/streaming_vb_d3d11_vs.hlsl
+    ../bin/Shaders/hlsl/streaming_vb_d3d11_ps.hlsl
+)
+
+source_group( "Solutions\\DynamicStreaming\\D3D11\\MapNoOverwrite" FILES
+    solutions/dynamicstreaming/d3d11/mapnooverwrite.cpp
+    solutions/dynamicstreaming/d3d11/mapnooverwrite.h
+)
+
+source_group( "Solutions\\DynamicStreaming\\GL" FILES
     ../bin/Shaders/glsl/streaming_vb_gl_vs.glsl
     ../bin/Shaders/glsl/streaming_vb_gl_fs.glsl
 )

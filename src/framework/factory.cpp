@@ -6,6 +6,9 @@
 #include "problems/texturedquads.h"
 #include "problems/untexturedobjects.h"
 
+// TODO: Not sure how to only do these for Windows yet.
+#include "solutions/dynamicstreaming/d3d11/mapnooverwrite.h"
+
 #include "solutions/dynamicstreaming/gl/buffersubdata.h"
 #include "solutions/dynamicstreaming/gl/mappersistent.h"
 #include "solutions/dynamicstreaming/gl/mapunsynchronized.h"
@@ -59,6 +62,8 @@ ProblemFactory::ProblemFactory(bool _skipInit)
         mSolutions[mProblems.back()->GetName()].push_back(new DynamicStreamingGLBufferSubData());
         mSolutions[mProblems.back()->GetName()].push_back(new DynamicStreamingGLMapUnsynchronized());
         mSolutions[mProblems.back()->GetName()].push_back(new DynamicStreamingGLMapPersistent());
+
+        mSolutions[mProblems.back()->GetName()].push_back(new DynamicStreamingD3D11MapNoOverwrite());
     } else {
         newProb->Shutdown();
         SafeDelete(newProb);
