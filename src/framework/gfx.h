@@ -85,4 +85,9 @@ private:
 };
 
 GfxBaseApi *CreateGfxOpenGLGeneric();
-GfxBaseApi *CreateGfxDirect3D11();
+
+#if WITH_D3D11
+    GfxBaseApi *CreateGfxDirect3D11();
+#else
+    inline GfxBaseApi *CreateGfxDirect3D11() { return nullptr; }
+#endif

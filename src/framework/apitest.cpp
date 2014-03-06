@@ -17,9 +17,6 @@
 #   pragma comment(lib, "imm32.lib")
 #   pragma comment(lib, "version.lib")
 #   pragma comment(lib, "winmm.lib")
-#else
-    // This is not supported on !Windows.
-    GfxBaseApi *CreateGfxDirect3D11()       { return nullptr; }
 #endif
 
 #ifdef _WIN32

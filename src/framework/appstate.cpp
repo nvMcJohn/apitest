@@ -31,7 +31,7 @@ ApplicationState::ApplicationState(const Options& _opts)
     if (mActiveApi) {
         mActiveApi->Activate();
     } else {
-        console::error("Failed to select api with name '%s', run with -h to see a list of all APIs.");
+        console::error("Failed to select api with name '%s', run with -h to see a list of all APIs.", _opts.InitialApi.c_str());
     }
 
     mProblems = mFactory.GetProblems();

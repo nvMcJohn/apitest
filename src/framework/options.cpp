@@ -2,7 +2,11 @@
 
 #include "options.h"
 #include "factory.h"
-#include "gfx_dx11.h"
+
+#if WITH_D3D11
+#   include "gfx_dx11.h"
+#endif
+
 #include "gfx_gl.h"
 #include "problems/problem.h"
 #include "solutions/solution.h"
@@ -175,7 +179,9 @@ void PrintHelp()
 
         // This isn't ideal. But it'll work for now.
         console::log(kTableEntry, GfxApiOpenGLCompat::SGetShortName(), GfxApiOpenGLCompat::SGetLongName());
-        console::log(kTableEntry, GfxApiDirect3D11::SGetShortName(), GfxApiDirect3D11::SGetLongName());
+        #if WITH_D3D11
+            console::log(kTableEntry, GfxApiDirect3D11::SGetShortName(), GfxApiDirect3D11::SGetLongName());
+        #endif
     }
 }
 

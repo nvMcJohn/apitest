@@ -87,14 +87,13 @@ set( SRCS
     ${SHADERS}
 )
 
-if( MSVC )
+if( apitest_WITH_D3D11 )
         set( SRCS ${SRCS} 
             framework/gfx_dx11.cpp
 
 			solutions/dynamicstreaming/d3d11/mapnooverwrite.cpp
-            # streaming_vb_dx11.cpp
         )
-endif( MSVC )
+endif( apitest_WITH_D3D11 )
 
 
 # Setup PCH
