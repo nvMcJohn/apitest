@@ -107,11 +107,11 @@ set( SRCS
 )
 
 if( apitest_WITH_D3D11 )
-        set( SRCS ${SRCS} 
-            framework/gfx_dx11.cpp
+	set( SRCS ${SRCS} 
+		framework/gfx_dx11.cpp
 
-			solutions/dynamicstreaming/d3d11/mapnooverwrite.cpp
-        )
+		solutions/dynamicstreaming/d3d11/mapnooverwrite.cpp
+	)
 endif( apitest_WITH_D3D11 )
 
 
@@ -387,7 +387,6 @@ source_group( "Solutions\\UntexturedObjects\\GL\\Uniforms" FILES
     ../bin/Shaders/glsl/cubes_gl_uniform_fs.glsl
 )
 
-
 if( MSVC )
         target_link_libraries( apitest ${SDL_LIBRARY_DIR}/SDL2.lib )
         target_link_libraries( apitest ${SDL_LIBRARY_DIR}/SDL2main.lib )
@@ -395,6 +394,7 @@ else()
         target_link_libraries( apitest ${SDL_LIBRARY_DIR}/libSDL2.a )
         target_link_libraries( apitest ${SDL_LIBRARY_DIR}/libSDL2main.a )
 endif( MSVC )
+
 
 if( APPLE )
         find_library( LIB_CARBON Carbon )
@@ -412,7 +412,16 @@ elseif( UNIX )
 endif( APPLE )
 
 # Don't know why these don't get picked up automatically. Don't care. 
-add_dependencies( apitest SDL2 SDL2main )
+add_dependencies( apitest SDL2 SDL2main SDL2deployed )
 
 # Change the debug executable name
 set_target_properties( apitest PROPERTIES RUNTIME_OUTPUT_NAME_DEBUG apitest_d )
+
+if( apitest_WITH_D3D11 )
+	add_custom_target(
+		CopyRedist
+		COMMAND ${CMAKE_COMMAND}
+		-E copy_if_different "${apitest_SOURCE_DIR}/thirdparty/Microsoft/D3D/x86/d3dcompiler_46.dll" "${apitest_BIN_DIR}"
+	)
+	add_dependencies(apitest CopyRedist)
+endif()

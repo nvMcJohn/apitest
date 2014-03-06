@@ -9,7 +9,7 @@
 class TexturedQuadsGLSparseBindlessTextureArrayMultiDraw : public TexturedQuadsSolution
 {
 public:
-    TexturedQuadsGLSparseBindlessTextureArrayMultiDraw();
+    TexturedQuadsGLSparseBindlessTextureArrayMultiDraw(bool _useShaderDraw);
     virtual ~TexturedQuadsGLSparseBindlessTextureArrayMultiDraw() { }
 
     virtual bool Init(const std::vector<TexturedQuadsProblem::Vertex>& _vertices,
@@ -20,15 +20,18 @@ public:
     virtual void Render(const std::vector<Matrix>& _transforms);
     virtual void Shutdown();
 
-    virtual std::string GetName() const { return "TexturedQuadsGLSparseBindlessTextureArrayMultiDraw"; }
+    virtual std::string GetName() const;
     virtual bool SupportsApi(EGfxApi _api) const override { return IsOpenGL(_api); }
 
 private:
     GLuint mIndexBuffer;
     GLuint mVertexBuffer;
+    GLuint mDrawIDBuffer;
     GLuint mProgram;
     GLuint mTransformBuffer;
     GLuint mTexAddressBuffer;
+
+    bool mUseShaderDrawParameters;
 
     std::vector<Texture2D*> mTextures;
     std::vector<DrawElementsIndirectCommand> mCommands;

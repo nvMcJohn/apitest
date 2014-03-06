@@ -121,7 +121,8 @@ ProblemFactory::ProblemFactory(bool _skipInit)
         mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLNoTex());
         mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLNoTexUniform());
         mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLSparseBindlessTextureArray());
-        mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLSparseBindlessTextureArrayMultiDraw());
+        mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLSparseBindlessTextureArrayMultiDraw(true));
+        mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLSparseBindlessTextureArrayMultiDraw(false));
         mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLTextureArray());
         mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLTextureArrayUniform());
         mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLTextureArrayMultiDraw(true));

@@ -8,6 +8,7 @@
 
 # Build results
 _out/
+/bin/d3dcompiler_46.dll
 /bin/SDL2.dll
 /bin/apitest*.exe
 /bin/*.idb

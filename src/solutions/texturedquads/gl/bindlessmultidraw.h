@@ -19,7 +19,6 @@ public:
     virtual void Render(const std::vector<Matrix>& _transforms);
     virtual void Shutdown();
 
-    // The name of this solution.
     virtual std::string GetName() const { return "TexturedQuadsGLBindlessMultiDraw"; }
     virtual bool SupportsApi(EGfxApi _api) const override { return IsOpenGL(_api); }
 
