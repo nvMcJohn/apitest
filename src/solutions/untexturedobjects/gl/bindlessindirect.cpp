@@ -198,11 +198,17 @@ void UntexturedObjectsGLBindlessIndirect::Shutdown()
         glUnmapBuffer(GL_DRAW_INDIRECT_BUFFER);
     }
 
-    glDeleteQueries(m_queries.size(), &*m_queries.begin());
+    if (!m_queries.empty()) {
+        glDeleteQueries(m_queries.size(), &*m_queries.begin());
+    }
     glDeleteBuffers(1, &m_cmd_buffer);
 
-    glDeleteBuffers(m_ibs.size(), &*m_ibs.begin());
-    glDeleteBuffers(m_vbs.size(), &*m_vbs.begin());
+    if (!m_ibs.empty()) {
+        glDeleteBuffers(m_ibs.size(), &*m_ibs.begin());
+    }
+    if (!m_vbs.empty()) {
+        glDeleteBuffers(m_vbs.size(), &*m_vbs.begin());
+    }
     glDeleteProgram(m_prog);
 
     // TODO: These could also go in ::End. 
