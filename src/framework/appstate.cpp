@@ -7,7 +7,8 @@
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 ApplicationState::BenchmarkState::BenchmarkState()
-: mProblemsBenchmarked()
+: mGfxApisBenchmarked()
+, mProblemsBenchmarked()
 , mSolutionsBenchmarked()
 , mBenchmarkTimeStart()
 , mBenchmarkSingle()
@@ -52,14 +53,7 @@ ApplicationState::ApplicationState(const Options& _opts)
 // --------------------------------------------------------------------------------------------------------------------
 ApplicationState::~ApplicationState()
 {
-    Problem* prob = GetActiveProblem();
-    if (prob) {
-        prob->Shutdown();
-    }
-
-    mActiveSolution = kInactiveSolution;
-    mActiveProblem = kInactiveProblem;
-
+    shutdownActiveProblem();
     destroyGfxApis();
 }
 
@@ -98,15 +92,10 @@ void ApplicationState::NextAPI()
         return;
     }
 
-    // Shutdown the problem for now, we'll bring it back up in a minute.
-    Problem* activeProb = GetActiveProblem();
-    if (activeProb) {
-        activeProb->SetSolution(nullptr);
-        mActiveSolution = kInactiveSolution;
-        activeProb->Shutdown();
-        // Don't actually clear the active problem here, because we're going to try 
-        // to set it back up shortly.
-    }
+    // Shutdown the problem for now, we'll bring it back up in a minute.  Don't
+    // actually clear the active problem here, because we're going to try to
+    // set it back up shortly.
+    mActiveProblem = shutdownActiveProblem();
 
     auto it = mGfxApis.find(mActiveApi->GetShortName());
     assert(it != mGfxApis.end());
@@ -137,29 +126,30 @@ void ApplicationState::Update()
         if (elapsed >= mBenchmarkTime) {
             ++mBenchmarkState.mSolutionsBenchmarked;
 
-            mBenchmarkState.mBenchmarkTimings[std::make_pair(GetActiveProblem()->GetName(), GetActiveSolution()->GetName())]
+            mBenchmarkState.mBenchmarkTimings[std::make_tuple(GetActiveApi()->GetShortName(), GetActiveProblem()->GetName(), GetActiveSolution()->GetName())]
                                             = std::make_tuple(mFrameCount, elapsed, 0);
             
             if (mBenchmarkState.mBenchmarkSingle) {
-                Problem* prob = GetActiveProblem();
-                if (prob) {
-                    prob->Shutdown();
-                }
-
+                shutdownActiveProblem();
                 return;
             }
 
             if (mBenchmarkState.mSolutionsBenchmarked >= GetSolutionCount()) {
                 ++mBenchmarkState.mProblemsBenchmarked;
 
-                if (IsBenchmarkModeComplete()) {
-                    Problem* prob = GetActiveProblem();
-                    if (prob) {
-                        prob->Shutdown();
-                        mActiveProblem = kInactiveProblem;
-                    }
+                if (mBenchmarkState.mProblemsBenchmarked >= mProblems.size()) {
+                    ++mBenchmarkState.mGfxApisBenchmarked;
 
-                    return;
+                    if (mBenchmarkState.mGfxApisBenchmarked >= mGfxApis.size()) {
+                        shutdownActiveProblem();
+                        return;
+                    } else {
+                        mBenchmarkState.mSolutionsBenchmarked = 0;
+                        mBenchmarkState.mProblemsBenchmarked = 0;
+
+                        NextAPI();
+                        mBenchmarkState.mBenchmarkTimeStart = timer::Read();
+                    }
                 } else {
                     mBenchmarkState.mSolutionsBenchmarked = 0;
                     
@@ -179,7 +169,7 @@ void ApplicationState::Update()
 // --------------------------------------------------------------------------------------------------------------------
 bool ApplicationState::IsBenchmarkModeComplete() const
 {
-    return mBenchmarkState.mProblemsBenchmarked >= mProblems.size()
+    return mBenchmarkState.mGfxApisBenchmarked >= mGfxApis.size()
         || (mBenchmarkState.mBenchmarkSingle && mBenchmarkState.mSolutionsBenchmarked >= 1);
 }
 
@@ -203,6 +193,21 @@ void ApplicationState::BroadcastToOtherWindows(SDL_Event* _event)
 
         it->second->MoveWindow(_event->window.data1, _event->window.data2);
     }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+int ApplicationState::shutdownActiveProblem()
+{
+    auto index = mActiveProblem;
+    auto problem = GetActiveProblem();
+    if (problem != nullptr) {
+        problem->SetSolution(nullptr);
+        mActiveSolution = kInactiveSolution;
+
+        problem->Shutdown();
+        mActiveProblem = kInactiveProblem;
+    }
+    return index;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -311,13 +316,7 @@ void ApplicationState::changeProblem(int _offset)
 {
     int prevProblem = mActiveProblem;
     if (_offset != 0) {
-        Problem* prevProblemPtr = GetActiveProblem();
-        if (prevProblemPtr) {
-            prevProblemPtr->SetSolution(nullptr);
-            mActiveSolution = kInactiveSolution;
-            prevProblemPtr->Shutdown();
-            mActiveProblem = kInactiveProblem;
-        }
+        shutdownActiveProblem();
     }
 
     const size_t problemCount = mProblems.size();
@@ -346,6 +345,8 @@ void ApplicationState::changeProblem(int _offset)
 
             // Otherwise we failed, continue along the way.
             newProb->Shutdown();
+            mActiveProblem = kInactiveProblem;
+
             if (mBenchmarkMode) {
                 ++mBenchmarkState.mProblemsBenchmarked;
             }
@@ -383,7 +384,7 @@ void ApplicationState::changeSolution(int _offset)
             mActiveSolution = newSolution;
             break;
         } else if (mBenchmarkMode) {
-            mBenchmarkState.mBenchmarkTimings[std::make_pair(GetActiveProblem()->GetName(), newSoln->GetName())]
+            mBenchmarkState.mBenchmarkTimings[std::make_tuple(GetActiveApi()->GetShortName(), GetActiveProblem()->GetName(), newSoln->GetName())]
                                             = std::make_tuple<unsigned int, double, unsigned int>(0, 0.0, 0);
             ++mBenchmarkState.mSolutionsBenchmarked;
         }
