@@ -8,7 +8,7 @@
 
 class Solution;
 
-typedef std::map<std::pair<std::string, std::string>, std::tuple<unsigned int, double, unsigned int>> BenchmarkResults;
+typedef std::map<std::tuple<std::string, std::string, std::string>, std::tuple<unsigned int, double, unsigned int>> BenchmarkResults;
 
 const int kInactiveProblem = -1;
 const int kInactiveSolution = -1;
@@ -51,6 +51,7 @@ private:
     inline Problem* getProblem(int _index) const { return _index != kInactiveProblem ? mProblems[_index] : nullptr; }
     inline Solution* getSolution(int _index) const { return _index != kInactiveSolution ? mSolutions[_index] : nullptr; }
 
+    int shutdownActiveProblem();
     void setInitialProblemAndSolution(const std::string _probName, const std::string _solnName);
     int findProblemWithSolution(const std::string _solnName, int* _outSolution);
 
@@ -83,6 +84,7 @@ private:
     float mBenchmarkTime;
     bool mBenchmarkMode;
     struct BenchmarkState {
+        size_t mGfxApisBenchmarked;
         size_t mProblemsBenchmarked;
         size_t mSolutionsBenchmarked;
         unsigned long long mBenchmarkTimeStart;

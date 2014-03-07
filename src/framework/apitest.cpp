@@ -228,6 +228,7 @@ int main(int argc, char* argv[])
 // --------------------------------------------------------------------------------------------------------------------
 struct BenchmarkRow
 {
+    std::string mGfxApiName;
     std::string mProblemName;
     std::string mSolutionName;
     unsigned int mFrameCount;
@@ -241,10 +242,13 @@ struct BenchmarkRow
 // --------------------------------------------------------------------------------------------------------------------
 bool BechmarkSorter(const BenchmarkRow& _lhs, const BenchmarkRow& _rhs)
 {
-    if (_lhs.mProblemName == _rhs.mProblemName) {
-        return _lhs.mFramesPerSecond > _rhs.mFramesPerSecond;
-    }
-    return _lhs.mProblemName < _rhs.mProblemName;
+    if (_lhs.mProblemName < _rhs.mProblemName) return true;
+    if (_lhs.mProblemName > _rhs.mProblemName) return false;
+
+    if (_lhs.mGfxApiName < _rhs.mGfxApiName) return true;
+    if (_lhs.mGfxApiName > _rhs.mGfxApiName) return false;
+
+    return _lhs.mMillisecondsPerFrame < _rhs.mMillisecondsPerFrame;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -252,19 +256,20 @@ std::string asTable(BenchmarkResults _results)
 {
     char buffer[1024];
     std::string retStr;
-    const char* kHeaderFmt =  " %-23s %-30s %7s %12s %12s %12s\n";
-    const char* kRowFmt =     " %-23s %-30s %7d %12.3f %12.3f %12.3f\n";
-    const char* kRowFailFmt = " %-23s %-30s %7s %12s %12s %12s\n";
+    const char* kHeaderFmt =  " %-23s %-10s %-30s %7s %12s %12s %12s\n";
+    const char* kRowFmt =     " %-23s %-10s %-30s %7d %12.3f %12.3f %12.3f\n";
+    const char* kRowFailFmt = " %-23s %-10s %-30s %7s %12s %12s %12s\n";
 
-    snprintf(buffer, sizeof(buffer)-1, kHeaderFmt, "Problem", "Solution", "Frames", "Elapsed (s)", "fps", "ms/f");
+    snprintf(buffer, sizeof(buffer)-1, kHeaderFmt, "Problem", "API", "Solution", "Frames", "Elapsed (s)", "fps", "ms/f");
     retStr += buffer;
 
     std::vector<BenchmarkRow> rows;
 
     // First, accumulate data into rows.
     for (auto it = _results.cbegin(); it != _results.cend(); ++it) {
-        std::string problemName = it->first.first;
-        std::string solutionName = it->first.second;
+        std::string gfxApiName = std::get<0>(it->first);
+        std::string problemName = std::get<1>(it->first);
+        std::string solutionName = std::get<2>(it->first);
         const unsigned int frameCount = std::get<0>(it->second);
         const double elapsedS = std::get<1>(it->second);
         const unsigned int workCount = std::get<2>(it->second);
@@ -275,14 +280,14 @@ std::string asTable(BenchmarkResults _results)
             double wps = workCount / elapsedS;
 
             BenchmarkRow newRow = {
-                problemName, solutionName,
+                gfxApiName, problemName, solutionName,
                 frameCount, elapsedS, workCount, fps, mspf, wps
             };
 
             rows.push_back(newRow);
         } else {
             BenchmarkRow newRow = {
-                problemName, solutionName,
+                gfxApiName, problemName, solutionName,
                 frameCount, elapsedS, workCount, 0, 0, 0
             };
         }
@@ -294,9 +299,9 @@ std::string asTable(BenchmarkResults _results)
         const BenchmarkRow& row = (*it);
     
         if (row.mFrameCount != 0 && row.mElapsedS != 0.0) {
-            snprintf(buffer, sizeof(buffer), kRowFmt, row.mProblemName.c_str(), row.mSolutionName.c_str(), row.mFrameCount, row.mElapsedS, row.mFramesPerSecond, row.mMillisecondsPerFrame);
+            snprintf(buffer, sizeof(buffer), kRowFmt, row.mProblemName.c_str(), row.mGfxApiName.c_str(), row.mSolutionName.c_str(), row.mFrameCount, row.mElapsedS, row.mFramesPerSecond, row.mMillisecondsPerFrame);
         } else {
-            snprintf(buffer, sizeof(buffer), kRowFailFmt, row.mProblemName.c_str(), row.mSolutionName.c_str(), "N/A", "N/A", "N/A", "N/A");
+            snprintf(buffer, sizeof(buffer), kRowFailFmt, row.mProblemName.c_str(), row.mGfxApiName.c_str(), row.mSolutionName.c_str(), "N/A", "N/A", "N/A", "N/A");
         }
         retStr += buffer;
     }
