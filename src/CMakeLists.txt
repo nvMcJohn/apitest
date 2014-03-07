@@ -436,9 +436,16 @@ set_target_properties( apitest PROPERTIES RUNTIME_OUTPUT_NAME_DEBUG apitest_d )
 
 if( apitest_WITH_D3D11 )
 	add_custom_target(
-		CopyRedist
+		CopyRedist46
 		COMMAND ${CMAKE_COMMAND}
 		-E copy_if_different "${apitest_SOURCE_DIR}/thirdparty/Microsoft/D3D/x86/d3dcompiler_46.dll" "${apitest_BIN_DIR}"
 	)
-	add_dependencies(apitest CopyRedist)
+
+	add_custom_target(
+		CopyRedist47
+		COMMAND ${CMAKE_COMMAND}
+		-E copy_if_different "${apitest_SOURCE_DIR}/thirdparty/Microsoft/D3D/x86/d3dcompiler_47.dll" "${apitest_BIN_DIR}"
+	)
+
+	add_dependencies(apitest CopyRedist46 CopyRedist47)
 endif()

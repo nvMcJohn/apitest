@@ -8,10 +8,10 @@
 
 # Build results
 _out/
-/bin/d3dcompiler_46.dll
-/bin/SDL2.dll
-/bin/apitest*.exe
+/bin/*.dll
+/bin/*.exe
 /bin/*.idb
+/bin/*.pdb
 
 # Enable "build/" folder in the NuGet Packages folder since NuGet packages use it for MSBuild targets
 !packages/*/build/
