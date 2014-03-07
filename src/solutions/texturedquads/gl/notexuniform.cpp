@@ -101,6 +101,9 @@ void TexturedQuadsGLNoTexUniform::Render(const std::vector<Matrix>& _transforms)
 // --------------------------------------------------------------------------------------------------------------------
 void TexturedQuadsGLNoTexUniform::Shutdown()
 {
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(0);
+
     // No textures to clean up here.
 
     glDeleteBuffers(1, &mIndexBuffer);

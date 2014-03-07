@@ -275,6 +275,66 @@ HRESULT CreateDepthBuffer(IDXGISwapChain* dxgi_swap_chain, ID3D11DepthStencilVie
     return S_OK;
 }
 
+// --------------------------------------------------------------------------------------------------------------------
+ID3D11Texture2D* NewTexture2DFromDetails(const TextureDetails& _texDetails)
+{
+    const DXGI_SAMPLE_DESC AliasedTexture = { 1, 0 };
+
+    D3D11_TEXTURE2D_DESC desc;
+    desc.Width = _texDetails.dwWidth;
+    desc.Height = _texDetails.dwHeight;
+    desc.MipLevels = _texDetails.szMipMapCount;
+    desc.ArraySize = 1;
+    desc.Format = (DXGI_FORMAT) _texDetails.d3dFormat;
+    desc.SampleDesc = AliasedTexture;
+    desc.Usage = D3D11_USAGE_DEFAULT;
+    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    desc.CPUAccessFlags = 0;
+    desc.MiscFlags = 0;
+
+    size_t accumulatedMipOffset = 0;
+    std::vector<D3D11_SUBRESOURCE_DATA> initialDatas;
+    for (UINT mip = 0; mip < desc.MipLevels; ++mip) {
+        D3D11_SUBRESOURCE_DATA mipData;
+        mipData.pSysMem = &((unsigned char*)_texDetails.pPixels)[accumulatedMipOffset];
+        mipData.SysMemPitch = _texDetails.pPitches[mip];
+        mipData.SysMemSlicePitch = 0;
+
+        initialDatas.push_back(mipData);
+        // Bump the mip offset for the next level.
+        accumulatedMipOffset += _texDetails.pSizes[mip];
+    }
+
+    ID3D11Texture2D* retTex2D = nullptr;
+    HRESULT hr = g_d3d_device->CreateTexture2D(&desc, initialDatas.data(), &retTex2D);
+    if (FAILED(hr)) {
+        SafeRelease(retTex2D);    
+    }
+
+    return retTex2D;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+ID3D11ShaderResourceView* NewTexture2DSRVFromDetails(const TextureDetails& _texDetails)
+{
+    ID3D11Texture2D* tex2D = NewTexture2DFromDetails(_texDetails);
+    if (tex2D) {
+        ID3D11ShaderResourceView* retSrv = nullptr;
+        HRESULT hr = g_d3d_device->CreateShaderResourceView(tex2D, nullptr, &retSrv);
+        SafeRelease(tex2D);
+
+        if (FAILED(hr)) {
+            console::warn("Succeeded at creating texture, but failed to create an SRV. What?");
+            return nullptr;
+        }
+
+        return retSrv;
+    }
+
+    return nullptr;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
 HRESULT CreateConstantBuffer(int size, const void* data, ID3D11Buffer** out_buffer)
 {
     D3D11_BUFFER_DESC desc = { 0 };
@@ -289,69 +349,26 @@ HRESULT CreateConstantBuffer(int size, const void* data, ID3D11Buffer** out_buff
     return g_d3d_device->CreateBuffer(&desc, data ? &initialData : nullptr, out_buffer);
 }
 
-HRESULT CreateDynamicVertexBuffer(int size, const void* data, ID3D11Buffer** out_buffer)
+// --------------------------------------------------------------------------------------------------------------------
+HRESULT CreateDynamicVertexBuffer(int size, const void* data, ID3D11Buffer** _outBuffer)
+{
+    return CreateDynamicVertexBuffer(size, data, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE, _outBuffer);
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+HRESULT CreateDynamicVertexBuffer(int _size, const void* _data, D3D11_USAGE _usage, UINT _cpuAccessFlags, ID3D11Buffer** _outBuffer)
 {
     D3D11_BUFFER_DESC desc = { 0 };
-    desc.Usage = D3D11_USAGE_DYNAMIC;
-    desc.ByteWidth = size;
+    desc.Usage = _usage;
+    desc.ByteWidth = _size;
     desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    desc.CPUAccessFlags = _cpuAccessFlags;
 
     D3D11_SUBRESOURCE_DATA initialData = { 0 };
-    initialData.pSysMem = data;
+    initialData.pSysMem = _data;
 
-    return g_d3d_device->CreateBuffer(&desc, data ? &initialData : nullptr, out_buffer);
+    return g_d3d_device->CreateBuffer(&desc, _data ? &initialData : nullptr, _outBuffer);
 }
-
-#if 0
-bool resize_swap_chain(, int width, int height)
-{
-    IDXGISwapChain* dxgi_swap_chain = reinterpret_cast<IDXGISwapChain*>(swap_chain);
-
-    DXGI_SWAP_CHAIN_DESC sd;
-    HRESULT hr = dxgi_swap_chain->GetDesc(&sd);
-    if (FAILED(hr))
-        return false;
-
-    if (sd.BufferDesc.Width != width || sd.BufferDesc.Height != height)
-    {
-        // Resize occured, release current objects and resize buffers.
-
-        SAFE_RELEASE(frame_buffer->render_target_view);
-        SAFE_RELEASE(frame_buffer->depth_stencil_view);
-
-        BOOL bFullscreen;
-        dxgi_swap_chain->GetFullscreenState(&bFullscreen, nullptr);
-
-        g_d3d_context->OMSetRenderTargets(0, nullptr, nullptr);
-
-        UINT flags = 0;
-        if (bFullscreen)
-            flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-
-        hr = dxgi_swap_chain->ResizeBuffers(sd.BufferCount, 0, 0, sd.BufferDesc.Format, flags);
-        if (FAILED(hr))
-            return false;
-    }
-
-    // Recreate views
-    if (!frame_buffer->render_target_view)
-    {
-        hr = create_render_target(dxgi_swap_chain, &frame_buffer->render_target_view);
-        if (FAILED(hr))
-            return false;
-    }
-
-    if (!frame_buffer->depth_stencil_view)
-    {
-        hr = create_depth_buffer(dxgi_swap_chain, &frame_buffer->depth_stencil_view);
-        if (FAILED(hr))
-            return false;
-    }
-
-    return true;
-}
-#endif
 
 // --------------------------------------------------------------------------------------------------------------------
 ID3DBlob* CompileShader(const std::wstring& _shaderFilename, const char* _shaderEntryPoint, const char* _shaderTarget)
@@ -432,8 +449,6 @@ Succeeded:
     SafeRelease(psCode);
     return completeSuccess;
 }
-
-
 
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------

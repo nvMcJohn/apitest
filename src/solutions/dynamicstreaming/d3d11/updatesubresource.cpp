@@ -1,6 +1,6 @@
 #include "pch.h"
 
-#include "mapnooverwrite.h"
+#include "updatesubresource.h"
 #include "problems/dynamicstreaming.h"
 
 const size_t kTripleBuffer = 3;
@@ -8,7 +8,7 @@ const size_t kTripleBuffer = 3;
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
-DynamicStreamingD3D11MapNoOverwrite::DynamicStreamingD3D11MapNoOverwrite()
+DynamicStreamingD3D11UpdateSubresource::DynamicStreamingD3D11UpdateSubresource()
 : mInputLayout()
 , mConstantBuffer()
 , mVertexShader()
@@ -23,12 +23,12 @@ DynamicStreamingD3D11MapNoOverwrite::DynamicStreamingD3D11MapNoOverwrite()
 {}
 
 // --------------------------------------------------------------------------------------------------------------------
-DynamicStreamingD3D11MapNoOverwrite::~DynamicStreamingD3D11MapNoOverwrite()
+DynamicStreamingD3D11UpdateSubresource::~DynamicStreamingD3D11UpdateSubresource()
 {
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-bool DynamicStreamingD3D11MapNoOverwrite::Init(size_t _maxVertexCount)
+bool DynamicStreamingD3D11UpdateSubresource::Init(size_t _maxVertexCount)
 {
     D3D11_INPUT_ELEMENT_DESC elements[] =
     {
@@ -135,7 +135,7 @@ bool DynamicStreamingD3D11MapNoOverwrite::Init(size_t _maxVertexCount)
 
     // Dynamic vertex buffer
     mParticleBufferSize = kTripleBuffer * sizeof(Vec2) * _maxVertexCount;
-    hr = CreateDynamicVertexBuffer(mParticleBufferSize, nullptr, &mDynamicVertexBuffer);
+    hr = CreateDynamicVertexBuffer(mParticleBufferSize, nullptr, D3D11_USAGE_DEFAULT, 0, &mDynamicVertexBuffer);
     if (FAILED(hr)) {
         return false;
     }
@@ -144,7 +144,7 @@ bool DynamicStreamingD3D11MapNoOverwrite::Init(size_t _maxVertexCount)
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-void DynamicStreamingD3D11MapNoOverwrite::Render(const std::vector<Vec2>& _vertices)
+void DynamicStreamingD3D11UpdateSubresource::Render(const std::vector<Vec2>& _vertices)
 {
     Constants cb;
     cb.width = 2.0f / mWidth;
@@ -181,27 +181,21 @@ void DynamicStreamingD3D11MapNoOverwrite::Render(const std::vector<Vec2>& _verti
         const int srcOffset = vertexOffset;
         size_t dstOffset = mStartDestOffset + (i * kParticleSizeBytes);
 
-        D3D11_MAP mapType = D3D11_MAP_WRITE_NO_OVERWRITE;
-        if (dstOffset + kParticleSizeBytes > mParticleBufferSize) {
-            mapType = D3D11_MAP_WRITE_DISCARD;
-            mStartDestOffset = dstOffset = 0;
-        }
+        D3D11_BOX dstBox;
+        dstBox.left = dstOffset;
+        dstBox.right = dstOffset + kParticleSizeBytes;
+        dstBox.top  = dstBox.front  = 0;
+        dstBox.back = dstBox.bottom = 1;
 
-        D3D11_MAPPED_SUBRESOURCE mappedResource;
-        if (SUCCEEDED(g_d3d_context->Map(mDynamicVertexBuffer, 0, mapType, 0, &mappedResource))) {
-            void* dst = static_cast<unsigned char*>(mappedResource.pData) + dstOffset;
-            memcpy(dst, &_vertices[srcOffset], kParticleSizeBytes);
-            g_d3d_context->Unmap(mDynamicVertexBuffer, 0);
-
-            g_d3d_context->Draw(kVertsPerParticle, dstOffset / kVertexSizeBytes);
-        }
+        g_d3d_context->UpdateSubresource(mDynamicVertexBuffer, 0, &dstBox, &_vertices[srcOffset], 0, 0);
+        g_d3d_context->Draw(kVertsPerParticle, dstOffset / kVertexSizeBytes);
     }
 
     mStartDestOffset = (mStartDestOffset + (kParticleCount * kParticleSizeBytes)) % mParticleBufferSize;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-void DynamicStreamingD3D11MapNoOverwrite::Shutdown()
+void DynamicStreamingD3D11UpdateSubresource::Shutdown()
 {
     SafeRelease(mDynamicVertexBuffer);
 

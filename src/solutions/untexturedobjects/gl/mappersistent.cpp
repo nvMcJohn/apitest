@@ -129,6 +129,10 @@ void UntexturedObjectsGLMapPersistent::Render(const std::vector<Matrix>& _transf
 // --------------------------------------------------------------------------------------------------------------------
 void UntexturedObjectsGLMapPersistent::Shutdown()
 {
+    glDisableVertexAttribArray(2);
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(0);
+
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_transform_buffer);
     glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 

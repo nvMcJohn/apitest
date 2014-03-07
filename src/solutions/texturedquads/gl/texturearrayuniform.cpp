@@ -140,6 +140,9 @@ void TexturedQuadsGLTextureArrayUniform::Render(const std::vector<Matrix>& _tran
 // --------------------------------------------------------------------------------------------------------------------
 void TexturedQuadsGLTextureArrayUniform::Shutdown()
 {
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(0);
+
     for (auto it = mTextures.begin(); it != mTextures.end(); ++it) {
         SafeDelete(*it);
     }

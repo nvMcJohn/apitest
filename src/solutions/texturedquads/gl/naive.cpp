@@ -136,6 +136,10 @@ void TexturedQuadsGLNaive::Render(const std::vector<Matrix>& _transforms)
 // --------------------------------------------------------------------------------------------------------------------
 void TexturedQuadsGLNaive::Shutdown()
 {
+    glDisableVertexAttribArray(2);
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(0);
+
     for (auto it = mTextures.begin(); it != mTextures.end(); ++it) {
         glDeleteTextures(1, &*it);
     }

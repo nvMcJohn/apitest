@@ -151,6 +151,9 @@ void TexturedQuadsGLBindlessMultiDraw::Render(const std::vector<Matrix>& _transf
 // --------------------------------------------------------------------------------------------------------------------
 void TexturedQuadsGLBindlessMultiDraw::Shutdown()
 {
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(0);
+
     for (auto it = mTextures.begin(); it != mTextures.end(); ++it) {
         glDeleteTextures(1, &*it);
     }

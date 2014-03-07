@@ -152,6 +152,12 @@ void TexturedQuadsGLSparseBindlessTextureArrayMultiDraw::Render(const std::vecto
 // --------------------------------------------------------------------------------------------------------------------
 void TexturedQuadsGLSparseBindlessTextureArrayMultiDraw::Shutdown()
 {
+    if (!mUseShaderDrawParameters) {
+        glDisableVertexAttribArray(2);
+    }
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(0);
+
     for (auto it = mTextures.begin(); it != mTextures.end(); ++it) {
         SafeDelete(*it);
     }

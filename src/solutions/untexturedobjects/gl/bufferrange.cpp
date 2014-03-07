@@ -128,6 +128,9 @@ void UntexturedObjectsGLBufferRange::Render(const std::vector<Matrix>& _transfor
 // --------------------------------------------------------------------------------------------------------------------
 void UntexturedObjectsGLBufferRange::Shutdown()
 {
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(0);
+
     glDeleteBuffers(1, &mIndexBuffer);
     glDeleteBuffers(1, &mVertexBuffer);
     glDeleteBuffers(1, &mUniformBuffer);

@@ -168,6 +168,12 @@ void TexturedQuadsGLTextureArrayMultiDraw::Render(const std::vector<Matrix>& _tr
 // --------------------------------------------------------------------------------------------------------------------
 void TexturedQuadsGLTextureArrayMultiDraw::Shutdown()
 {
+    if (!mUseShaderDrawParameters) {
+        glDisableVertexAttribArray(2);
+    }
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(0);
+
     for (auto it = mTextures.begin(); it != mTextures.end(); ++it) {
         SafeDelete(*it);
     }

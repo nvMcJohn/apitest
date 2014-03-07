@@ -150,6 +150,12 @@ void UntexturedObjectsGLBufferStorage::Render(const std::vector<Matrix>& _transf
 // --------------------------------------------------------------------------------------------------------------------
 void UntexturedObjectsGLBufferStorage::Shutdown()
 {
+    if (!mUseShaderDrawParameters) {
+        glDisableVertexAttribArray(2);
+    }
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(0);
+
     if (m_transform_ptr)
     {
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_transform_buffer);

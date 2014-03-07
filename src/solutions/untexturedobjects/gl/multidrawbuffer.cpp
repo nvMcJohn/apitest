@@ -140,6 +140,12 @@ void UntexturedObjectsGLMultiDrawBuffer::Render(const std::vector<Matrix>& _tran
 // --------------------------------------------------------------------------------------------------------------------
 void UntexturedObjectsGLMultiDrawBuffer::Shutdown()
 {
+    if (!mUseShaderDrawParameters) {
+        glDisableVertexAttribArray(2);
+    }
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(0);
+
     glDeleteBuffers(1, &m_ib);
     glDeleteBuffers(1, &m_vb);
     glDeleteVertexArrays(1, &m_varray);

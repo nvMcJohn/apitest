@@ -47,6 +47,8 @@ set( SHADERS
 
 	../bin/Shaders/hlsl/streaming_vb_d3d11_vs.hlsl
     ../bin/Shaders/hlsl/streaming_vb_d3d11_ps.hlsl
+    ../bin/Shaders/hlsl/textures_d3d11_naive_vs.hlsl
+    ../bin/Shaders/hlsl/textures_d3d11_naive_ps.hlsl
 )
 
 set( SRCS
@@ -111,6 +113,9 @@ if( apitest_WITH_D3D11 )
 		framework/gfx_dx11.cpp
 
 		solutions/dynamicstreaming/d3d11/mapnooverwrite.cpp
+		solutions/dynamicstreaming/d3d11/updatesubresource.cpp
+
+		solutions/texturedquads/d3d11/naive.cpp
 	)
 endif( apitest_WITH_D3D11 )
 
@@ -197,6 +202,11 @@ source_group( "Solutions\\DynamicStreaming\\D3D11\\MapNoOverwrite" FILES
     solutions/dynamicstreaming/d3d11/mapnooverwrite.h
 )
 
+source_group( "Solutions\\DynamicStreaming\\D3D11\\UpdateSubResource" FILES
+	solutions/dynamicstreaming/d3d11/updatesubresource.cpp
+	solutions/dynamicstreaming/d3d11/updatesubresource.h
+)
+
 source_group( "Solutions\\DynamicStreaming\\GL" FILES
     ../bin/Shaders/glsl/streaming_vb_gl_vs.glsl
     ../bin/Shaders/glsl/streaming_vb_gl_fs.glsl
@@ -225,6 +235,13 @@ source_group( "Solutions\\Null" FILES
 source_group( "Solutions\\TexturedQuads" FILES 
     solutions/texturedquadssoln.cpp
     solutions/texturedquadssoln.h
+)
+
+source_group( "Solutions\\TexturedQuads\\D3D11\\Naive" FILES 
+    solutions/texturedquads/d3d11/naive.cpp
+    solutions/texturedquads/d3d11/naive.h
+    ../bin/Shaders/hlsl/textures_d3d11_naive_vs.hlsl
+    ../bin/Shaders/hlsl/textures_d3d11_naive_ps.hlsl
 )
 
 source_group( "Solutions\\TexturedQuads\\GL\\Bindless" FILES 

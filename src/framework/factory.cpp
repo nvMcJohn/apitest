@@ -39,6 +39,8 @@
 // All D3D11 includes should go here.
 #if WITH_D3D11
 #   include "solutions/dynamicstreaming/d3d11/mapnooverwrite.h"
+#   include "solutions/dynamicstreaming/d3d11/updatesubresource.h"
+#   include "solutions/texturedquads/d3d11/naive.h"
 #endif
 
 
@@ -74,6 +76,7 @@ ProblemFactory::ProblemFactory(bool _skipInit)
         mSolutions[mProblems.back()->GetName()].push_back(new DynamicStreamingGLMapPersistent());
         #if WITH_D3D11
             mSolutions[mProblems.back()->GetName()].push_back(new DynamicStreamingD3D11MapNoOverwrite());
+            mSolutions[mProblems.back()->GetName()].push_back(new DynamicStreamingD3D11UpdateSubresource());
         #endif
     } else {
         newProb->Shutdown();
@@ -127,6 +130,10 @@ ProblemFactory::ProblemFactory(bool _skipInit)
         mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLTextureArrayUniform());
         mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLTextureArrayMultiDraw(true));
         mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLTextureArrayMultiDraw(false));
+        #if WITH_D3D11
+            mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsD3D11Naive());
+        #endif
+
     } else {
         newProb->Shutdown();
         SafeDelete(newProb);

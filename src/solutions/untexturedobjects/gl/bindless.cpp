@@ -91,10 +91,10 @@ void UntexturedObjectsGLBindless::Render(const std::vector<Matrix>& _transforms)
     glEnableClientState(GL_ELEMENT_ARRAY_UNIFIED_NV);
     glEnableClientState(GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV);
 
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
     glVertexAttribFormatNV(0, 3, GL_FLOAT, GL_FALSE, sizeof(UntexturedObjectsProblem::Vertex));
     glVertexAttribFormatNV(1, 3, GL_FLOAT, GL_FALSE, sizeof(UntexturedObjectsProblem::Vertex));
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
 
     // Rasterizer State
     glEnable(GL_CULL_FACE);
@@ -124,6 +124,9 @@ void UntexturedObjectsGLBindless::Render(const std::vector<Matrix>& _transforms)
 // --------------------------------------------------------------------------------------------------------------------
 void UntexturedObjectsGLBindless::Shutdown()
 {
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(0);
+
     if (m_ibs.size()) {
         glDeleteBuffers(m_ibs.size(), &*m_ibs.begin());
         m_ibs.clear();

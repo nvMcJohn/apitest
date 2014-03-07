@@ -125,6 +125,10 @@ void UntexturedObjectsGLMapUnsynchronized::Render(const std::vector<Matrix>& _tr
 // --------------------------------------------------------------------------------------------------------------------
 void UntexturedObjectsGLMapUnsynchronized::Shutdown()
 {
+    glDisableVertexAttribArray(2);
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(0);
+
     glDeleteBuffers(1, &m_ib);
     glDeleteBuffers(1, &m_vb);
     glDeleteVertexArrays(1, &m_varray);

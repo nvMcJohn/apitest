@@ -66,10 +66,9 @@ void DynamicStreamingGLMapUnsynchronized::Render(const std::vector<Vec2>& _verti
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, mUniformBuffer);
 
     // Input Layout
-    glEnableVertexAttribArray(0);
-    glDisableVertexAttribArray(1);
     glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vec2), (void*)offsetof(Vec2, x));
+    glEnableVertexAttribArray(0);
 
     // Rasterizer State
     glDisable(GL_CULL_FACE);
@@ -115,6 +114,8 @@ void DynamicStreamingGLMapUnsynchronized::Render(const std::vector<Vec2>& _verti
 // --------------------------------------------------------------------------------------------------------------------
 void DynamicStreamingGLMapUnsynchronized::Shutdown()
 {
+    glDisableVertexAttribArray(0);
+
     glDeleteBuffers(1, &mVertexBuffer);
 
     glDeleteBuffers(1, &mUniformBuffer);

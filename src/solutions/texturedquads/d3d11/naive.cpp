@@ -1,50 +1,71 @@
 #include "pch.h"
 
-#include "mapnooverwrite.h"
-#include "problems/dynamicstreaming.h"
+#include "naive.h"
+#include "framework/gfx_dx11.h"
 
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 const size_t kTripleBuffer = 3;
 
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
-DynamicStreamingD3D11MapNoOverwrite::DynamicStreamingD3D11MapNoOverwrite()
+TexturedQuadsD3D11Naive::TexturedQuadsD3D11Naive()
 : mInputLayout()
-, mConstantBuffer()
+, mConstantBufferPerFrame()
 , mVertexShader()
 , mPixelShader()
 , mSamplerState()
 , mRasterizerState()
 , mBlendState()
 , mDepthStencilState()
-, mDynamicVertexBuffer()
-, mParticleBufferSize()
-, mStartDestOffset()
+, mVertexBuffer()
 {}
 
 // --------------------------------------------------------------------------------------------------------------------
-DynamicStreamingD3D11MapNoOverwrite::~DynamicStreamingD3D11MapNoOverwrite()
+bool TexturedQuadsD3D11Naive::Init(const std::vector<TexturedQuadsProblem::Vertex>& _vertices,
+                                   const std::vector<TexturedQuadsProblem::Index>& _indices,
+                                   const std::vector<TextureDetails*>& _textures,
+                                   size_t _objectCount)
 {
-}
+    if (!TexturedQuadsSolution::Init(_vertices, _indices, _textures, _objectCount)) {
+        return false;
+    }
 
-// --------------------------------------------------------------------------------------------------------------------
-bool DynamicStreamingD3D11MapNoOverwrite::Init(size_t _maxVertexCount)
-{
     D3D11_INPUT_ELEMENT_DESC elements[] =
     {
-        { "ATTR", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "ObjPos",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,                            D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "TexCoord", 0, DXGI_FORMAT_R32G32_FLOAT,    0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     };
 
-    if (!CompileProgram(L"streaming_vb_d3d11_vs.hlsl", &mVertexShader, 
-                        L"streaming_vb_d3d11_ps.hlsl", &mPixelShader,
+    if (!CompileProgram(L"textures_d3d11_naive_vs.hlsl", &mVertexShader, 
+                        L"textures_d3d11_naive_ps.hlsl", &mPixelShader,
                         ArraySize(elements), elements, &mInputLayout)) {
         return false;
     }
 
     // Constant Buffer
-    HRESULT hr = CreateConstantBuffer(sizeof(Constants), nullptr, &mConstantBuffer);
+    HRESULT hr = CreateConstantBuffer(sizeof(ConstantsPerFrame), nullptr, &mConstantBufferPerFrame);
     if (FAILED(hr)) {
         return false;
+    }
+
+    hr = CreateConstantBuffer(sizeof(ConstantsPerDraw), nullptr, &mConstantBufferPerDraw);
+    if (FAILED(hr)) {
+        return false;
+    }
+
+    // Textures
+    for (auto it = _textures.begin(); it != _textures.end(); ++it) {
+        ID3D11ShaderResourceView* texSRV = NewTexture2DSRVFromDetails(*(*it));
+        if (!texSRV) {
+            console::warn("Unable to initialize solution '%s', texture creation failed.", GetName().c_str());
+            return false;
+        }
+
+        // Needs to be freed later.
+        mTextureSRVs.push_back(texSRV);
     }
 
     // Render States
@@ -113,7 +134,7 @@ bool DynamicStreamingD3D11MapNoOverwrite::Init(size_t _maxVertexCount)
 
     {
         D3D11_SAMPLER_DESC desc;
-        desc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+        desc.Filter = D3D11_FILTER_MIN_POINT_MAG_MIP_LINEAR;
         desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
         desc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
         desc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -133,27 +154,39 @@ bool DynamicStreamingD3D11MapNoOverwrite::Init(size_t _maxVertexCount)
         }
     }
 
-    // Dynamic vertex buffer
-    mParticleBufferSize = kTripleBuffer * sizeof(Vec2) * _maxVertexCount;
-    hr = CreateDynamicVertexBuffer(mParticleBufferSize, nullptr, &mDynamicVertexBuffer);
-    if (FAILED(hr)) {
+    mVertexBuffer = CreateBufferFromVector(_vertices, D3D11_USAGE_IMMUTABLE, D3D11_BIND_VERTEX_BUFFER);
+    if (!mVertexBuffer) {
         return false;
     }
+
+    mIndexBuffer = CreateBufferFromVector(_indices, D3D11_USAGE_IMMUTABLE, D3D11_BIND_INDEX_BUFFER);
+    if (!mVertexBuffer) {
+        return false;
+    }
+
+    mIndexCount = _indices.size();
 
     return true;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-void DynamicStreamingD3D11MapNoOverwrite::Render(const std::vector<Vec2>& _vertices)
+void TexturedQuadsD3D11Naive::Render(const std::vector<Matrix>& _transforms)
 {
-    Constants cb;
-    cb.width = 2.0f / mWidth;
-    cb.height = -2.0f / mHeight;
+    // Program
+    Vec3 dir = { 0, 0, 1 };
+    Vec3 at = { 0, 0, 0 };
+    Vec3 up = { 0, 1, 0 };
+    dir = normalize(dir);
+    Vec3 eye = at - 250 * dir;
+    Matrix view = matrix_look_at(eye, at, up);
+    ConstantsPerFrame cFrame;
+    cFrame.ViewProjection = mProj * view;
+    
 
-    g_d3d_context->UpdateSubresource(mConstantBuffer, 0, nullptr, &cb, 0, 0);
+    g_d3d_context->UpdateSubresource(mConstantBufferPerFrame, 0, nullptr, &cFrame, 0, 0);
 
-    ID3D11Buffer* ia_buffers[] = { mDynamicVertexBuffer };
-    UINT ia_strides[] = { sizeof(Vec2) };
+    ID3D11Buffer* ia_buffers[] = { mVertexBuffer };
+    UINT ia_strides[] = { sizeof(TexturedQuadsProblem::Vertex) };
     UINT ia_offsets[] = { 0 };
 
     float blendFactor[4] = { 0, 0, 0, 0 };
@@ -161,8 +194,11 @@ void DynamicStreamingD3D11MapNoOverwrite::Render(const std::vector<Vec2>& _verti
     g_d3d_context->IASetInputLayout(mInputLayout);
     g_d3d_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     g_d3d_context->IASetVertexBuffers(0, 1, ia_buffers, ia_strides, ia_offsets);
+    g_d3d_context->IASetIndexBuffer(mIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+
     g_d3d_context->VSSetShader(mVertexShader, nullptr, 0);
-    g_d3d_context->VSSetConstantBuffers(0, 1, &mConstantBuffer);
+    g_d3d_context->VSSetConstantBuffers(0, 1, &mConstantBufferPerFrame);
+    g_d3d_context->VSSetConstantBuffers(1, 1, &mConstantBufferPerDraw);
     g_d3d_context->GSSetShader(nullptr, nullptr, 0);
     g_d3d_context->RSSetState(mRasterizerState);
     g_d3d_context->PSSetShader(mPixelShader, nullptr, 0);
@@ -170,43 +206,43 @@ void DynamicStreamingD3D11MapNoOverwrite::Render(const std::vector<Vec2>& _verti
     g_d3d_context->OMSetBlendState(mBlendState, blendFactor, 0xffffffff);
     g_d3d_context->OMSetDepthStencilState(mDepthStencilState, 0);
 
-    const int kVertexSizeBytes = sizeof(Vec2);
-    const int kParticleCount = int(_vertices.size()) / kVertsPerParticle;
-    const size_t kParticleSizeBytes = int(kVertsPerParticle * kVertexSizeBytes);
-    const int kStartIndex = mStartDestOffset / kVertexSizeBytes;
+    size_t xformCount = _transforms.size();
+    assert(xformCount <= mObjectCount);
 
-    for (int i = 0; i < kParticleCount; ++i)
-    {
-        const int vertexOffset = i * kVertsPerParticle;
-        const int srcOffset = vertexOffset;
-        size_t dstOffset = mStartDestOffset + (i * kParticleSizeBytes);
+    // Code below assumes at least 1 texture.
+    assert(mTextureSRVs.size() > 0);
+    auto srvIt = mTextureSRVs.begin();
 
-        D3D11_MAP mapType = D3D11_MAP_WRITE_NO_OVERWRITE;
-        if (dstOffset + kParticleSizeBytes > mParticleBufferSize) {
-            mapType = D3D11_MAP_WRITE_DISCARD;
-            mStartDestOffset = dstOffset = 0;
+    ConstantsPerDraw cDraw;
+    for (size_t u = 0; u < xformCount; ++u) {
+        cDraw.World = transpose(_transforms[u]);
+        g_d3d_context->UpdateSubresource(mConstantBufferPerDraw, 0, nullptr, &cDraw, 0, 0);
+
+        if (srvIt == mTextureSRVs.end()) {
+            srvIt = mTextureSRVs.begin();
         }
 
-        D3D11_MAPPED_SUBRESOURCE mappedResource;
-        if (SUCCEEDED(g_d3d_context->Map(mDynamicVertexBuffer, 0, mapType, 0, &mappedResource))) {
-            void* dst = static_cast<unsigned char*>(mappedResource.pData) + dstOffset;
-            memcpy(dst, &_vertices[srcOffset], kParticleSizeBytes);
-            g_d3d_context->Unmap(mDynamicVertexBuffer, 0);
+        ID3D11ShaderResourceView* activeTexSRV = *srvIt;
+        ++srvIt;
 
-            g_d3d_context->Draw(kVertsPerParticle, dstOffset / kVertexSizeBytes);
-        }
+        g_d3d_context->PSSetShaderResources(0, 1, &activeTexSRV);
+        g_d3d_context->DrawIndexed(mIndexCount, 0, 0);
     }
-
-    mStartDestOffset = (mStartDestOffset + (kParticleCount * kParticleSizeBytes)) % mParticleBufferSize;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-void DynamicStreamingD3D11MapNoOverwrite::Shutdown()
+void TexturedQuadsD3D11Naive::Shutdown()
 {
-    SafeRelease(mDynamicVertexBuffer);
+    for (auto it = mTextureSRVs.begin(); it != mTextureSRVs.end(); ++it) {
+        SafeRelease(*it);
+    }
+    mTextureSRVs.clear();
+
+    SafeRelease(mVertexBuffer);
 
     SafeRelease(mInputLayout);
-    SafeRelease(mConstantBuffer);
+    SafeRelease(mConstantBufferPerDraw);
+    SafeRelease(mConstantBufferPerFrame);
     SafeRelease(mVertexShader);
     SafeRelease(mPixelShader);
     SafeRelease(mRasterizerState);
