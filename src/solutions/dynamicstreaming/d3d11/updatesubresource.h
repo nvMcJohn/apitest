@@ -16,7 +16,7 @@ public:
     virtual void Render(const std::vector<Vec2>& _vertices) override;
     virtual void Shutdown() override;
 
-    virtual std::string GetName() const override { return "DynamicStreamingD3D11UpdateSubresource"; }
+    virtual std::string GetName() const override { return "D3D11UpdateSubresource"; }
     virtual bool SupportsApi(EGfxApi _api) const override { return _api == EGfxApi::Direct3D11; }
 
 private:

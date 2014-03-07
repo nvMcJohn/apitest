@@ -18,7 +18,7 @@ public:
     virtual void Render(const std::vector<Matrix>& _transforms);
     virtual void Shutdown();
 
-    virtual std::string GetName() const { return "UntexturedObjectsGLUniform"; }
+    virtual std::string GetName() const { return "GLUniform"; }
     virtual bool SupportsApi(EGfxApi _api) const override { return IsOpenGL(_api); }
 
 private:

@@ -159,8 +159,8 @@ void UntexturedObjectsGLMultiDrawBuffer::Shutdown()
 std::string UntexturedObjectsGLMultiDrawBuffer::GetName() const
 {
     if (mUseShaderDrawParameters) {
-        return "UntexturedObjectsGLMultiDrawBuffer-SDP";
+        return "GLMultiDrawBuffer-SDP";
     } 
 
-    return "UntexturedObjectsGLMultiDrawBuffer-NoSDP";
+    return "GLMultiDrawBuffer-NoSDP";
 }

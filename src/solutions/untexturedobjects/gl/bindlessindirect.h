@@ -18,7 +18,7 @@ public:
     virtual void Render(const std::vector<Matrix>& _transforms);
     virtual void Shutdown();
 
-    virtual std::string GetName() const { return "UntexturedObjectsGLBindlessIndirect"; }
+    virtual std::string GetName() const { return "GLBindlessIndirect"; }
     virtual bool SupportsApi(EGfxApi _api) const override { return IsOpenGL(_api); }
 
 private:

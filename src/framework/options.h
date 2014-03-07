@@ -10,6 +10,7 @@ struct Options
 
     // --------------------------------------------------------------------------------------------
     bool BenchmarkMode;
+    float BenchmarkTime;
     std::string InitialProblem;
     std::string InitialSolution;
     std::string InitialApi;

@@ -80,6 +80,7 @@ private:
     unsigned int mFrameCount;
     unsigned long long mTimerStart;
 
+    float mBenchmarkTime;
     bool mBenchmarkMode;
     struct BenchmarkState {
         size_t mProblemsBenchmarked;

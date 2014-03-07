@@ -19,7 +19,7 @@ public:
     virtual void Render(const std::vector<Matrix>& _transforms);
     virtual void Shutdown();
 
-    virtual std::string GetName() const { return "TexturedQuadsD3D11Naive"; }
+    virtual std::string GetName() const { return "D3D11Naive"; }
     virtual bool SupportsApi(EGfxApi _api) const override { return _api == EGfxApi::Direct3D11; }
 
 private:

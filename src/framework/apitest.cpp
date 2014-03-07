@@ -242,11 +242,7 @@ struct BenchmarkRow
 bool BechmarkSorter(const BenchmarkRow& _lhs, const BenchmarkRow& _rhs)
 {
     if (_lhs.mProblemName == _rhs.mProblemName) {
-        if (_lhs.mSolutionName == _rhs.mSolutionName) {
-            return _lhs.mFramesPerSecond > _rhs.mFramesPerSecond;
-        }
-
-        return _lhs.mSolutionName < _rhs.mSolutionName;
+        return _lhs.mFramesPerSecond > _rhs.mFramesPerSecond;
     }
     return _lhs.mProblemName < _rhs.mProblemName;
 }
@@ -256,9 +252,9 @@ std::string asTable(BenchmarkResults _results)
 {
     char buffer[1024];
     std::string retStr;
-    const char* kHeaderFmt =  " %-23s %-48s %7s %12s %12s %12s\n";
-    const char* kRowFmt =     " %-23s %-48s %7d %12.3f %12.3f %12.3f\n";
-    const char* kRowFailFmt = " %-23s %-48s %7s %12s %12s %12s\n";
+    const char* kHeaderFmt =  " %-23s %-30s %7s %12s %12s %12s\n";
+    const char* kRowFmt =     " %-23s %-30s %7d %12.3f %12.3f %12.3f\n";
+    const char* kRowFailFmt = " %-23s %-30s %7s %12s %12s %12s\n";
 
     snprintf(buffer, sizeof(buffer)-1, kHeaderFmt, "Problem", "Solution", "Frames", "Elapsed (s)", "fps", "ms/f");
     retStr += buffer;

@@ -196,8 +196,8 @@ void TexturedQuadsGLTextureArrayMultiDraw::Shutdown()
 std::string TexturedQuadsGLTextureArrayMultiDraw::GetName() const
 {
     if (mUseShaderDrawParameters) {
-        return "TexturedQuadsGLTextureArrayMultiDraw-SDP";
+        return "GLTextureArrayMultiDraw-SDP";
     }
 
-    return "TexturedQuadsGLTextureArrayMultiDraw-NoSDP";
+    return "GLTextureArrayMultiDraw-NoSDP";
 }

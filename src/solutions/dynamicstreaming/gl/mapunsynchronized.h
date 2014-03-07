@@ -16,7 +16,7 @@ public:
     virtual void Render(const std::vector<Vec2>& _vertices) override;
     virtual void Shutdown() override;
 
-    virtual std::string GetName() const override { return "DynamicStreamingGLMapUnsynchronized"; }
+    virtual std::string GetName() const override { return "GLMapUnsynchronized"; }
     virtual bool SupportsApi(EGfxApi _api) const override { return IsOpenGL(_api); }
 
 private:

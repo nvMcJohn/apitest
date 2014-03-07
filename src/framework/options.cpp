@@ -48,6 +48,7 @@ struct CommandLineOption
 // ------------------------------------------------------------------------------------------------
 Options::Options()
 : BenchmarkMode(false)
+, BenchmarkTime(5.0f)
 , InitialProblem(Options::DefaultInitialProblem)
 , InitialSolution(Options::DefaultInitialSolution)
 , InitialApi(GfxApiOpenGLCompat::SGetShortName())
@@ -67,6 +68,14 @@ int StoreTrue(int _argNum, int _argc, char* _argv[], Options* _outOptions, size_
     bool* dest; Dest(_outOptions, _byteOffset, &dest);
     (*dest) = true;
     return 1;
+}
+
+// ------------------------------------------------------------------------------------------------
+int StoreFloat(int _argNum, int _argc, char* _argv[], Options* _outOptions, size_t _byteOffset)
+{
+    float* dest; Dest(_outOptions, _byteOffset, &dest);
+    (*dest) = (float)atof(_argv[_argNum + 1]);
+    return 2;
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -92,6 +101,7 @@ int PrintHelpAndExit(int _argNum, int _argc, char* _argv[], Options* _outOptions
 // ------------------------------------------------------------------------------------------------
 CommandLineOption gClOpts[] = {
     { "-b",     "--benchmark",      StoreTrue,          offsetof(Options, BenchmarkMode),   "Run in benchmark mode, then exit." },
+    { "-t",     "--benchmarktime",  StoreFloat,         offsetof(Options, BenchmarkTime),   "Specify how long to run each solution for when running benchmarks." }, 
     { "-p",     "--problem",        StoreString,        offsetof(Options, InitialProblem),  "The next argument specifies the initial problem to use."},
     { "-s",     "--solution",       StoreString,        offsetof(Options, InitialSolution), "The next argument specifies the initial solution to show."},
     { "-a",     "--api",            StoreString,        offsetof(Options, InitialApi),      "The default API to use." },

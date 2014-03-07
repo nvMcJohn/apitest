@@ -19,7 +19,7 @@ public:
     virtual void Render(const std::vector<Matrix>& _transforms);
     virtual void Shutdown();
 
-    virtual std::string GetName() const { return "UntexturedObjectsGLMapPersistent"; }
+    virtual std::string GetName() const { return "GLMapPersistent"; }
     virtual bool SupportsApi(EGfxApi _api) const override { return IsOpenGL(_api); }
 
 private:

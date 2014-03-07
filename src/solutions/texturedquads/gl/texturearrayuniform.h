@@ -20,7 +20,7 @@ public:
     virtual void Render(const std::vector<Matrix>& _transforms);
     virtual void Shutdown();
 
-    virtual std::string GetName() const { return "TexturedQuadsGLTextureArrayUniform"; }
+    virtual std::string GetName() const { return "GLTextureArrayUniform"; }
     virtual bool SupportsApi(EGfxApi _api) const override { return IsOpenGL(_api); }
 
 private:

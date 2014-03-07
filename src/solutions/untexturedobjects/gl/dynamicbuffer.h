@@ -19,7 +19,7 @@ public:
     virtual void Shutdown();
 
     // The name of this solution.
-    virtual std::string GetName() const { return "UntexturedObjectsGLDynamicBuffer"; }
+    virtual std::string GetName() const { return "GLDynamicBuffer"; }
     virtual bool SupportsApi(EGfxApi _api) const override { return IsOpenGL(_api); }
 
 private:

@@ -3,8 +3,6 @@
 #include "appstate.h"
 #include "timer.h"
 
-const double kBenchmarkTime = 1.0;
-
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
@@ -23,6 +21,7 @@ ApplicationState::ApplicationState(const Options& _opts)
 , mActiveSolution(kInactiveSolution)
 , mActiveApi()
 , mFrameCount()
+, mBenchmarkTime(_opts.BenchmarkTime)
 , mBenchmarkMode(_opts.BenchmarkMode)
 , mFactory(false)
 {
@@ -135,7 +134,7 @@ void ApplicationState::Update()
         ++mFrameCount;
         double elapsed = timer::ToSec(timer::Read() - mBenchmarkState.mBenchmarkTimeStart);
         
-        if (elapsed >= kBenchmarkTime) {
+        if (elapsed >= mBenchmarkTime) {
             ++mBenchmarkState.mSolutionsBenchmarked;
 
             mBenchmarkState.mBenchmarkTimings[std::make_pair(GetActiveProblem()->GetName(), GetActiveSolution()->GetName())]

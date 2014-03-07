@@ -15,7 +15,7 @@ public:
     virtual void Render(const std::vector<Vec2>& _vertices) override;
     virtual void Shutdown() override;
 
-    virtual std::string GetName() const override { return "DynamicStreamingGLBufferSubData"; }
+    virtual std::string GetName() const override { return "GLBufferSubData"; }
     virtual bool SupportsApi(EGfxApi _api) const override { return IsOpenGL(_api); }
 
 private:

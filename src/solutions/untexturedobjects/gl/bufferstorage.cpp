@@ -181,8 +181,8 @@ void UntexturedObjectsGLBufferStorage::Shutdown()
 std::string UntexturedObjectsGLBufferStorage::GetName() const
 {
     if (mUseShaderDrawParameters) {
-        return "UntexturedObjectsGLBufferStorage-SDP";
+        return "GLBufferStorage-SDP";
     } 
 
-    return "UntexturedObjectsGLBufferStorage-NoSDP";
+    return "GLBufferStorage-NoSDP";
 }
