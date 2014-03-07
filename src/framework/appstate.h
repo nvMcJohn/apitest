@@ -8,7 +8,7 @@
 
 class Solution;
 
-typedef std::map<std::pair<std::string, std::string>, std::pair<unsigned int, double>> BenchmarkResults;
+typedef std::map<std::pair<std::string, std::string>, std::tuple<unsigned int, double, unsigned int>> BenchmarkResults;
 
 const int kInactiveProblem = -1;
 const int kInactiveSolution = -1;

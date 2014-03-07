@@ -3,7 +3,7 @@
 #include "appstate.h"
 #include "timer.h"
 
-const double kBenchmarkTime = 5.0;
+const double kBenchmarkTime = 1.0;
 
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
@@ -139,7 +139,7 @@ void ApplicationState::Update()
             ++mBenchmarkState.mSolutionsBenchmarked;
 
             mBenchmarkState.mBenchmarkTimings[std::make_pair(GetActiveProblem()->GetName(), GetActiveSolution()->GetName())]
-                                            = std::make_pair(mFrameCount, elapsed);
+                                            = std::make_tuple(mFrameCount, elapsed, 0);
             
             if (mBenchmarkState.mBenchmarkSingle) {
                 Problem* prob = GetActiveProblem();
@@ -157,6 +157,7 @@ void ApplicationState::Update()
                     Problem* prob = GetActiveProblem();
                     if (prob) {
                         prob->Shutdown();
+                        mActiveProblem = kInactiveProblem;
                     }
 
                     return;
@@ -384,7 +385,7 @@ void ApplicationState::changeSolution(int _offset)
             break;
         } else if (mBenchmarkMode) {
             mBenchmarkState.mBenchmarkTimings[std::make_pair(GetActiveProblem()->GetName(), newSoln->GetName())]
-                                            = std::make_pair<unsigned int, double>(0, 0.0);
+                                            = std::make_tuple<unsigned int, double, unsigned int>(0, 0.0, 0);
             ++mBenchmarkState.mSolutionsBenchmarked;
         }
 

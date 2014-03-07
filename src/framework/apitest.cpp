@@ -124,7 +124,10 @@ void OnEvent(SDL_Event* _event, ApplicationState* _appState)
 // --------------------------------------------------------------------------------------------------------------------
 static void Render(Problem* _activeProblem, GfxBaseApi* _activeApi)
 {
-    assert(_activeProblem);
+    if (!_activeProblem) {
+        return;
+    }
+
     assert(_activeApi);
     
     Vec4 clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -223,33 +226,83 @@ int main(int argc, char* argv[])
 }
 
 // --------------------------------------------------------------------------------------------------------------------
+struct BenchmarkRow
+{
+    std::string mProblemName;
+    std::string mSolutionName;
+    unsigned int mFrameCount;
+    double mElapsedS;
+    unsigned int mWorkCount;
+    double mFramesPerSecond;
+    double mMillisecondsPerFrame;
+    double mWorkPerSecond;
+};
+
+// --------------------------------------------------------------------------------------------------------------------
+bool BechmarkSorter(const BenchmarkRow& _lhs, const BenchmarkRow& _rhs)
+{
+    if (_lhs.mProblemName == _rhs.mProblemName) {
+        if (_lhs.mSolutionName == _rhs.mSolutionName) {
+            return _lhs.mFramesPerSecond > _rhs.mFramesPerSecond;
+        }
+
+        return _lhs.mSolutionName < _rhs.mSolutionName;
+    }
+    return _lhs.mProblemName < _rhs.mProblemName;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
 std::string asTable(BenchmarkResults _results)
 {
     char buffer[1024];
     std::string retStr;
-    const char* kHeaderFmt =  " %-23s %-51s %-7s %-15s %-9s %-7s\n";
-    const char* kRowFmt =     " %-23s %-51s %-7d %-15.3f %-9.3f %-7.3f\n";
-    const char* kRowFailFmt = " %-23s %-51s %-7s %-15s %-9s %-7s\n";
+    const char* kHeaderFmt =  " %-23s %-48s %7s %12s %12s %12s\n";
+    const char* kRowFmt =     " %-23s %-48s %7d %12.3f %12.3f %12.3f\n";
+    const char* kRowFailFmt = " %-23s %-48s %7s %12s %12s %12s\n";
 
     snprintf(buffer, sizeof(buffer)-1, kHeaderFmt, "Problem", "Solution", "Frames", "Elapsed (s)", "fps", "ms/f");
     retStr += buffer;
 
+    std::vector<BenchmarkRow> rows;
+
+    // First, accumulate data into rows.
     for (auto it = _results.cbegin(); it != _results.cend(); ++it) {
-        const char* problemName = it->first.first.c_str();
-        const char* solutionName = it->first.second.c_str();
-        const unsigned int frameCount = it->second.first;
-        const double elapsedS = it->second.second;
+        std::string problemName = it->first.first;
+        std::string solutionName = it->first.second;
+        const unsigned int frameCount = std::get<0>(it->second);
+        const double elapsedS = std::get<1>(it->second);
+        const unsigned int workCount = std::get<2>(it->second);
 
         if (frameCount != 0 && elapsedS != 0.0) {
-            const double fps = frameCount / elapsedS;
-            const double mspf = elapsedS * 1000.0 / frameCount;
+            double fps = frameCount / elapsedS;
+            double mspf = elapsedS * 1000.0 / frameCount;
+            double wps = workCount / elapsedS;
 
-            snprintf(buffer, sizeof(buffer), kRowFmt, problemName, solutionName, frameCount, elapsedS, fps, mspf);
+            BenchmarkRow newRow = {
+                problemName, solutionName,
+                frameCount, elapsedS, workCount, fps, mspf, wps
+            };
+
+            rows.push_back(newRow);
         } else {
-            snprintf(buffer, sizeof(buffer), kRowFailFmt, problemName, solutionName, "N/A", "N/A", "N/A", "N/A");
+            BenchmarkRow newRow = {
+                problemName, solutionName,
+                frameCount, elapsedS, workCount, 0, 0, 0
+            };
+        }
+    }
+
+    std::sort(rows.begin(), rows.end(), BechmarkSorter);
+
+    for (auto it = rows.cbegin(); it != rows.cend(); ++it) {
+        const BenchmarkRow& row = (*it);
+    
+        if (row.mFrameCount != 0 && row.mElapsedS != 0.0) {
+            snprintf(buffer, sizeof(buffer), kRowFmt, row.mProblemName.c_str(), row.mSolutionName.c_str(), row.mFrameCount, row.mElapsedS, row.mFramesPerSecond, row.mMillisecondsPerFrame);
+        } else {
+            snprintf(buffer, sizeof(buffer), kRowFailFmt, row.mProblemName.c_str(), row.mSolutionName.c_str(), "N/A", "N/A", "N/A", "N/A");
         }
         retStr += buffer;
     }
-
     return retStr;
 }
