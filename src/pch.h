@@ -26,6 +26,7 @@
 
 #include "SDL.h"
 #include "framework/dds_helper.h"
+#include "GL/glextensions.h"
 
 #ifdef _WIN32
 #   pragma warning ( disable : 4351 )

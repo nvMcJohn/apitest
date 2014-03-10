@@ -9,7 +9,6 @@
 #include "options.h"
 #include "os.h"
 #include "timer.h"
-#include "wgl.h"
 
 #include <stdio.h>
 

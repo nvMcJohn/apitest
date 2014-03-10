@@ -1,7 +1,7 @@
 #pragma once
 
 #include "gfx.h"
-#include "wgl.h"
+#include "GL/glextensions.h"
 
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
@@ -96,4 +96,3 @@ inline GLuint NewBufferFromVector(GLenum _target, const std::vector<T>& _data, G
 }
 
 GLuint NewTex2DFromDetails(const TextureDetails& _texDetails);
-bool HasExtension(const char* _extension);

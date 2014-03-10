@@ -1,7 +1,8 @@
 
 #pragma once
 
-#include "wgl.h"
+#include "GL/glcorearb.h"
+#include "GL/glext.h"
 #include <cstdlib>
 #include <stdio.h>
 #include <memory.h>

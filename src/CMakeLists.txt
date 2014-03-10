@@ -62,7 +62,8 @@ set( SRCS
     framework/os.cpp
     framework/sparse_bindless_texarray.cpp
     framework/timer.cpp
-    framework/wgl.cpp
+
+	GL/glextensions.cpp
 
     problems/dynamicstreaming.cpp
     problems/null.cpp
@@ -154,13 +155,14 @@ source_group( "Framework" FILES
     framework/sparse_bindless_texarray.h
     framework/timer.cpp
     framework/timer.h
-    framework/wgl.cpp
-    framework/wgl.h
 )
 
 source_group( "GL" FILES
     GL/glcorearb.h
     GL/glext.h
+	GL/glextensions.cpp
+	GL/glextensions.h
+	GL/glextensions.inl
     GL/wglext.h
 )
 

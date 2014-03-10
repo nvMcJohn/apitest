@@ -26,7 +26,7 @@ bool UntexturedObjectsGLMultiDrawBuffer::Init(const std::vector<UntexturedObject
         return false;
     }
 
-    if (mUseShaderDrawParameters && !HasExtension("GL_ARB_shader_draw_parameters")) {
+    if (mUseShaderDrawParameters && !HasExtension(ARB_shader_draw_parameters)) {
         console::warn("Unable to initialize solution, ARB_shader_draw_parameters is required but not available.");
         return false;
     }

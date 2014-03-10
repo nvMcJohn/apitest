@@ -59,10 +59,11 @@ bool GfxApiOpenGLCompat::Init(const std::string& _title, int _x, int _y, int _wi
         console::warn("Unable to MakeCurrent on GL context.");
         return false;
     }
-    
-    // TODO: Redo how this is done, needs fallbacks, should use macro file.
-    wgl::bind_gl();
 
+    std::list<std::string> stripExts;
+    CheckExtensions(stripExts);
+    ResolveExtensions();
+    
     SDL_GL_SetSwapInterval(0);
 
     // Default GL State
@@ -89,6 +90,8 @@ bool GfxApiOpenGLCompat::Init(const std::string& _title, int _x, int _y, int _wi
 void GfxApiOpenGLCompat::Shutdown()
 {
     SDL_GL_MakeCurrent(nullptr, nullptr);
+
+    ResetExtensions();
 
     if (mGLrc) {
         SDL_GL_DeleteContext(mGLrc);
@@ -352,24 +355,6 @@ GLuint NewTex2DFromDetails(const TextureDetails& _texDetails)
     assert(glGetError() == GL_NO_ERROR);
 
     return retVal;
-}
-
-// --------------------------------------------------------------------------------------------------------------------
-bool HasExtension(const char* _extension)
-{
-    // TODO: This could be done more efficiently, for example by caching the extension strings. 
-    // I'm not really worried about it.
-    const char* extensionString = (const char*)glGetString(GL_EXTENSIONS);
-    char* easierToParseExtensionString = new char[strlen(extensionString) + 2 + 1];
-    sprintf(easierToParseExtensionString, " %s ", extensionString);
-
-    char* findString = new char[strlen((const char*)_extension) + 2 + 1];
-    sprintf(findString, " %s ", _extension);
-    bool found = strstr(easierToParseExtensionString, findString) != nullptr;
-    delete[] findString;
-    delete[] easierToParseExtensionString;
-
-    return found;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
