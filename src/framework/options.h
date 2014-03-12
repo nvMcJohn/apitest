@@ -11,6 +11,7 @@ struct Options
     // --------------------------------------------------------------------------------------------
     bool BenchmarkMode;
     float BenchmarkTime;
+    std::pair<int, int> Resolution;
     std::string InitialProblem;
     std::string InitialSolution;
     std::string InitialApi;

@@ -18,7 +18,9 @@ ApplicationState::BenchmarkState::BenchmarkState()
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 ApplicationState::ApplicationState(const Options& _opts)
-: mActiveProblem(kInactiveProblem)
+: mResWidth(_opts.Resolution.first)
+, mResHeight(_opts.Resolution.second)
+, mActiveProblem(kInactiveProblem)
 , mActiveSolution(kInactiveSolution)
 , mActiveApi()
 , mFrameCount()
@@ -440,7 +442,7 @@ void ApplicationState::createGfxApis()
     
     tmpApi = CreateGfxOpenGLGeneric();
     if (tmpApi) { 
-        if (tmpApi->Init("apitest - OpenGL (compat)", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 768)) {
+        if (tmpApi->Init("apitest - OpenGL (compat)", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, mResWidth, mResHeight)) {
             mGfxApis[tmpApi->GetShortName()] = tmpApi;
         } else {
             SafeDelete(tmpApi);
@@ -449,7 +451,7 @@ void ApplicationState::createGfxApis()
 
     tmpApi = CreateGfxDirect3D11();
     if (tmpApi) { 
-        if (tmpApi->Init("apitest - Direct3D11", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 768)) {
+        if (tmpApi->Init("apitest - Direct3D11", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, mResWidth, mResHeight)) {
             mGfxApis[tmpApi->GetShortName()] = tmpApi;
         }
         else {

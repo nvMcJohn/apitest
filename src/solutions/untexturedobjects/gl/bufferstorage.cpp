@@ -14,9 +14,15 @@ UntexturedObjectsGLBufferStorage::UntexturedObjectsGLBufferStorage(bool _useShad
 , m_prog()
 , m_transform_buffer()
 , m_transform_ptr()
+, mTransformOffset()
+, mTransformSize()
+, mTransformBufferLock(true)
 , mUseShaderDrawParameters(_useShaderDrawParameters)
 , m_cmd_buffer()
 , m_cmd_ptr()
+, mCmdOffset()
+, mCmdSize()
+, mCmdBufferLock(true)
 {}
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -82,18 +88,24 @@ bool UntexturedObjectsGLBufferStorage::Init(const std::vector<UntexturedObjectsP
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ib);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, _indices.size() * sizeof(UntexturedObjectsProblem::Index), &*_indices.begin(), GL_STATIC_DRAW);
 
-    glGenBuffers(1, &m_transform_buffer);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, m_transform_buffer);
-    glBufferStorage(GL_SHADER_STORAGE_BUFFER, _objectCount * 64, nullptr, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_DYNAMIC_STORAGE_BIT);
-    m_transform_ptr = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, _objectCount * 64, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT);
+    const GLbitfield mapFlags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT;
+    const GLbitfield createFlags = mapFlags | GL_DYNAMIC_STORAGE_BIT;
 
+    mCmdOffset = 0;
+    mCmdSize = kTripleBuffer * _objectCount * sizeof(DrawElementsIndirectCommand);
     glGenBuffers(1, &m_cmd_buffer);
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_cmd_buffer);
-    glBufferStorage(GL_DRAW_INDIRECT_BUFFER, _objectCount * sizeof(DrawElementsIndirectCommand), nullptr, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_DYNAMIC_STORAGE_BIT);
-    m_cmd_ptr = glMapBufferRange(GL_DRAW_INDIRECT_BUFFER, 0, _objectCount * sizeof(DrawElementsIndirectCommand), GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT);
-
+    glBufferStorage(GL_DRAW_INDIRECT_BUFFER, mCmdSize, nullptr, createFlags);
+    m_cmd_ptr = glMapBufferRange(GL_DRAW_INDIRECT_BUFFER, 0, mCmdSize, mapFlags);
     // Set the command buffer size.
     m_commands.resize(_objectCount);
+
+    mTransformOffset = 0;
+    mTransformSize = kTripleBuffer * _objectCount * sizeof(Matrix);
+    glGenBuffers(1, &m_transform_buffer);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, m_transform_buffer);
+    glBufferStorage(GL_SHADER_STORAGE_BUFFER, mTransformSize, nullptr, createFlags);
+    m_transform_ptr = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, mTransformSize, mapFlags);
 
     return glGetError() == GL_NO_ERROR;
 }
@@ -140,8 +152,16 @@ void UntexturedObjectsGLBufferStorage::Render(const std::vector<Matrix>& _transf
         cmd->baseInstance = mUseShaderDrawParameters ? 0 : u;
     }
 
-    memcpy(m_transform_ptr, &*_transforms.begin(), sizeof(Matrix) * xformCount);
-    memcpy(m_cmd_ptr, &*m_commands.begin(), sizeof(DrawElementsIndirectCommand) * objCount);
+    mTransformBufferLock.WaitForLockedRange(mTransformOffset, sizeof(Matrix) * xformCount);
+    memcpy((unsigned char*)m_transform_ptr + mTransformOffset, &*_transforms.begin(), sizeof(Matrix) * xformCount);
+    mTransformBufferLock.LockRange(mTransformOffset, sizeof(Matrix) * xformCount);
+    mTransformOffset = (mTransformOffset + sizeof(Matrix) * xformCount) % mTransformSize;
+
+    mCmdBufferLock.WaitForLockedRange(mCmdOffset, sizeof(DrawElementsIndirectCommand) * objCount);
+    memcpy((unsigned char*)m_cmd_ptr + mCmdOffset, &*m_commands.begin(), sizeof(DrawElementsIndirectCommand) * objCount);
+    mCmdBufferLock.LockRange(0, sizeof(DrawElementsIndirectCommand) * objCount);
+    mCmdOffset = (mCmdOffset + sizeof(DrawElementsIndirectCommand) * objCount) % mCmdSize;
+
     glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
 
     glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_SHORT, nullptr, objCount, 0);

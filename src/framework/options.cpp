@@ -49,6 +49,7 @@ struct CommandLineOption
 Options::Options()
 : BenchmarkMode(false)
 , BenchmarkTime(5.0f)
+, Resolution(std::make_pair(1024, 768))
 , InitialProblem(Options::DefaultInitialProblem)
 , InitialSolution(Options::DefaultInitialSolution)
 , InitialApi(GfxApiOpenGLCompat::SGetShortName())
@@ -92,6 +93,21 @@ int StoreString(int _argNum, int _argc, char* _argv[], Options* _outOptions, siz
 }
 
 // ------------------------------------------------------------------------------------------------
+int StorePairInt(int _argNum, int _argc, char* _argv[], Options* _outOptions, size_t _byteOffset)
+{
+    std::pair<int, int>* dest; Dest(_outOptions, _byteOffset, &dest);
+    if (_argNum + 3 > _argc) {
+        PrintHelp();
+        console::error("Not enough parameters for argument '%s'", _argv[_argNum]);
+    }
+
+    (*dest).first = atoi(_argv[_argNum + 1]);
+    (*dest).second = atoi(_argv[_argNum + 2]);
+
+    return 3;
+}
+
+// ------------------------------------------------------------------------------------------------
 int PrintHelpAndExit(int _argNum, int _argc, char* _argv[], Options* _outOptions, size_t _byteOffset)
 {
     PrintHelp(0);
@@ -105,6 +121,7 @@ CommandLineOption gClOpts[] = {
     { "-p",     "--problem",        StoreString,        offsetof(Options, InitialProblem),  "The next argument specifies the initial problem to use."},
     { "-s",     "--solution",       StoreString,        offsetof(Options, InitialSolution), "The next argument specifies the initial solution to show."},
     { "-a",     "--api",            StoreString,        offsetof(Options, InitialApi),      "The default API to use." },
+    { "-r",     "--resolution",     StorePairInt,       offsetof(Options, Resolution),      "The horizontal and vertical surface resolution." },
     { "-h",     "--help",           PrintHelpAndExit,   size_t(0),                          "Display this help text and exit." },
 
     // Sentinel, must be last.

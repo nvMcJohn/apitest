@@ -55,8 +55,9 @@ void BufferLockManager::wait(GLsync* _syncObj)
 {
     if  (mCPUUpdates) {
         GLbitfield waitFlags = 0;
+        GLuint64 waitDuration = 0;
         while (1) {
-            GLenum waitRet = glClientWaitSync(*_syncObj, waitFlags, kOneSecondInNanoSeconds);
+            GLenum waitRet = glClientWaitSync(*_syncObj, waitFlags, waitDuration);
             if (waitRet == GL_ALREADY_SIGNALED || waitRet == GL_CONDITION_SATISFIED) {
                 return;
             }
@@ -66,8 +67,9 @@ void BufferLockManager::wait(GLsync* _syncObj)
                 return;
             }
 
-            // After the first time, need to start flushing.
+            // After the first time, need to start flushing, and wait for a looong time.
             waitFlags = GL_SYNC_FLUSH_COMMANDS_BIT;
+            waitDuration = kOneSecondInNanoSeconds;
         }
     } else {
         glWaitSync(*_syncObj, 0, GL_TIMEOUT_IGNORED);

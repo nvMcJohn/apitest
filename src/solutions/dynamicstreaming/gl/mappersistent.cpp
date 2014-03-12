@@ -4,8 +4,6 @@
 #include "mappersistent.h"
 #include "framework/gfx_gl.h"
 
-const size_t kTripleBuffer = 3;
-
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
@@ -95,6 +93,8 @@ void DynamicStreamingGLMapPersistent::Render(const std::vector<Vec2>& _vertices)
     const int kParticleSizeBytes = int(kVertsPerParticle * sizeof(Vec2));
     const int kStartIndex = mStartDestOffset / sizeof(Vec2);
 
+    // Need to wait for this area to become available. If we've sized things properly, it will always be 
+    // available right away.
     mBufferLockManager.WaitForLockedRange(mStartDestOffset, _vertices.size() * sizeof(Vec2));
 
     for (int i = 0; i < kParticleCount; ++i)
@@ -109,6 +109,7 @@ void DynamicStreamingGLMapPersistent::Render(const std::vector<Vec2>& _vertices)
         glDrawArrays(GL_TRIANGLES, kStartIndex + vertexOffset, kVertsPerParticle);
     }
 
+    // Lock this area for the future.
     mBufferLockManager.LockRange(mStartDestOffset, _vertices.size() * sizeof(Vec2));
 
     mStartDestOffset = (mStartDestOffset + (kParticleCount * kParticleSizeBytes)) % mParticleBufferSize;

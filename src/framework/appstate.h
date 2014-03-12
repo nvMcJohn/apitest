@@ -68,6 +68,9 @@ private:
     // ----------------------------------------------------------------------------------------------------------------
     std::map<std::string, GfxBaseApi*> mGfxApis;
 
+    int mResWidth;
+    int mResHeight;
+
     ProblemFactory mFactory;
 
     std::vector<Problem*> mProblems;
