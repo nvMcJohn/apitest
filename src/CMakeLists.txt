@@ -45,6 +45,8 @@ set( SHADERS
     ../bin/Shaders/glsl/textures_gl_sparse_bindless_texture_array_multidraw_vs.glsl
     ../bin/Shaders/glsl/textures_gl_sparse_bindless_texture_array_multidraw_fs.glsl
 
+	../bin/Shaders/hlsl/cubes_d3d11_naive_vs.hlsl
+	../bin/Shaders/hlsl/cubes_d3d11_naive_ps.hlsl
 	../bin/Shaders/hlsl/streaming_vb_d3d11_vs.hlsl
     ../bin/Shaders/hlsl/streaming_vb_d3d11_ps.hlsl
     ../bin/Shaders/hlsl/textures_d3d11_naive_vs.hlsl
@@ -112,6 +114,8 @@ set( SRCS
 if( apitest_WITH_D3D11 )
 	set( SRCS ${SRCS} 
 		framework/gfx_dx11.cpp
+
+		solutions/untexturedobjects/d3d11/naive.cpp
 
 		solutions/dynamicstreaming/d3d11/mapnooverwrite.cpp
 		solutions/dynamicstreaming/d3d11/updatesubresource.cpp
@@ -326,6 +330,13 @@ source_group( "Solutions\\TexturedQuads\\GL\\SparseBindlessTextureArrayMultidraw
 source_group( "Solutions\\UntexturedObjects" FILES 
     solutions/untexturedobjectssoln.cpp
     solutions/untexturedobjectssoln.h
+)
+
+source_group( "Solutions\\UntexturedObjects\\D3D11\\Naive" FILES 
+	solutions/untexturedobjects/d3d11/naive.cpp
+	solutions/untexturedobjects/d3d11/naive.h
+	../bin/Shaders/hlsl/cubes_d3d11_naive_vs.hlsl
+	../bin/Shaders/hlsl/cubes_d3d11_naive_ps.hlsl
 )
 
 source_group( "Solutions\\UntexturedObjects\\GL\\Bindless" FILES 

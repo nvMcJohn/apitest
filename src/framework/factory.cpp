@@ -41,6 +41,7 @@
 #   include "solutions/dynamicstreaming/d3d11/mapnooverwrite.h"
 #   include "solutions/dynamicstreaming/d3d11/updatesubresource.h"
 #   include "solutions/texturedquads/d3d11/naive.h"
+#   include "solutions/untexturedobjects/d3d11/naive.h"
 #endif
 
 
@@ -105,6 +106,9 @@ ProblemFactory::ProblemFactory(bool _skipInit)
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLMapUnsynchronized());
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLMapPersistent());
         mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsGLTexCoord());
+        #if WITH_D3D11
+            mSolutions[mProblems.back()->GetName()].push_back(new UntexturedObjectsD3D11Naive());
+        #endif
     } else {
         newProb->Shutdown();
         SafeDelete(newProb);
