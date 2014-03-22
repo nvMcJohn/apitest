@@ -154,17 +154,19 @@ void UntexturedObjectsGLBufferStorage::Render(const std::vector<Matrix>& _transf
 
     mTransformBufferLock.WaitForLockedRange(mTransformOffset, sizeof(Matrix) * xformCount);
     memcpy((unsigned char*)m_transform_ptr + mTransformOffset, &*_transforms.begin(), sizeof(Matrix) * xformCount);
-    mTransformBufferLock.LockRange(mTransformOffset, sizeof(Matrix) * xformCount);
-    mTransformOffset = (mTransformOffset + sizeof(Matrix) * xformCount) % mTransformSize;
 
     mCmdBufferLock.WaitForLockedRange(mCmdOffset, sizeof(DrawElementsIndirectCommand) * objCount);
     memcpy((unsigned char*)m_cmd_ptr + mCmdOffset, &*m_commands.begin(), sizeof(DrawElementsIndirectCommand) * objCount);
-    mCmdBufferLock.LockRange(0, sizeof(DrawElementsIndirectCommand) * objCount);
-    mCmdOffset = (mCmdOffset + sizeof(DrawElementsIndirectCommand) * objCount) % mCmdSize;
 
     glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
 
     glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_SHORT, nullptr, objCount, 0);
+
+    mTransformBufferLock.LockRange(mTransformOffset, sizeof(Matrix) * xformCount);
+    mTransformOffset = (mTransformOffset + sizeof(Matrix) * xformCount) % mTransformSize;
+
+    mCmdBufferLock.LockRange(mCmdOffset, sizeof(DrawElementsIndirectCommand) * objCount);
+    mCmdOffset = (mCmdOffset + sizeof(DrawElementsIndirectCommand) * objCount) % mCmdSize;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
