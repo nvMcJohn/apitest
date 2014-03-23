@@ -56,6 +56,7 @@ set( SHADERS
 set( SRCS
     framework/apitest.cpp
 	framework/appstate.cpp
+	framework/buffer.cpp
 	framework/bufferlock.cpp
     framework/console.cpp
     framework/factory.cpp
@@ -138,6 +139,8 @@ source_group( "Framework" FILES
     framework/apitest.cpp
 	framework/appstate.cpp
 	framework/appstate.h
+	framework/buffer.cpp
+	framework/buffer.h
 	framework/bufferlock.cpp
 	framework/bufferlock.h
     framework/console.cpp

@@ -12,17 +12,9 @@ UntexturedObjectsGLBufferStorage::UntexturedObjectsGLBufferStorage(bool _useShad
 , m_varray()
 , m_drawid()
 , m_prog()
-, m_transform_buffer()
-, m_transform_ptr()
-, mTransformOffset()
-, mTransformSize()
-, mTransformBufferLock(true)
+, mTransformBuffer(true)
+, mCommands(true)
 , mUseShaderDrawParameters(_useShaderDrawParameters)
-, m_cmd_buffer()
-, m_cmd_ptr()
-, mCmdOffset()
-, mCmdSize()
-, mCmdBufferLock(true)
 {}
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -91,21 +83,9 @@ bool UntexturedObjectsGLBufferStorage::Init(const std::vector<UntexturedObjectsP
     const GLbitfield mapFlags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT;
     const GLbitfield createFlags = mapFlags | GL_DYNAMIC_STORAGE_BIT;
 
-    mCmdOffset = 0;
-    mCmdSize = kTripleBuffer * _objectCount * sizeof(DrawElementsIndirectCommand);
-    glGenBuffers(1, &m_cmd_buffer);
-    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_cmd_buffer);
-    glBufferStorage(GL_DRAW_INDIRECT_BUFFER, mCmdSize, nullptr, createFlags);
-    m_cmd_ptr = glMapBufferRange(GL_DRAW_INDIRECT_BUFFER, 0, mCmdSize, mapFlags);
-    // Set the command buffer size.
-    m_commands.resize(_objectCount);
-
-    mTransformOffset = 0;
-    mTransformSize = kTripleBuffer * _objectCount * sizeof(Matrix);
-    glGenBuffers(1, &m_transform_buffer);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, m_transform_buffer);
-    glBufferStorage(GL_SHADER_STORAGE_BUFFER, mTransformSize, nullptr, createFlags);
-    m_transform_ptr = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, mTransformSize, mapFlags);
+    mCommands.Create(BufferStorage::PersistentlyMappedBuffer, GL_DRAW_INDIRECT_BUFFER, kTripleBuffer * _objectCount, createFlags, mapFlags);
+    mTransformBuffer.Create(BufferStorage::PersistentlyMappedBuffer, GL_SHADER_STORAGE_BUFFER, kTripleBuffer * _objectCount, createFlags, mapFlags);
+    mTransformBuffer.BindBufferBase(0);
 
     return glGetError() == GL_NO_ERROR;
 }
@@ -113,9 +93,9 @@ bool UntexturedObjectsGLBufferStorage::Init(const std::vector<UntexturedObjectsP
 // --------------------------------------------------------------------------------------------------------------------
 void UntexturedObjectsGLBufferStorage::Render(const std::vector<Matrix>& _transforms)
 {
-    const auto objCount = m_commands.size();
     const auto xformCount = _transforms.size();
-    assert(objCount == xformCount);
+    assert(xformCount <= unsigned(mTransformBuffer.GetSize()));
+    assert(xformCount <= unsigned(mCommands.GetSize()));
 
     // Program
     Vec3 dir = { -0.5f, -1, 1 };
@@ -142,9 +122,9 @@ void UntexturedObjectsGLBufferStorage::Render(const std::vector<Matrix>& _transf
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
 
-    for (size_t u = 0; u < objCount; ++u)
-    {
-        DrawElementsIndirectCommand *cmd = &m_commands[u];
+    DrawElementsIndirectCommand* dstCmds = mCommands.Reserve(xformCount);
+    for (size_t u = 0; u < xformCount; ++u) {
+        DrawElementsIndirectCommand *cmd = &dstCmds[u];
         cmd->count = mIndexCount;
         cmd->instanceCount = 1;
         cmd->firstIndex = 0;
@@ -152,21 +132,16 @@ void UntexturedObjectsGLBufferStorage::Render(const std::vector<Matrix>& _transf
         cmd->baseInstance = mUseShaderDrawParameters ? 0 : u;
     }
 
-    mTransformBufferLock.WaitForLockedRange(mTransformOffset, sizeof(Matrix) * xformCount);
-    memcpy((unsigned char*)m_transform_ptr + mTransformOffset, &*_transforms.begin(), sizeof(Matrix) * xformCount);
+    Matrix* dstTransforms = mTransformBuffer.Reserve(xformCount);
+    memcpy(dstTransforms, &*_transforms.begin(), sizeof(Matrix) * xformCount);
 
-    mCmdBufferLock.WaitForLockedRange(mCmdOffset, sizeof(DrawElementsIndirectCommand) * objCount);
-    memcpy((unsigned char*)m_cmd_ptr + mCmdOffset, &*m_commands.begin(), sizeof(DrawElementsIndirectCommand) * objCount);
-
+    // We didn't use MAP_COHERENT here.
     glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
 
-    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_SHORT, nullptr, objCount, 0);
+    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_SHORT, nullptr, xformCount, 0);
 
-    mTransformBufferLock.LockRange(mTransformOffset, sizeof(Matrix) * xformCount);
-    mTransformOffset = (mTransformOffset + sizeof(Matrix) * xformCount) % mTransformSize;
-
-    mCmdBufferLock.LockRange(mCmdOffset, sizeof(DrawElementsIndirectCommand) * objCount);
-    mCmdOffset = (mCmdOffset + sizeof(DrawElementsIndirectCommand) * objCount) % mCmdSize;
+    mCommands.OnUsageComplete(xformCount);
+    mTransformBuffer.OnUsageComplete(xformCount);
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -178,24 +153,13 @@ void UntexturedObjectsGLBufferStorage::Shutdown()
     glDisableVertexAttribArray(1);
     glDisableVertexAttribArray(0);
 
-    if (m_transform_ptr)
-    {
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_transform_buffer);
-        glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
-    }
-
-    if (m_cmd_ptr)
-    {
-        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_cmd_buffer);
-        glUnmapBuffer(GL_DRAW_INDIRECT_BUFFER);
-    }
+    mCommands.Destroy();
+    mTransformBuffer.Destroy();
 
     glDeleteBuffers(1, &m_ib);
     glDeleteBuffers(1, &m_vb);
     glDeleteVertexArrays(1, &m_varray);
     glDeleteBuffers(1, &m_drawid);
-    glDeleteBuffers(1, &m_transform_buffer);
-    glDeleteBuffers(1, &m_cmd_buffer);
     glDeleteProgram(m_prog);
 }
 

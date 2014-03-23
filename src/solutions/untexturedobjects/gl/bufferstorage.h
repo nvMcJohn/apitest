@@ -1,7 +1,7 @@
 #pragma once
 
 #include "solutions/untexturedobjectssoln.h"
-#include "framework/bufferlock.h"
+#include "framework/buffer.h"
 
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
@@ -29,20 +29,9 @@ private:
     GLuint m_drawid;
     GLuint m_prog;
 
-    GLuint m_transform_buffer;
-    void *m_transform_ptr;
-    int mTransformOffset;
-    int mTransformSize;
-    BufferLockManager mTransformBufferLock;
-
+    CircularBuffer<Matrix> mTransformBuffer;
+    CircularBuffer<DrawElementsIndirectCommand> mCommands;
     bool mUseShaderDrawParameters;
-
-    std::vector<DrawElementsIndirectCommand> m_commands;
-    GLuint m_cmd_buffer;
-    void *m_cmd_ptr;
-    int mCmdOffset;
-    int mCmdSize;
-    BufferLockManager mCmdBufferLock;
 
     struct UniformLocations {
         GLuint ViewProjection;

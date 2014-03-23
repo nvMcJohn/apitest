@@ -38,4 +38,8 @@ void SafeRelease(T*& _p) { if (_p) { _p->Release(); _p = nullptr; } }
 template <typename T> 
 void SafeDelete(T*& _p) { delete _p; _p = nullptr; }
 
+template <typename T> 
+void SafeDeleteArray(T*& _p) { delete [] _p; _p = nullptr; }
+
+
 #define ArraySize(_arr) ( sizeof((_arr)) / sizeof((_arr)[0]) )
