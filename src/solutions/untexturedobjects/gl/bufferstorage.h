@@ -23,11 +23,11 @@ public:
     virtual bool SupportsApi(EGfxApi _api) const override { return IsOpenGL(_api); }
 
 private:
-    GLuint m_ib;
-    GLuint m_vb;
-    GLuint m_varray;
-    GLuint m_drawid;
-    GLuint m_prog;
+    GLuint mIndexBuffer;
+    GLuint mVertexBuffer;
+    GLuint mVertexArrayObject;
+    GLuint mDrawIdBuffer;
+    GLuint mProgram;
 
     CircularBuffer<Matrix> mTransformBuffer;
     CircularBuffer<DrawElementsIndirectCommand> mCommands;

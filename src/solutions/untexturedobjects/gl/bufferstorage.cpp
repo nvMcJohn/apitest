@@ -7,11 +7,11 @@
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 UntexturedObjectsGLBufferStorage::UntexturedObjectsGLBufferStorage(bool _useShaderDrawParameters)
-: m_ib()
-, m_vb()
-, m_varray()
-, m_drawid()
-, m_prog()
+: mIndexBuffer()
+, mVertexBuffer()
+, mVertexArrayObject()
+, mDrawIdBuffer()
+, mProgram()
 , mTransformBuffer(true)
 , mCommands(true)
 , mUseShaderDrawParameters(_useShaderDrawParameters)
@@ -39,22 +39,22 @@ bool UntexturedObjectsGLBufferStorage::Init(const std::vector<UntexturedObjectsP
     // Program
     const char* kUniformNames[] = { "ViewProjection", nullptr };
 
-    m_prog = CreateProgramT("cubes_gl_buffer_storage_vs.glsl",
-                            "cubes_gl_buffer_storage_fs.glsl",
-                            mUseShaderDrawParameters ? std::string("#define USE_SHADER_DRAW_PARAMETERS 1\n") : std::string(""),
-                            kUniformNames, &mUniformLocation);
+    mProgram = CreateProgramT("cubes_gl_buffer_storage_vs.glsl",
+                              "cubes_gl_buffer_storage_fs.glsl",
+                              mUseShaderDrawParameters ? std::string("#define USE_SHADER_DRAW_PARAMETERS 1\n") : std::string(""),
+                              kUniformNames, &mUniformLocation);
 
-    if (m_prog == 0) {
+    if (mProgram == 0) {
         console::warn("Unable to initialize solution '%s', shader compilation/linking failed.", GetName().c_str());
         return false;
     }
 
-    glGenVertexArrays(1, &m_varray);
-    glBindVertexArray(m_varray);
+    glGenVertexArrays(1, &mVertexArrayObject);
+    glBindVertexArray(mVertexArrayObject);
 
     // Buffers
-    glGenBuffers(1, &m_vb);
-    glBindBuffer(GL_ARRAY_BUFFER, m_vb);
+    glGenBuffers(1, &mVertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, _vertices.size() * sizeof(UntexturedObjectsProblem::Vertex), &*_vertices.begin(), GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(UntexturedObjectsProblem::Vertex), (void*) offsetof(UntexturedObjectsProblem::Vertex, pos));
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(UntexturedObjectsProblem::Vertex), (void*) offsetof(UntexturedObjectsProblem::Vertex, color));
@@ -68,16 +68,16 @@ bool UntexturedObjectsGLBufferStorage::Init(const std::vector<UntexturedObjectsP
             drawids[i] = i;
         }
 
-        glGenBuffers(1, &m_drawid);
-        glBindBuffer(GL_ARRAY_BUFFER, m_drawid);
+        glGenBuffers(1, &mDrawIdBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, mDrawIdBuffer);
         glBufferData(GL_ARRAY_BUFFER, drawids.size() * sizeof(uint32_t), drawids.data(), GL_STATIC_DRAW);
         glVertexAttribIPointer(2, 1, GL_UNSIGNED_INT, sizeof(uint32_t), 0);
         glVertexAttribDivisor(2, 1);
         glEnableVertexAttribArray(2);
     }
 
-    glGenBuffers(1, &m_ib);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ib);
+    glGenBuffers(1, &mIndexBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndexBuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, _indices.size() * sizeof(UntexturedObjectsProblem::Index), &*_indices.begin(), GL_STATIC_DRAW);
 
     const GLbitfield mapFlags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT;
@@ -106,7 +106,7 @@ void UntexturedObjectsGLBufferStorage::Render(const std::vector<Matrix>& _transf
     Matrix view = matrix_look_at(eye, at, up);
     Matrix view_proj = mProj * view;
 
-    glUseProgram(m_prog);
+    glUseProgram(mProgram);
     glUniformMatrix4fv(mUniformLocation.ViewProjection, 1, GL_TRUE, &view_proj.x.x);
 
     // Rasterizer State
@@ -156,11 +156,11 @@ void UntexturedObjectsGLBufferStorage::Shutdown()
     mCommands.Destroy();
     mTransformBuffer.Destroy();
 
-    glDeleteBuffers(1, &m_ib);
-    glDeleteBuffers(1, &m_vb);
-    glDeleteVertexArrays(1, &m_varray);
-    glDeleteBuffers(1, &m_drawid);
-    glDeleteProgram(m_prog);
+    glDeleteBuffers(1, &mIndexBuffer);
+    glDeleteBuffers(1, &mVertexBuffer);
+    glDeleteVertexArrays(1, &mVertexArrayObject);
+    glDeleteBuffers(1, &mDrawIdBuffer);
+    glDeleteProgram(mProgram);
 }
 
 // --------------------------------------------------------------------------------------------------------------------

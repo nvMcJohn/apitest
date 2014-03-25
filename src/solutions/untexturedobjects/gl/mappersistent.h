@@ -1,7 +1,7 @@
 #pragma once
 
 #include "solutions/untexturedobjectssoln.h"
-#include "framework/bufferlock.h"
+#include "framework/buffer.h"
 
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
@@ -29,17 +29,10 @@ private:
     GLuint m_drawid;
     GLuint m_prog;
 
-    GLuint m_transform_buffer;
-
-    size_t mStartDestOffset;
-    size_t mTransformBufferSize;
-
-    BufferLockManager mBufferLockManager;
+    CircularBuffer<Matrix> mTransformBuffer;
 
     struct UniformLocations {
         GLuint ViewProjection;
         UniformLocations() { memset(this, 0, sizeof(*this)); }
     } mUniformLocation;
-
-    void* mTransformDataPtr;
 };

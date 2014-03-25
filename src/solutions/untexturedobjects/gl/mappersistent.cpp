@@ -12,11 +12,7 @@ UntexturedObjectsGLMapPersistent::UntexturedObjectsGLMapPersistent()
 , m_varray()
 , m_drawid()
 , m_prog()
-, m_transform_buffer()
-, mStartDestOffset()
-, mTransformBufferSize()
-, mBufferLockManager(true)
-, mTransformDataPtr()
+, mTransformBuffer(true)
 { }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -67,13 +63,10 @@ bool UntexturedObjectsGLMapPersistent::Init(const std::vector<UntexturedObjectsP
 
     m_ib = NewBufferFromVector(GL_ELEMENT_ARRAY_BUFFER, _indices, GL_STATIC_DRAW);
 
-    glGenBuffers(1, &m_transform_buffer);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, m_transform_buffer);
-
-    mTransformBufferSize = kTripleBuffer * sizeof(Matrix) * _objectCount;
-    const GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
-    glBufferStorage(GL_SHADER_STORAGE_BUFFER, mTransformBufferSize, nullptr, flags);
-    mTransformDataPtr = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, mTransformBufferSize, flags);
+    const GLbitfield mapFlags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
+    const GLbitfield createFlags = mapFlags | GL_DYNAMIC_STORAGE_BIT;
+    mTransformBuffer.Create(BufferStorage::PersistentlyMappedBuffer, GL_SHADER_STORAGE_BUFFER, kTripleBuffer * _objectCount, createFlags, mapFlags);
+    mTransformBuffer.BindBufferBase(0);
 
     return glGetError() == GL_NO_ERROR;
 }
@@ -109,19 +102,14 @@ void UntexturedObjectsGLMapPersistent::Render(const std::vector<Matrix>& _transf
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
 
-    auto rangeSize = count * sizeof(Matrix);
-    mBufferLockManager.WaitForLockedRange(mStartDestOffset, rangeSize);
+    Matrix* destMatrices = mTransformBuffer.Reserve(count);
 
     for (size_t i = 0; i < count; ++i) {
-        auto offset = mStartDestOffset + i * sizeof(Matrix);
-        auto dst = (uint8_t*) mTransformDataPtr + offset;
-        memcpy(dst, &_transforms[i], sizeof(Matrix));
-
+        destMatrices[i] = _transforms[i];
         glDrawElementsInstancedBaseInstance(GL_TRIANGLES, mIndexCount, GL_UNSIGNED_SHORT, nullptr, 1, i);
     }
 
-    mBufferLockManager.LockRange(mStartDestOffset, rangeSize);
-    mStartDestOffset = (mStartDestOffset + rangeSize) % mTransformBufferSize;
+    mTransformBuffer.OnUsageComplete(count);
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -131,13 +119,11 @@ void UntexturedObjectsGLMapPersistent::Shutdown()
     glDisableVertexAttribArray(1);
     glDisableVertexAttribArray(0);
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_transform_buffer);
-    glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+    mTransformBuffer.Destroy();
 
     glDeleteBuffers(1, &m_ib);
     glDeleteBuffers(1, &m_vb);
     glDeleteVertexArrays(1, &m_varray);
     glDeleteBuffers(1, &m_drawid);
-    glDeleteBuffers(1, &m_transform_buffer);
     glDeleteProgram(m_prog);
 }
