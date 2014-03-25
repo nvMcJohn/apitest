@@ -14,10 +14,10 @@ for your platform. See below for platform-specific instructions to build:
 
 Windows (from a cmd prompt in the directory README.md is located in)
 =======
-  mkdir _out
-  cd _out
-  cmake -G "Visual Studio 11" ..
-  start apitest.sln
+    mkdir _out
+    cd _out
+    cmake -G "Visual Studio 11" ..
+    start apitest.sln
 
 The Debug and Release configurations are run regularly, so they should
 continue work just fine for you out of the box.
@@ -25,15 +25,15 @@ continue work just fine for you out of the box.
 
 Unix / OSX (from a cmd prompt in the directory README.md is located in)
 =======
-  mkdir _out
-  cd _out
-  cmake -G "Unix Makefiles" ..
-  make
+    mkdir _out
+    cd _out
+    cmake -G "Unix Makefiles" ..
+    make
 
 To run apitest (from a cmd prompt in the directory README.md is located in)
 =======
-  cd bin
-  ./apitest
+    cd bin
+    ./apitest
 
 Changing Problems / Solutions
 =======
