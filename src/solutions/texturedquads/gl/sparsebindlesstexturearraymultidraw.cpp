@@ -6,12 +6,14 @@
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
-TexturedQuadsGLSparseBindlessTextureArrayMultiDraw::TexturedQuadsGLSparseBindlessTextureArrayMultiDraw()
+TexturedQuadsGLSparseBindlessTextureArrayMultiDraw::TexturedQuadsGLSparseBindlessTextureArrayMultiDraw(bool _useShaderDrawParameters)
 : mIndexBuffer()
 , mVertexBuffer()
+, mDrawIDBuffer()
 , mProgram()
 , mTransformBuffer()
 , mTexAddressBuffer()
+, mUseShaderDrawParameters(_useShaderDrawParameters)
 { }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -34,9 +36,16 @@ bool TexturedQuadsGLSparseBindlessTextureArrayMultiDraw::Init(const std::vector<
         return false;
     }
 
-    // Programs
+    if (mUseShaderDrawParameters && !HasExtension(ARB_shader_draw_parameters)) {
+        console::warn("Unable to initialize solution, ARB_shader_draw_parameters is required but not available.");
+        return false;
+    }
+
+    // Program
     mProgram = CreateProgram("textures_gl_sparse_bindless_texture_array_multidraw_vs.glsl",
-                             "textures_gl_sparse_bindless_texture_array_multidraw_fs.glsl");
+                             "textures_gl_sparse_bindless_texture_array_multidraw_fs.glsl",
+                             mUseShaderDrawParameters ? std::string("#define USE_SHADER_DRAW_PARAMETERS 1\n") : std::string("")
+                             );
 
     if (mProgram == 0) {
         console::warn("Unable to initialize solution '%s', shader compilation/linking failed.", GetName().c_str());
@@ -51,6 +60,24 @@ bool TexturedQuadsGLSparseBindlessTextureArrayMultiDraw::Init(const std::vector<
     // Buffers
     mVertexBuffer = NewBufferFromVector(GL_ARRAY_BUFFER, _vertices, GL_STATIC_DRAW);
     mIndexBuffer = NewBufferFromVector(GL_ELEMENT_ARRAY_BUFFER, _indices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedQuadsProblem::Vertex), (void*)offsetof(TexturedQuadsProblem::Vertex, pos));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedQuadsProblem::Vertex), (void*)offsetof(TexturedQuadsProblem::Vertex, tex));
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+
+    // If we aren't using shader draw parameters, use the workaround instead.
+    if (!mUseShaderDrawParameters) {
+        std::vector<uint32_t> drawids(_objectCount);
+        for (uint32_t i = 0; i < _objectCount; ++i) {
+            drawids[i] = i;
+        }
+
+        mDrawIDBuffer = NewBufferFromVector(GL_ARRAY_BUFFER, drawids, GL_STATIC_DRAW);
+        glVertexAttribIPointer(2, 1, GL_UNSIGNED_INT, sizeof(uint32_t), 0);
+        glVertexAttribDivisor(2, 1);
+        glEnableVertexAttribArray(2);
+    }
 
     glGenBuffers(1, &mTransformBuffer);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, mTransformBuffer);
@@ -89,16 +116,6 @@ void TexturedQuadsGLSparseBindlessTextureArrayMultiDraw::Render(const std::vecto
     glUseProgram(mProgram);
     glUniformMatrix4fv(0, 1, GL_TRUE, &view_proj.x.x);
 
-    // Input Layout. First the IB
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndexBuffer);
-
-    // Then the VBs.
-    glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedQuadsProblem::Vertex), (void*)offsetof(TexturedQuadsProblem::Vertex, pos));
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedQuadsProblem::Vertex), (void*)offsetof(TexturedQuadsProblem::Vertex, tex));
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-
     // Rasterizer State
     glEnable(GL_CULL_FACE);
     glCullFace(GL_FRONT);
@@ -126,7 +143,7 @@ void TexturedQuadsGLSparseBindlessTextureArrayMultiDraw::Render(const std::vecto
         cmd->instanceCount = 1;
         cmd->firstIndex = 0;
         cmd->baseVertex = 0;
-        cmd->baseInstance = 0;
+        cmd->baseInstance = mUseShaderDrawParameters ? 0 : u;
     }
 
     glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_SHORT, &*mCommands.begin(), xformCount, 0);
@@ -135,11 +152,18 @@ void TexturedQuadsGLSparseBindlessTextureArrayMultiDraw::Render(const std::vecto
 // --------------------------------------------------------------------------------------------------------------------
 void TexturedQuadsGLSparseBindlessTextureArrayMultiDraw::Shutdown()
 {
+    if (!mUseShaderDrawParameters) {
+        glDisableVertexAttribArray(2);
+    }
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(0);
+
     for (auto it = mTextures.begin(); it != mTextures.end(); ++it) {
         SafeDelete(*it);
     }
 
     glDeleteBuffers(1, &mIndexBuffer);
+    glDeleteBuffers(1, &mDrawIDBuffer);
     glDeleteBuffers(1, &mVertexBuffer);
     glDeleteBuffers(1, &mTransformBuffer);
     glDeleteBuffers(1, &mTexAddressBuffer);
@@ -149,4 +173,14 @@ void TexturedQuadsGLSparseBindlessTextureArrayMultiDraw::Shutdown()
     mCommands.clear();
 
     mTexManager.Shutdown();
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+std::string TexturedQuadsGLSparseBindlessTextureArrayMultiDraw::GetName() const
+{
+    if (mUseShaderDrawParameters) {
+        return "GLSBTAMultiDraw-SDP";
+    }
+
+    return "GLSBTAMultiDraw-NoSDP";
 }

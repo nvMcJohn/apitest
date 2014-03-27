@@ -43,7 +43,7 @@ void Texture2D::CompressedTexSubImage2D(GLint level, GLint xoffset, GLint yoffse
 // ------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------
-Texture2DContainer::Texture2DContainer(GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei slices)
+Texture2DContainer::Texture2DContainer(bool sparse, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei slices)
 : mHandle(0)
 , mWidth(width)
 , mHeight(height)
@@ -54,42 +54,45 @@ Texture2DContainer::Texture2DContainer(GLsizei levels, GLenum internalformat, GL
 {
     glGenTextures(1, &mTexId);
     glBindTexture(GL_TEXTURE_2D_ARRAY, mTexId);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_SPARSE_ARB, GL_TRUE);
 
-    // TODO: This could be done once per internal format. For now, just do it every time.
-    GLint indexCount = 0,
-        xSize = 0,
-        ySize = 0,
-        zSize = 0;
+    if (sparse) {
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_SPARSE_ARB, GL_TRUE);
 
-    GLint bestIndex = -1,
-        bestXSize = 0,
-        bestYSize = 0;
+        // TODO: This could be done once per internal format. For now, just do it every time.
+        GLint indexCount = 0,
+            xSize = 0,
+            ySize = 0,
+            zSize = 0;
 
-    glGetInternalformativ(GL_TEXTURE_2D_ARRAY, internalformat, GL_NUM_VIRTUAL_PAGE_SIZES_ARB, 1, &indexCount);
-    for (GLint i = 0; i < indexCount; ++i) {
-        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_VIRTUAL_PAGE_SIZE_INDEX_ARB, i);
-        glGetInternalformativ(GL_TEXTURE_2D_ARRAY, internalformat, GL_VIRTUAL_PAGE_SIZE_X_ARB, 1, &xSize);
-        glGetInternalformativ(GL_TEXTURE_2D_ARRAY, internalformat, GL_VIRTUAL_PAGE_SIZE_Y_ARB, 1, &ySize);
-        glGetInternalformativ(GL_TEXTURE_2D_ARRAY, internalformat, GL_VIRTUAL_PAGE_SIZE_Z_ARB, 1, &zSize);
+        GLint bestIndex = -1,
+            bestXSize = 0,
+            bestYSize = 0;
 
-        // For our purposes, the "best" format is the one that winds up with Z=1 and the largest x and y sizes.
-        if (zSize == 1) {
-            if (xSize >= bestXSize && ySize >= bestYSize) {
-                bestIndex = i;
-                bestXSize = xSize;
-                bestYSize = ySize;
+        glGetInternalformativ(GL_TEXTURE_2D_ARRAY, internalformat, GL_NUM_VIRTUAL_PAGE_SIZES_ARB, 1, &indexCount);
+        for (GLint i = 0; i < indexCount; ++i) {
+            glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_VIRTUAL_PAGE_SIZE_INDEX_ARB, i);
+            glGetInternalformativ(GL_TEXTURE_2D_ARRAY, internalformat, GL_VIRTUAL_PAGE_SIZE_X_ARB, 1, &xSize);
+            glGetInternalformativ(GL_TEXTURE_2D_ARRAY, internalformat, GL_VIRTUAL_PAGE_SIZE_Y_ARB, 1, &ySize);
+            glGetInternalformativ(GL_TEXTURE_2D_ARRAY, internalformat, GL_VIRTUAL_PAGE_SIZE_Z_ARB, 1, &zSize);
+
+            // For our purposes, the "best" format is the one that winds up with Z=1 and the largest x and y sizes.
+            if (zSize == 1) {
+                if (xSize >= bestXSize && ySize >= bestYSize) {
+                    bestIndex = i;
+                    bestXSize = xSize;
+                    bestYSize = ySize;
+                }
             }
         }
+
+        // This would mean the implementation has no valid sizes for us, or that this format doesn't actually support sparse
+        // texture allocation. Need to implement the fallback. TODO: Implement that.
+        assert(bestIndex != -1);
+
+        mXTileSize = bestXSize;
+
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_VIRTUAL_PAGE_SIZE_INDEX_ARB, bestIndex);
     }
-
-    // This would mean the implementation has no valid sizes for us, or that this format doesn't actually support sparse
-    // texture allocation. Need to implement the fallback. TODO: Implement that.
-    assert(bestIndex != -1);
-
-    mXTileSize = bestXSize;
-
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_VIRTUAL_PAGE_SIZE_INDEX_ARB, bestIndex);
 
     // We've set all the necessary parameters, now it's time to create the sparse texture.
     glTexStorage3D(GL_TEXTURE_2D_ARRAY, levels, internalformat, width, height, mSlices);
@@ -97,9 +100,11 @@ Texture2DContainer::Texture2DContainer(GLsizei levels, GLenum internalformat, GL
         mFreeList.push(i);
     }
 
-    mHandle = glGetTextureHandleARB(mTexId);
-    assert(mHandle != 0);
-    glMakeTextureHandleResidentARB(mHandle);
+    if (sparse) {
+        mHandle = glGetTextureHandleARB(mTexId);
+        assert(mHandle != 0);
+        glMakeTextureHandleResidentARB(mHandle);
+    }
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -108,8 +113,10 @@ Texture2DContainer::~Texture2DContainer()
     // If this fires, it means there was a texture leaked somewhere.
     assert(mFreeList.size() == mSlices);
 
-    glMakeTextureHandleNonResidentARB(mHandle);
-    mHandle = 0;
+    if (mHandle != 0) {
+        glMakeTextureHandleNonResidentARB(mHandle);
+        mHandle = 0;
+    }
     glDeleteTextures(1, &mTexId);
 }
 
@@ -158,6 +165,8 @@ void Texture2DContainer::CompressedTexSubImage3D(GLint level, GLint xoffset, GLi
 // ------------------------------------------------------------------------------------------------
 void Texture2DContainer::changeCommitment(GLsizei slice, GLboolean commit)
 {
+    if (glTexturePageCommitmentEXT == nullptr) return;
+
     GLenum err = glGetError();
 
     GLsizei levelWidth = mWidth,
@@ -221,11 +230,26 @@ void TextureManager::free(Texture2D* _tex)
 }
 
 // ------------------------------------------------------------------------------------------------
-bool TextureManager::Init()
+bool TextureManager::Init(bool sparse, GLsizei maxNumTextures)
 {
     assert(mInited == false);
 
-    glGetIntegerv(GL_MAX_SPARSE_ARRAY_TEXTURE_LAYERS_ARB, &mMaxTextureArrayLevels);
+    mMaxTextureArrayLevels = maxNumTextures;
+    mSparse = sparse;
+
+    if (sparse) {
+        if (!HasExtension(ARB_sparse_texture)) {
+            return false;
+        }
+    }
+
+    if (maxNumTextures <= 0) {
+        if (sparse) {
+            glGetIntegerv(GL_MAX_SPARSE_ARRAY_TEXTURE_LAYERS_ARB, &mMaxTextureArrayLevels);
+        } else {
+            glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &mMaxTextureArrayLevels);
+        }
+    }
 
     mInited = true;
     return true;
@@ -234,8 +258,6 @@ bool TextureManager::Init()
 // ------------------------------------------------------------------------------------------------
 void TextureManager::Shutdown()
 {
-    assert(mInited);
-
     for (auto containIt = mTexArrays2D.begin(); containIt != mTexArrays2D.end(); ++containIt) {
         for (auto ptrIt = containIt->second.begin(); ptrIt != containIt->second.end(); ++ptrIt) {
             SafeDelete(*ptrIt);
@@ -269,7 +291,7 @@ Texture2D* TextureManager::allocTexture2D(GLsizei levels, GLenum internalformat,
     }
 
     if (memArray == nullptr) {
-        memArray = new Texture2DContainer(levels, internalformat, width, height, mMaxTextureArrayLevels);
+        memArray = new Texture2DContainer(mSparse, levels, internalformat, width, height, mMaxTextureArrayLevels);
         arrayIt->second.push_back(memArray);
     }
 

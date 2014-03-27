@@ -1,16 +1,16 @@
 #pragma once
 
 #include "gfx.h"
-#include "wgl.h"
+#include "GL/glextensions.h"
 
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
-class GfxApiOpenGLGeneric : public GfxBaseApi
+class GfxApiOpenGLCompat : public GfxBaseApi
 {
 public:
-    GfxApiOpenGLGeneric();
-    virtual ~GfxApiOpenGLGeneric(); 
+    GfxApiOpenGLCompat();
+    virtual ~GfxApiOpenGLCompat(); 
 
     virtual bool Init(const std::string& _title, int _x, int _y, int _width, int _height) override;
     virtual void Shutdown() override;
@@ -22,6 +22,12 @@ public:
 
     virtual EGfxApi GetApiType() const { return EGfxApi::OpenGLGeneric; }
 
+    inline virtual const char* GetShortName() const override { return SGetShortName(); }
+    inline virtual const char* GetLongName() const override { return SGetLongName(); }
+
+    static const char* SGetShortName() { return "oglcompat"; }
+    static const char* SGetLongName() { return "OpenGL (Compatability)"; }
+
 protected:
     SDL_GLContext mGLrc;
 };
@@ -30,11 +36,19 @@ protected:
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // GL Utilities
-GLuint CreateProgram(std::string _vsFilename, std::string _psFilename);
-GLuint CreateProgram(std::string _vsFilename, std::string _psFilename, const char** _uniformNames, GLuint* _outUniformLocations);
+GLuint CreateProgram(const std::string& _vsFilename, const std::string& _psFilename);
+GLuint CreateProgram(const std::string& _vsFilename, const std::string& _psFilename, const std::string& _shaderPrefix);
+GLuint CreateProgram(const std::string& _vsFilename, const std::string& _psFilename, const char** _uniformNames, GLuint* _outUniformLocations);
+GLuint CreateProgram(const std::string& _vsFilename, const std::string& _psFilename, const std::string& _shaderPrefix, const char** _uniformNames, GLuint* _outUniformLocations);
 
 template <typename T> 
-GLuint CreateProgramT(std::string _vsFilename, std::string _psFilename, const char** _uniforms, T* _outUniformLocationStruct)
+GLuint CreateProgramT(const std::string& _vsFilename, const std::string& _psFilename, const char** _uniforms, T* _outUniformLocationStruct)
+{
+    return CreateProgramT(_vsFilename, _psFilename, std::string(""), _uniforms, _outUniformLocationStruct);
+}
+
+template <typename T>
+GLuint CreateProgramT(const std::string& _vsFilename, const std::string& _psFilename, const std::string& _shaderPrefix, const char** _uniforms, T* _outUniformLocationStruct)
 {
     assert(_uniforms != nullptr);
     assert(_outUniformLocationStruct != nullptr);
@@ -45,10 +59,10 @@ GLuint CreateProgramT(std::string _vsFilename, std::string _psFilename, const ch
     }
 
     // Ensure that the sizes match, otherwise there is a parameter mismatch.
-    assert(uniformCount == (sizeof(T) / sizeof(GLuint)) 
+    assert(uniformCount == (sizeof(T) / sizeof(GLuint))
            && (sizeof(T) % sizeof(GLuint) == 0));
 
-    return CreateProgram(_vsFilename, _psFilename, _uniforms, reinterpret_cast<GLuint*>(_outUniformLocationStruct));
+    return CreateProgram(_vsFilename, _psFilename, _shaderPrefix, _uniforms, reinterpret_cast<GLuint*>(_outUniformLocationStruct));
 }
 
 // --------------------------------------------------------------------------------------------------------------------

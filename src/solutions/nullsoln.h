@@ -17,11 +17,10 @@ public:
     void Render();
     virtual void Shutdown() override;
 
-    // The name of this solution.
     inline virtual std::string GetName() const { return "NullSolution"; }
-
-    // The name of the problem this solution addresses.
     inline virtual std::string GetProblemName() const { return "NullProblem"; }
+    inline virtual bool SupportsApi(EGfxApi _api) const { return true; }
+
 
 protected:
 };

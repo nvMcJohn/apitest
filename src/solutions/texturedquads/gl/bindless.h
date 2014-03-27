@@ -19,8 +19,8 @@ public:
     virtual void Render(const std::vector<Matrix>& _transforms);
     virtual void Shutdown();
 
-    // The name of this solution.
-    virtual std::string GetName() const { return "TexturedQuadsGLBindless"; }
+    virtual std::string GetName() const { return "GLBindless"; }
+    virtual bool SupportsApi(EGfxApi _api) const override { return IsOpenGL(_api); }
 
 private:
     GLuint mIndexBuffer;

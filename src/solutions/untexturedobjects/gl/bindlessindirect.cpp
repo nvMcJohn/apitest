@@ -26,6 +26,17 @@ bool UntexturedObjectsGLBindlessIndirect::Init(const std::vector<UntexturedObjec
                                                const std::vector<UntexturedObjectsProblem::Index>& _indices,
                                                size_t _objectCount)
 {
+    if (glBufferStorage == nullptr) {
+        console::warn("Unable to initialize solution '%s', glBufferStorage() unavailable.", GetName().c_str());
+        return false;
+    }
+
+    if (glGetBufferParameterui64vNV == nullptr ||
+        glMakeBufferResidentNV == nullptr) {
+        console::warn("Unable to initialize solution '%s', GL_NV_shader_buffer_load unavailable.", GetName().c_str());
+        return false;
+    }
+
     if (!UntexturedObjectsSolution::Init(_vertices, _indices, _objectCount)) {
         return false;
     }
@@ -109,10 +120,10 @@ void UntexturedObjectsGLBindlessIndirect::Render(const std::vector<Matrix>& _tra
     glEnableClientState(GL_ELEMENT_ARRAY_UNIFIED_NV);
     glEnableClientState(GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV);
 
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
     glVertexAttribFormatNV(0, 3, GL_FLOAT, GL_FALSE, sizeof(UntexturedObjectsProblem::Vertex));
     glVertexAttribFormatNV(1, 3, GL_FLOAT, GL_FALSE, sizeof(UntexturedObjectsProblem::Vertex));
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
 
     // Rasterizer State
     glEnable(GL_CULL_FACE);
@@ -171,6 +182,9 @@ void UntexturedObjectsGLBindlessIndirect::Render(const std::vector<Matrix>& _tra
 // --------------------------------------------------------------------------------------------------------------------
 void UntexturedObjectsGLBindlessIndirect::Shutdown()
 {
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(0);
+
     if (m_transform_ptr)
     {
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_transform_buffer);
@@ -184,11 +198,17 @@ void UntexturedObjectsGLBindlessIndirect::Shutdown()
         glUnmapBuffer(GL_DRAW_INDIRECT_BUFFER);
     }
 
-    glDeleteQueries(m_queries.size(), &*m_queries.begin());
+    if (!m_queries.empty()) {
+        glDeleteQueries(m_queries.size(), &*m_queries.begin());
+    }
     glDeleteBuffers(1, &m_cmd_buffer);
 
-    glDeleteBuffers(m_ibs.size(), &*m_ibs.begin());
-    glDeleteBuffers(m_vbs.size(), &*m_vbs.begin());
+    if (!m_ibs.empty()) {
+        glDeleteBuffers(m_ibs.size(), &*m_ibs.begin());
+    }
+    if (!m_vbs.empty()) {
+        glDeleteBuffers(m_vbs.size(), &*m_vbs.begin());
+    }
     glDeleteProgram(m_prog);
 
     // TODO: These could also go in ::End. 

@@ -8,7 +8,7 @@
 class UntexturedObjectsGLMultiDraw : public UntexturedObjectsSolution
 {
 public:
-    UntexturedObjectsGLMultiDraw();
+    UntexturedObjectsGLMultiDraw(bool _useShaderDraw);
     virtual ~UntexturedObjectsGLMultiDraw() { }
 
     virtual bool Init(const std::vector<UntexturedObjectsProblem::Vertex>& _vertices,
@@ -18,15 +18,19 @@ public:
     virtual void Render(const std::vector<Matrix>& _transforms);
     virtual void Shutdown();
 
-    // The name of this solution.
-    virtual std::string GetName() const { return "UntexturedObjectsGLMultiDraw"; }
+    virtual std::string GetName() const; 
+    virtual bool SupportsApi(EGfxApi _api) const override { return IsOpenGL(_api); }
 
 private:
     GLuint m_ib;
     GLuint m_vb;
+    GLuint m_varray;
+    GLuint m_drawid;
     GLuint m_prog;
 
     GLuint m_transform_buffer;
+
+    bool mUseShaderDrawParameters;
 
     std::vector<DrawElementsIndirectCommand> m_commands;
 

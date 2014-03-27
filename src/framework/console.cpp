@@ -11,6 +11,8 @@
 #   define vsprintf_s(_buf, _sizeofbuf, _fmt, _args) vsprintf(_buf, _fmt, _args) 
 #endif
 
+const int kBufferSize = 8192;
+
 namespace console
 {
     void print(const char* _string)
@@ -22,22 +24,22 @@ namespace console
     // ----------------------------------------------------------------------------------------------------------------
     void debug(const char* _fmt, ...)
     {
-        char buff[4096],
-            finalBuff[4096];
+        char buff[kBufferSize],
+            finalBuff[kBufferSize];
         va_list args;
         va_start(args, _fmt);
         vsprintf_s(buff, sizeof(buff), _fmt, args);
         va_end(args);
 
-        sprintf_s(finalBuff, sizeof(finalBuff), "Debug: %s\n", buff);
+        sprintf_s(finalBuff, sizeof(finalBuff), "debug: %s\n", buff);
         console::print(finalBuff);
     }
 
     // ----------------------------------------------------------------------------------------------------------------
     void log(const char* _fmt, ...)
     {
-        char buff[4096],
-            finalBuff[4096];
+        char buff[kBufferSize],
+            finalBuff[kBufferSize];
         va_list args;
         va_start(args, _fmt);
         vsprintf_s(buff, sizeof(buff), _fmt, args);
@@ -50,8 +52,8 @@ namespace console
     // ----------------------------------------------------------------------------------------------------------------
     void warn(const char* _fmt, ...)
     {
-        char buff[4096],
-            finalBuff[4096];
+        char buff[kBufferSize],
+            finalBuff[kBufferSize];
         va_list args;
         va_start(args, _fmt);
         vsprintf_s(buff, sizeof(buff), _fmt, args);
@@ -64,8 +66,8 @@ namespace console
     // ----------------------------------------------------------------------------------------------------------------
     void error(const char* _fmt, ...)
     {
-        char buff[4096],
-            finalBuff[4096];
+        char buff[kBufferSize],
+            finalBuff[kBufferSize];
         va_list args;
         va_start(args, _fmt);
         vsprintf_s(buff, sizeof(buff), _fmt, args);

@@ -1195,8 +1195,18 @@ if(SDL_SHARED)
       SOVERSION ${LT_CURRENT}
       OUTPUT_NAME "SDL2")
   endif(UNIX)
- set(_INSTALL_LIBS "SDL2" ${_INSTALL_LIBS})
- target_link_libraries(SDL2 ${EXTRA_LIBS} ${EXTRA_LDFLAGS})
+
+  set(_INSTALL_LIBS "SDL2" ${_INSTALL_LIBS})
+  target_link_libraries(SDL2 ${EXTRA_LIBS} ${EXTRA_LDFLAGS})
+
+  if(SDL_DEPLOY_INTO)
+    get_property(SDL_SHARED_LOCATION TARGET SDL2 PROPERTY LOCATION)
+    add_custom_target(
+	  SDL2deployed
+      COMMAND ${CMAKE_COMMAND}
+     -E copy_if_different "${SDL_SHARED_LOCATION}" "${SDL_DEPLOY_INTO}")
+	add_dependencies(SDL2deployed SDL2)
+  endif(SDL_DEPLOY_INTO)
 endif(SDL_SHARED)
 
 if(SDL_STATIC)

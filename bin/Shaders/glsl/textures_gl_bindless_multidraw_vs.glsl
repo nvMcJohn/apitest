@@ -13,7 +13,6 @@ uniform mat4 ViewProjection;
 // Input ------------------------------------------------------------------------------------------
 layout(location = 0) in vec3 In_v3Pos;
 layout(location = 1) in vec2 In_v2TexCoord;
-in int gl_DrawIDARB;
 
 //  Output ----------------------------------------------------------------------------------------
 out block {

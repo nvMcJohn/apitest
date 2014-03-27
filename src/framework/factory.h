@@ -15,7 +15,7 @@ public:
     ~ProblemFactory();
 
     std::vector<Problem*> GetProblems();
-    std::vector<Solution*> GetSolutions(Problem* _problem);
+    std::vector<Solution*> GetSolutions(Problem* _problem, GfxBaseApi* _activeApi);
 
 private:
     std::vector<Problem*> mProblems;

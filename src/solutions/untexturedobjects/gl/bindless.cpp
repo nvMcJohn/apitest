@@ -17,6 +17,17 @@ bool UntexturedObjectsGLBindless::Init(const std::vector<UntexturedObjectsProble
                                        const std::vector<UntexturedObjectsProblem::Index>& _indices,
                                        size_t _objectCount)
 {
+    if (glBufferStorage == nullptr) {
+        console::warn("Unable to initialize solution '%s', glBufferStorage() unavailable.", GetName().c_str());
+        return false;
+    }
+
+    if (glGetBufferParameterui64vNV == nullptr ||
+        glMakeBufferResidentNV == nullptr) {
+        console::warn("Unable to initialize solution '%s', GL_NV_shader_buffer_load unavailable.", GetName().c_str());
+        return false;
+    }
+
     if (!UntexturedObjectsSolution::Init(_vertices, _indices, _objectCount)) {
         return false;
     }
@@ -80,10 +91,10 @@ void UntexturedObjectsGLBindless::Render(const std::vector<Matrix>& _transforms)
     glEnableClientState(GL_ELEMENT_ARRAY_UNIFIED_NV);
     glEnableClientState(GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV);
 
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
     glVertexAttribFormatNV(0, 3, GL_FLOAT, GL_FALSE, sizeof(UntexturedObjectsProblem::Vertex));
     glVertexAttribFormatNV(1, 3, GL_FLOAT, GL_FALSE, sizeof(UntexturedObjectsProblem::Vertex));
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
 
     // Rasterizer State
     glEnable(GL_CULL_FACE);
@@ -113,6 +124,9 @@ void UntexturedObjectsGLBindless::Render(const std::vector<Matrix>& _transforms)
 // --------------------------------------------------------------------------------------------------------------------
 void UntexturedObjectsGLBindless::Shutdown()
 {
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(0);
+
     if (m_ibs.size()) {
         glDeleteBuffers(m_ibs.size(), &*m_ibs.begin());
         m_ibs.clear();

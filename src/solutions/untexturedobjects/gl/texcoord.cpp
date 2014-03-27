@@ -98,6 +98,9 @@ void UntexturedObjectsGLTexCoord::Render(const std::vector<Matrix>& _transforms)
 // --------------------------------------------------------------------------------------------------------------------
 void UntexturedObjectsGLTexCoord::Shutdown()
 {
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(0);
+
     glDeleteBuffers(1, &m_ib);
     glDeleteBuffers(1, &m_vb);
     glDeleteProgram(m_prog);

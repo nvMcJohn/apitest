@@ -6,14 +6,15 @@
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
-UntexturedObjectsGLBufferStorage::UntexturedObjectsGLBufferStorage()
-    : m_ib()
-    , m_vb()
-    , m_prog()
-    , m_transform_buffer()
-    , m_transform_ptr()
-    , m_cmd_buffer()
-    , m_cmd_ptr()
+UntexturedObjectsGLBufferStorage::UntexturedObjectsGLBufferStorage(bool _useShaderDrawParameters)
+: m_ib()
+, m_vb()
+, m_varray()
+, m_drawid()
+, m_prog()
+, mTransformBuffer(true)
+, mCommands(true)
+, mUseShaderDrawParameters(_useShaderDrawParameters)
 {}
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -21,7 +22,17 @@ bool UntexturedObjectsGLBufferStorage::Init(const std::vector<UntexturedObjectsP
                                             const std::vector<UntexturedObjectsProblem::Index>& _indices,
                                             size_t _objectCount)
 {
+    if (glBufferStorage == nullptr) {
+        console::warn("Unable to initialize solution '%s', glBufferStorage() unavailable.", GetName().c_str());
+        return false;
+    }
+
     if (!UntexturedObjectsSolution::Init(_vertices, _indices, _objectCount)) {
+        return false;
+    }
+
+    if (mUseShaderDrawParameters && !HasExtension(ARB_shader_draw_parameters)) {
+        console::warn("Unable to initialize solution, ARB_shader_draw_parameters is required but not available.");
         return false;
     }
 
@@ -30,33 +41,51 @@ bool UntexturedObjectsGLBufferStorage::Init(const std::vector<UntexturedObjectsP
 
     m_prog = CreateProgramT("cubes_gl_buffer_storage_vs.glsl",
                             "cubes_gl_buffer_storage_fs.glsl",
+                            mUseShaderDrawParameters ? std::string("#define USE_SHADER_DRAW_PARAMETERS 1\n") : std::string(""),
                             kUniformNames, &mUniformLocation);
-
 
     if (m_prog == 0) {
         console::warn("Unable to initialize solution '%s', shader compilation/linking failed.", GetName().c_str());
         return false;
     }
 
+    glGenVertexArrays(1, &m_varray);
+    glBindVertexArray(m_varray);
+
+    // Buffers
     glGenBuffers(1, &m_vb);
     glBindBuffer(GL_ARRAY_BUFFER, m_vb);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(UntexturedObjectsProblem::Vertex) * _vertices.size(), &*_vertices.begin(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, _vertices.size() * sizeof(UntexturedObjectsProblem::Vertex), &*_vertices.begin(), GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(UntexturedObjectsProblem::Vertex), (void*) offsetof(UntexturedObjectsProblem::Vertex, pos));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(UntexturedObjectsProblem::Vertex), (void*) offsetof(UntexturedObjectsProblem::Vertex, color));
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+
+    // If we aren't using shader draw parameters, use the workaround instead.
+    if (!mUseShaderDrawParameters) {
+        std::vector<uint32_t> drawids(_objectCount);
+        for (uint32_t i = 0; i < _objectCount; ++i) {
+            drawids[i] = i;
+        }
+
+        glGenBuffers(1, &m_drawid);
+        glBindBuffer(GL_ARRAY_BUFFER, m_drawid);
+        glBufferData(GL_ARRAY_BUFFER, drawids.size() * sizeof(uint32_t), drawids.data(), GL_STATIC_DRAW);
+        glVertexAttribIPointer(2, 1, GL_UNSIGNED_INT, sizeof(uint32_t), 0);
+        glVertexAttribDivisor(2, 1);
+        glEnableVertexAttribArray(2);
+    }
 
     glGenBuffers(1, &m_ib);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ib);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(UntexturedObjectsProblem::Index) * _indices.size(), &*_indices.begin(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, _indices.size() * sizeof(UntexturedObjectsProblem::Index), &*_indices.begin(), GL_STATIC_DRAW);
 
-    glGenBuffers(1, &m_transform_buffer);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, m_transform_buffer);
-    glBufferStorage(GL_SHADER_STORAGE_BUFFER, _objectCount * 64, nullptr, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_DYNAMIC_STORAGE_BIT);
-    m_transform_ptr = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, _objectCount * 64, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT);
+    const GLbitfield mapFlags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT;
+    const GLbitfield createFlags = mapFlags | GL_DYNAMIC_STORAGE_BIT;
 
-    glGenBuffers(1, &m_cmd_buffer);
-    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_cmd_buffer);
-    glBufferStorage(GL_DRAW_INDIRECT_BUFFER, _objectCount * sizeof(DrawElementsIndirectCommand), nullptr, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_DYNAMIC_STORAGE_BIT);
-    m_cmd_ptr = glMapBufferRange(GL_DRAW_INDIRECT_BUFFER, 0, _objectCount * sizeof(DrawElementsIndirectCommand), GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT);
-
-    m_commands.resize(_objectCount);
+    mCommands.Create(BufferStorage::PersistentlyMappedBuffer, GL_DRAW_INDIRECT_BUFFER, kTripleBuffer * _objectCount, createFlags, mapFlags);
+    mTransformBuffer.Create(BufferStorage::PersistentlyMappedBuffer, GL_SHADER_STORAGE_BUFFER, kTripleBuffer * _objectCount, createFlags, mapFlags);
+    mTransformBuffer.BindBufferBase(0);
 
     return glGetError() == GL_NO_ERROR;
 }
@@ -64,9 +93,9 @@ bool UntexturedObjectsGLBufferStorage::Init(const std::vector<UntexturedObjectsP
 // --------------------------------------------------------------------------------------------------------------------
 void UntexturedObjectsGLBufferStorage::Render(const std::vector<Matrix>& _transforms)
 {
-    const auto objCount = m_commands.size();
     const auto xformCount = _transforms.size();
-    assert(objCount == xformCount);
+    assert(xformCount <= unsigned(mTransformBuffer.GetSize()));
+    assert(xformCount <= unsigned(mCommands.GetSize()));
 
     // Program
     Vec3 dir = { -0.5f, -1, 1 };
@@ -79,15 +108,6 @@ void UntexturedObjectsGLBufferStorage::Render(const std::vector<Matrix>& _transf
 
     glUseProgram(m_prog);
     glUniformMatrix4fv(mUniformLocation.ViewProjection, 1, GL_TRUE, &view_proj.x.x);
-
-    // Input Layout
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ib);
-    glBindBuffer(GL_ARRAY_BUFFER, m_vb);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(UntexturedObjectsProblem::Vertex), (void*)offsetof(UntexturedObjectsProblem::Vertex, pos));
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(UntexturedObjectsProblem::Vertex), (void*)offsetof(UntexturedObjectsProblem::Vertex, color));
-
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
 
     // Rasterizer State
     glEnable(GL_CULL_FACE);
@@ -102,40 +122,53 @@ void UntexturedObjectsGLBufferStorage::Render(const std::vector<Matrix>& _transf
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
 
-    for (auto it = m_commands.begin(); it != m_commands.end(); ++it) {
-        DrawElementsIndirectCommand *cmd = &*it;
+    DrawElementsIndirectCommand* dstCmds = mCommands.Reserve(xformCount);
+    for (size_t u = 0; u < xformCount; ++u) {
+        DrawElementsIndirectCommand *cmd = &dstCmds[u];
         cmd->count = mIndexCount;
         cmd->instanceCount = 1;
         cmd->firstIndex = 0;
         cmd->baseVertex = 0;
-        cmd->baseInstance = 0;
+        cmd->baseInstance = mUseShaderDrawParameters ? 0 : u;
     }
 
-    memcpy(m_transform_ptr, &*_transforms.begin(), sizeof(Matrix) * xformCount);
-    memcpy(m_cmd_ptr, &*m_commands.begin(), sizeof(DrawElementsIndirectCommand) * objCount);
+    Matrix* dstTransforms = mTransformBuffer.Reserve(xformCount);
+    memcpy(dstTransforms, &*_transforms.begin(), sizeof(Matrix) * xformCount);
+
+    // We didn't use MAP_COHERENT here.
     glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
 
-    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_SHORT, nullptr, objCount, 0);
+    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_SHORT, nullptr, xformCount, 0);
+
+    mCommands.OnUsageComplete(xformCount);
+    mTransformBuffer.OnUsageComplete(xformCount);
 }
 
 // --------------------------------------------------------------------------------------------------------------------
 void UntexturedObjectsGLBufferStorage::Shutdown()
 {
-    if (m_transform_ptr)
-    {
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_transform_buffer);
-        glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+    if (!mUseShaderDrawParameters) {
+        glDisableVertexAttribArray(2);
     }
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(0);
 
-    if (m_cmd_ptr)
-    {
-        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_cmd_buffer);
-        glUnmapBuffer(GL_DRAW_INDIRECT_BUFFER);
-    }
+    mCommands.Destroy();
+    mTransformBuffer.Destroy();
 
     glDeleteBuffers(1, &m_ib);
     glDeleteBuffers(1, &m_vb);
-    glDeleteBuffers(1, &m_transform_buffer);
-    glDeleteBuffers(1, &m_cmd_buffer);
+    glDeleteVertexArrays(1, &m_varray);
+    glDeleteBuffers(1, &m_drawid);
     glDeleteProgram(m_prog);
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+std::string UntexturedObjectsGLBufferStorage::GetName() const
+{
+    if (mUseShaderDrawParameters) {
+        return "GLBufferStorage-SDP";
+    } 
+
+    return "GLBufferStorage-NoSDP";
 }

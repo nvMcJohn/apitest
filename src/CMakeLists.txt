@@ -12,6 +12,8 @@ set( SHADERS
     ../bin/Shaders/glsl/cubes_gl_buffer_storage_fs.glsl
     ../bin/Shaders/glsl/cubes_gl_dynamic_buffer_vs.glsl
     ../bin/Shaders/glsl/cubes_gl_dynamic_buffer_fs.glsl
+    ../bin/Shaders/glsl/cubes_gl_map_vs.glsl
+    ../bin/Shaders/glsl/cubes_gl_map_fs.glsl
     ../bin/Shaders/glsl/cubes_gl_multi_draw_vs.glsl
     ../bin/Shaders/glsl/cubes_gl_multi_draw_fs.glsl
     ../bin/Shaders/glsl/cubes_gl_tex_coord_vs.glsl
@@ -26,16 +28,36 @@ set( SHADERS
     ../bin/Shaders/glsl/textures_gl_bindless_multidraw_fs.glsl
     ../bin/Shaders/glsl/textures_gl_naive_vs.glsl
     ../bin/Shaders/glsl/textures_gl_naive_fs.glsl
+    ../bin/Shaders/glsl/textures_gl_naive_uniform_vs.glsl
+    ../bin/Shaders/glsl/textures_gl_naive_uniform_fs.glsl
     ../bin/Shaders/glsl/textures_gl_notex_vs.glsl
     ../bin/Shaders/glsl/textures_gl_notex_fs.glsl
+    ../bin/Shaders/glsl/textures_gl_notex_uniform_vs.glsl
+    ../bin/Shaders/glsl/textures_gl_notex_uniform_fs.glsl
+    ../bin/Shaders/glsl/textures_gl_texture_array_vs.glsl
+    ../bin/Shaders/glsl/textures_gl_texture_array_fs.glsl
+    ../bin/Shaders/glsl/textures_gl_texture_array_uniform_vs.glsl
+    ../bin/Shaders/glsl/textures_gl_texture_array_uniform_fs.glsl
+    ../bin/Shaders/glsl/textures_gl_texture_array_multidraw_vs.glsl
+    ../bin/Shaders/glsl/textures_gl_texture_array_multidraw_fs.glsl
     ../bin/Shaders/glsl/textures_gl_sparse_bindless_texture_array_vs.glsl    
     ../bin/Shaders/glsl/textures_gl_sparse_bindless_texture_array_fs.glsl
     ../bin/Shaders/glsl/textures_gl_sparse_bindless_texture_array_multidraw_vs.glsl
     ../bin/Shaders/glsl/textures_gl_sparse_bindless_texture_array_multidraw_fs.glsl
+
+	../bin/Shaders/hlsl/cubes_d3d11_naive_vs.hlsl
+	../bin/Shaders/hlsl/cubes_d3d11_naive_ps.hlsl
+	../bin/Shaders/hlsl/streaming_vb_d3d11_vs.hlsl
+    ../bin/Shaders/hlsl/streaming_vb_d3d11_ps.hlsl
+    ../bin/Shaders/hlsl/textures_d3d11_naive_vs.hlsl
+    ../bin/Shaders/hlsl/textures_d3d11_naive_ps.hlsl
 )
 
 set( SRCS
     framework/apitest.cpp
+	framework/appstate.cpp
+	framework/buffer.cpp
+	framework/bufferlock.cpp
     framework/console.cpp
     framework/factory.cpp
     framework/gfx_gl.cpp
@@ -43,7 +65,8 @@ set( SRCS
     framework/os.cpp
     framework/sparse_bindless_texarray.cpp
     framework/timer.cpp
-    framework/wgl.cpp
+
+	GL/glextensions.cpp
 
     problems/dynamicstreaming.cpp
     problems/null.cpp
@@ -57,14 +80,19 @@ set( SRCS
     solutions/texturedquadssoln.cpp
     solutions/untexturedobjectssoln.cpp
 
-    solutions/dynamicstreaming/gl/buffersubdata.cpp
+	solutions/dynamicstreaming/gl/buffersubdata.cpp
     solutions/dynamicstreaming/gl/mapunsynchronized.cpp
     solutions/dynamicstreaming/gl/mappersistent.cpp
 
     solutions/texturedquads/gl/bindless.cpp
     solutions/texturedquads/gl/bindlessmultidraw.cpp
     solutions/texturedquads/gl/naive.cpp
+    solutions/texturedquads/gl/naiveuniform.cpp
     solutions/texturedquads/gl/notex.cpp
+    solutions/texturedquads/gl/notexuniform.cpp
+    solutions/texturedquads/gl/texturearray.cpp
+    solutions/texturedquads/gl/texturearrayuniform.cpp
+    solutions/texturedquads/gl/texturearraymultidraw.cpp
     solutions/texturedquads/gl/sparsebindlesstexturearray.cpp
     solutions/texturedquads/gl/sparsebindlesstexturearraymultidraw.cpp
 
@@ -73,19 +101,29 @@ set( SRCS
     solutions/untexturedobjects/gl/bufferrange.cpp
     solutions/untexturedobjects/gl/bufferstorage.cpp
     solutions/untexturedobjects/gl/dynamicbuffer.cpp
+    solutions/untexturedobjects/gl/drawloop.cpp
+    solutions/untexturedobjects/gl/mapunsynchronized.cpp
+    solutions/untexturedobjects/gl/mappersistent.cpp
     solutions/untexturedobjects/gl/multidraw.cpp
+    solutions/untexturedobjects/gl/multidrawbuffer.cpp
     solutions/untexturedobjects/gl/texcoord.cpp
     solutions/untexturedobjects/gl/uniform.cpp
 
     ${SHADERS}
 )
 
-if( MSVC )
-        set( SRCS ${SRCS} 
-                framework/gfx_dx11.cpp
-                # streaming_vb_dx11.cpp
-        )
-endif( MSVC )
+if( apitest_WITH_D3D11 )
+	set( SRCS ${SRCS} 
+		framework/gfx_dx11.cpp
+
+		solutions/untexturedobjects/d3d11/naive.cpp
+
+		solutions/dynamicstreaming/d3d11/mapnooverwrite.cpp
+		solutions/dynamicstreaming/d3d11/updatesubresource.cpp
+
+		solutions/texturedquads/d3d11/naive.cpp
+	)
+endif( apitest_WITH_D3D11 )
 
 
 # Setup PCH
@@ -99,6 +137,12 @@ add_executable( apitest ${SRCS} ${HDRS} )
 
 source_group( "Framework" FILES 
     framework/apitest.cpp
+	framework/appstate.cpp
+	framework/appstate.h
+	framework/buffer.cpp
+	framework/buffer.h
+	framework/bufferlock.cpp
+	framework/bufferlock.h
     framework/console.cpp
     framework/console.h
     framework/dds_helper.h
@@ -118,13 +162,14 @@ source_group( "Framework" FILES
     framework/sparse_bindless_texarray.h
     framework/timer.cpp
     framework/timer.h
-    framework/wgl.cpp
-    framework/wgl.h
 )
 
 source_group( "GL" FILES
     GL/glcorearb.h
     GL/glext.h
+	GL/glextensions.cpp
+	GL/glextensions.h
+	GL/glextensions.inl
     GL/wglext.h
 )
 
@@ -154,6 +199,24 @@ source_group( "Solutions" FILES
 source_group( "Solutions\\DynamicStreaming" FILES 
     solutions/dynamicstreamingsoln.cpp
     solutions/dynamicstreamingsoln.h
+)
+
+source_group( "Solutions\\DynamicStreaming\\D3D11" FILES
+    ../bin/Shaders/hlsl/streaming_vb_d3d11_vs.hlsl
+    ../bin/Shaders/hlsl/streaming_vb_d3d11_ps.hlsl
+)
+
+source_group( "Solutions\\DynamicStreaming\\D3D11\\MapNoOverwrite" FILES
+    solutions/dynamicstreaming/d3d11/mapnooverwrite.cpp
+    solutions/dynamicstreaming/d3d11/mapnooverwrite.h
+)
+
+source_group( "Solutions\\DynamicStreaming\\D3D11\\UpdateSubResource" FILES
+	solutions/dynamicstreaming/d3d11/updatesubresource.cpp
+	solutions/dynamicstreaming/d3d11/updatesubresource.h
+)
+
+source_group( "Solutions\\DynamicStreaming\\GL" FILES
     ../bin/Shaders/glsl/streaming_vb_gl_vs.glsl
     ../bin/Shaders/glsl/streaming_vb_gl_fs.glsl
 )
@@ -183,6 +246,13 @@ source_group( "Solutions\\TexturedQuads" FILES
     solutions/texturedquadssoln.h
 )
 
+source_group( "Solutions\\TexturedQuads\\D3D11\\Naive" FILES 
+    solutions/texturedquads/d3d11/naive.cpp
+    solutions/texturedquads/d3d11/naive.h
+    ../bin/Shaders/hlsl/textures_d3d11_naive_vs.hlsl
+    ../bin/Shaders/hlsl/textures_d3d11_naive_ps.hlsl
+)
+
 source_group( "Solutions\\TexturedQuads\\GL\\Bindless" FILES 
     solutions/texturedquads/gl/bindless.cpp
     solutions/texturedquads/gl/bindless.h
@@ -204,11 +274,46 @@ source_group( "Solutions\\TexturedQuads\\GL\\Naive" FILES
     ../bin/Shaders/glsl/textures_gl_naive_fs.glsl
 )
 
+source_group( "Solutions\\TexturedQuads\\GL\\NaiveUniform" FILES 
+    solutions/texturedquads/gl/naiveuniform.cpp
+    solutions/texturedquads/gl/naiveuniform.h
+    ../bin/Shaders/glsl/textures_gl_naive_uniform_vs.glsl
+    ../bin/Shaders/glsl/textures_gl_naive_uniform_fs.glsl
+)
+
 source_group( "Solutions\\TexturedQuads\\GL\\Notex (SOL)" FILES 
     solutions/texturedquads/gl/notex.cpp
     solutions/texturedquads/gl/notex.h
     ../bin/Shaders/glsl/textures_gl_notex_vs.glsl
     ../bin/Shaders/glsl/textures_gl_notex_fs.glsl
+)
+
+source_group( "Solutions\\TexturedQuads\\GL\\NotexUniform" FILES 
+    solutions/texturedquads/gl/notexuniform.cpp
+    solutions/texturedquads/gl/notexuniform.h
+    ../bin/Shaders/glsl/textures_gl_notex_uniform_vs.glsl
+    ../bin/Shaders/glsl/textures_gl_notex_uniform_fs.glsl
+)
+
+source_group( "Solutions\\TexturedQuads\\GL\\TextureArray" FILES 
+    solutions/texturedquads/gl/texturearray.cpp
+    solutions/texturedquads/gl/texturearray.h
+    ../bin/Shaders/glsl/textures_gl_texture_array_vs.glsl    
+    ../bin/Shaders/glsl/textures_gl_texture_array_fs.glsl
+)
+
+source_group( "Solutions\\TexturedQuads\\GL\\TextureArrayUniform" FILES 
+    solutions/texturedquads/gl/texturearrayuniform.cpp
+    solutions/texturedquads/gl/texturearrayuniform.h
+    ../bin/Shaders/glsl/textures_gl_texture_array_uniform_vs.glsl
+    ../bin/Shaders/glsl/textures_gl_texture_array_uniform_fs.glsl
+)
+
+source_group( "Solutions\\TexturedQuads\\GL\\TextureArrayMultidraw" FILES 
+    solutions/texturedquads/gl/texturearraymultidraw.cpp
+    solutions/texturedquads/gl/texturearraymultidraw.h
+    ../bin/Shaders/glsl/textures_gl_texture_array_multidraw_vs.glsl
+    ../bin/Shaders/glsl/textures_gl_texture_array_multidraw_fs.glsl
 )
 
 source_group( "Solutions\\TexturedQuads\\GL\\SparseBindlessTextureArray" FILES 
@@ -228,6 +333,13 @@ source_group( "Solutions\\TexturedQuads\\GL\\SparseBindlessTextureArrayMultidraw
 source_group( "Solutions\\UntexturedObjects" FILES 
     solutions/untexturedobjectssoln.cpp
     solutions/untexturedobjectssoln.h
+)
+
+source_group( "Solutions\\UntexturedObjects\\D3D11\\Naive" FILES 
+	solutions/untexturedobjects/d3d11/naive.cpp
+	solutions/untexturedobjects/d3d11/naive.h
+	../bin/Shaders/hlsl/cubes_d3d11_naive_vs.hlsl
+	../bin/Shaders/hlsl/cubes_d3d11_naive_ps.hlsl
 )
 
 source_group( "Solutions\\UntexturedObjects\\GL\\Bindless" FILES 
@@ -265,11 +377,33 @@ source_group( "Solutions\\UntexturedObjects\\GL\\DynamicBuffer" FILES
     ../bin/Shaders/glsl/cubes_gl_dynamic_buffer_fs.glsl
 )
 
+source_group( "Solutions\\UntexturedObjects\\GL\\MapUnsynchronized" FILES 
+    solutions/untexturedobjects/gl/mapunsynchronized.cpp
+    solutions/untexturedobjects/gl/mapunsynchronized.h
+    ../bin/Shaders/glsl/cubes_gl_map_vs.glsl
+    ../bin/Shaders/glsl/cubes_gl_map_fs.glsl
+)
+
+source_group( "Solutions\\UntexturedObjects\\GL\\MapPersistent" FILES 
+    solutions/untexturedobjects/gl/mappersistent.cpp
+    solutions/untexturedobjects/gl/mappersistent.h
+)
+
+source_group( "Solutions\\UntexturedObjects\\GL\\DrawLoop" FILES 
+    solutions/untexturedobjects/gl/drawloop.cpp
+    solutions/untexturedobjects/gl/drawloop.h
+)
+
 source_group( "Solutions\\UntexturedObjects\\GL\\MultiDraw" FILES 
     solutions/untexturedobjects/gl/multidraw.cpp
     solutions/untexturedobjects/gl/multidraw.h
     ../bin/Shaders/glsl/cubes_gl_multi_draw_vs.glsl
     ../bin/Shaders/glsl/cubes_gl_multi_draw_fs.glsl
+)
+
+source_group( "Solutions\\UntexturedObjects\\GL\\MultiDrawBuffer" FILES 
+    solutions/untexturedobjects/gl/multidrawbuffer.cpp
+    solutions/untexturedobjects/gl/multidrawbuffer.h
 )
 
 source_group( "Solutions\\UntexturedObjects\\GL\\TexCoord" FILES 
@@ -286,7 +420,6 @@ source_group( "Solutions\\UntexturedObjects\\GL\\Uniforms" FILES
     ../bin/Shaders/glsl/cubes_gl_uniform_fs.glsl
 )
 
-
 if( MSVC )
         target_link_libraries( apitest ${SDL_LIBRARY_DIR}/SDL2.lib )
         target_link_libraries( apitest ${SDL_LIBRARY_DIR}/SDL2main.lib )
@@ -294,6 +427,7 @@ else()
         target_link_libraries( apitest ${SDL_LIBRARY_DIR}/libSDL2.a )
         target_link_libraries( apitest ${SDL_LIBRARY_DIR}/libSDL2main.a )
 endif( MSVC )
+
 
 if( APPLE )
         find_library( LIB_CARBON Carbon )
@@ -311,7 +445,23 @@ elseif( UNIX )
 endif( APPLE )
 
 # Don't know why these don't get picked up automatically. Don't care. 
-add_dependencies( apitest SDL2 SDL2main )
+add_dependencies( apitest SDL2 SDL2main SDL2deployed )
 
 # Change the debug executable name
 set_target_properties( apitest PROPERTIES RUNTIME_OUTPUT_NAME_DEBUG apitest_d )
+
+if( apitest_WITH_D3D11 )
+	add_custom_target(
+		CopyRedist46
+		COMMAND ${CMAKE_COMMAND}
+		-E copy_if_different "${apitest_SOURCE_DIR}/thirdparty/Microsoft/D3D/x86/d3dcompiler_46.dll" "${apitest_BIN_DIR}"
+	)
+
+	add_custom_target(
+		CopyRedist47
+		COMMAND ${CMAKE_COMMAND}
+		-E copy_if_different "${apitest_SOURCE_DIR}/thirdparty/Microsoft/D3D/x86/d3dcompiler_47.dll" "${apitest_BIN_DIR}"
+	)
+
+	add_dependencies(apitest CopyRedist46 CopyRedist47)
+endif()

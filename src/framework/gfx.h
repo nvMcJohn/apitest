@@ -5,29 +5,8 @@
 
 #include "mathlib.h"
 
-class GfxBaseApi;
-
-// --------------------------------------------------------------------------------------------------------------------
-// Test Case
-
-enum class TestId
-{
-    StreamingVB,
-    CubesUniform,
-    CubesDynamicBuffer,
-    CubesBufferRange,
-    CubesTexCoord,
-    CubesMultiDraw,
-    CubesBufferStorage,
-    CubesBindless,
-    CubesBindlessIndirect,
-    TexturesNoTex,
-    TexturesForward,
-    TexturesBindless,
-    TexturesBindlessMultiDraw,
-    TexturesSparseBindlessTextureArray,
-    TexturesSparseBindlessTextureArrayMultiDraw
-};
+const size_t kDoubleBuffer = 2;
+const size_t kTripleBuffer = 3;
 
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
@@ -39,6 +18,8 @@ enum class EGfxApi
     Direct3D11,
     OpenGLGeneric
 };
+
+bool IsOpenGL(EGfxApi _api);
 
 // --------------------------------------------------------------------------------------------------------------------
 class GfxBaseApi
@@ -64,6 +45,9 @@ public:
 
     virtual EGfxApi GetApiType() const = 0;
 
+    virtual const char* GetShortName() const = 0;
+    virtual const char* GetLongName() const = 0;
+
     inline size_t GetWidth() const     { return mWidth; }
     inline size_t GetHeight() const    { return mHeight; }
 
@@ -73,7 +57,7 @@ public:
         mHeight = _newHeight;
     }
 
-    void OnProblemOrSolutionSet(const std::string& _problemName, const std::string& _solutionName)
+    inline void OnProblemOrSolutionSet(const std::string& _problemName, const std::string& _solutionName)
     {
         if (mWnd == nullptr) {
             return;
@@ -88,6 +72,11 @@ public:
         SDL_SetWindowTitle(mWnd, newTitle.c_str());
     }
 
+    inline void MoveWindow(int _x, int _y)
+    {
+        SDL_SetWindowPosition(mWnd, _x, _y);
+    }
+
 protected:
     SDL_Window* mWnd;
 
@@ -99,4 +88,9 @@ private:
 };
 
 GfxBaseApi *CreateGfxOpenGLGeneric();
-GfxBaseApi *CreateGfxDirect3D11();
+
+#if WITH_D3D11
+    GfxBaseApi *CreateGfxDirect3D11();
+#else
+    inline GfxBaseApi *CreateGfxDirect3D11() { return nullptr; }
+#endif

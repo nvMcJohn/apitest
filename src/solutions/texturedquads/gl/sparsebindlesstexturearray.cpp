@@ -131,6 +131,9 @@ void TexturedQuadsGLSparseBindlessTextureArray::Render(const std::vector<Matrix>
 // --------------------------------------------------------------------------------------------------------------------
 void TexturedQuadsGLSparseBindlessTextureArray::Shutdown()
 {
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(0);
+
     for (auto it = mTextures.begin(); it != mTextures.end(); ++it) {
         SafeDelete(*it);
     }

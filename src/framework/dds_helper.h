@@ -1,7 +1,8 @@
 
 #pragma once
 
-#include "wgl.h"
+#include "GL/glcorearb.h"
+#include "GL/glext.h"
 #include <cstdlib>
 #include <stdio.h>
 #include <memory.h>
@@ -51,8 +52,10 @@ struct TextureDetails
     GLsizei szMipMapCount;
     void* pPixels;
     GLsizei* pSizes;
+    GLsizei* pPitches;
 
     GLenum glFormat;
+    DWORD d3dFormat; // One of the values in DXGI_FORMAT
 
     bool bCompressed;
 
@@ -63,6 +66,8 @@ struct TextureDetails
             free(pPixels);
         if (pSizes)
             free(pSizes);
+        if (pPitches)
+            free(pPitches);
     }
 
     GLint MipMapHeight(GLint mipMap) const { return dds_imax(1, dwHeight >> mipMap); }
@@ -332,6 +337,7 @@ inline bool readDDSFromFile_DXT1(const DDS_HEADER& _header, FILE* _file, Texture
 
     _outDetails->szMipMapCount = mipmaps;
     _outDetails->pSizes = (GLsizei*)malloc(mipmaps * sizeof(GLsizei));
+    _outDetails->pPitches = (GLsizei*)malloc(mipmaps * sizeof(GLsizei));
 
     assert(sizeof(BYTE) == 1);
 
@@ -343,6 +349,7 @@ inline bool readDDSFromFile_DXT1(const DDS_HEADER& _header, FILE* _file, Texture
         DWORD heightBlocks = (mipHeight + (kRowsPerBlock - 1)) / kRowsPerBlock;
         GLsizei mipmapSize = pitchBlocks * heightBlocks * kBlockSizeBytes;
         _outDetails->pSizes[mip] = mipmapSize;
+        _outDetails->pPitches[mip] = pitchBlocks * kBlockSizeBytes;
 
         totalSize += mipmapSize;
         mipWidth = dds_imax(1, mipWidth >> 1);
@@ -360,6 +367,7 @@ inline bool readDDSFromFile_DXT1(const DDS_HEADER& _header, FILE* _file, Texture
     _outDetails->pPixels = buffer;
     _outDetails->bCompressed = true;
     _outDetails->glFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+    _outDetails->d3dFormat = DXGI_FORMAT_BC1_UNORM;
     
     return true;
 }

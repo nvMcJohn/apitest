@@ -3,6 +3,10 @@
 
 #include "solutions/untexturedobjectssoln.h"
 
+// Set to 1 in order to only draw the first triangle of each draw call (in
+// order to reduce the amount of GPU work and help ensure test is CPU bound).
+#define DRAW_SINGLE_TRIANGLE 0
+
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
@@ -12,8 +16,13 @@ const int kObjectsZ = 64;
 const int kObjectCount = kObjectsX * kObjectsY * kObjectsZ;
 
 const int kTransformCount = kObjectCount;
+#if DRAW_SINGLE_TRIANGLE
+const int kVertexCount = 3;
+const int kIndexCount = 3;
+#else
 const int kVertexCount = 8;
 const int kIndexCount = 36;
+#endif
 
 // --------------------------------------------------------------------------------------------------------------------
 UntexturedObjectsProblem::UntexturedObjectsProblem()
@@ -101,31 +110,37 @@ void UntexturedObjectsProblem::genUnitCube()
         { -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f },
         {  0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  0.0f },
         {  0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f },
+#if !DRAW_SINGLE_TRIANGLE
         { -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  1.0f },
         { -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f },
         {  0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  1.0f },
         {  0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f },
         { -0.5f, -0.5f, -0.5f,  0.0f,  0.0f,  0.0f },
+#endif
     };
 
     for (int i = 0; i < ArraySize(vertices); ++i) {
         mVertices.push_back(vertices[i]);
     }
-    assert(mVertices.size() == kVertexCount);
+
+    static_assert(kVertexCount == ArraySize(vertices), "Vertex count mismatch");
 
     const uint16_t indices[] =
     {
-        0, 1, 2, 0, 2, 3,
+        0, 1, 2,
+#if !DRAW_SINGLE_TRIANGLE
+                 0, 2, 3,
         4, 5, 6, 4, 6, 7,
         3, 2, 5, 3, 5, 4,
         2, 1, 6, 2, 6, 5,
         1, 7, 6, 1, 0, 7,
         0, 3, 4, 0, 4, 7
+#endif
     };
 
     for (int i = 0; i < ArraySize(indices); ++i) {
         mIndices.push_back(indices[i]);
     }
 
-    assert(mIndices.size() == kIndexCount);
+    static_assert(kIndexCount == ArraySize(indices), "Index count mismatch");
 }

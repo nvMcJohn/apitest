@@ -3,7 +3,8 @@
 #include "gfx_gl.h"
 #include "console.h"
 
-GfxBaseApi *CreateGfxOpenGLGeneric() { return new GfxApiOpenGLGeneric; }
+GfxBaseApi *CreateGfxOpenGLGeneric() { return new GfxApiOpenGLCompat; }
+std::tuple<std::string, std::string> versionSplit(const std::string& _srcString);
 
 // --------------------------------------------------------------------------------------------------------------------
 static SDL_Window* CreateGLWindow(const char* _title, int _x, int _y, int _width, int _height)
@@ -27,16 +28,16 @@ static void APIENTRY ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-GfxApiOpenGLGeneric::GfxApiOpenGLGeneric()
+GfxApiOpenGLCompat::GfxApiOpenGLCompat()
 : mGLrc()
 { }
 
 // --------------------------------------------------------------------------------------------------------------------
-GfxApiOpenGLGeneric::~GfxApiOpenGLGeneric()
+GfxApiOpenGLCompat::~GfxApiOpenGLCompat()
 { }
 
 // --------------------------------------------------------------------------------------------------------------------
-bool GfxApiOpenGLGeneric::Init(const std::string& _title, int _x, int _y, int _width, int _height)
+bool GfxApiOpenGLCompat::Init(const std::string& _title, int _x, int _y, int _width, int _height)
 {
     if (!GfxBaseApi::Init(_title, _x, _y, _width, _height)) {
         return false;
@@ -58,10 +59,11 @@ bool GfxApiOpenGLGeneric::Init(const std::string& _title, int _x, int _y, int _w
         console::warn("Unable to MakeCurrent on GL context.");
         return false;
     }
-    
-    // TODO: Redo how this is done, needs fallbacks, should use macro file.
-    wgl::bind_gl();
 
+    std::list<std::string> stripExts;
+    CheckExtensions(stripExts);
+    ResolveExtensions();
+    
     SDL_GL_SetSwapInterval(0);
 
     // Default GL State
@@ -85,9 +87,11 @@ bool GfxApiOpenGLGeneric::Init(const std::string& _title, int _x, int _y, int _w
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-void GfxApiOpenGLGeneric::Shutdown()
+void GfxApiOpenGLCompat::Shutdown()
 {
     SDL_GL_MakeCurrent(nullptr, nullptr);
+
+    ResetExtensions();
 
     if (mGLrc) {
         SDL_GL_DeleteContext(mGLrc);
@@ -101,14 +105,14 @@ void GfxApiOpenGLGeneric::Shutdown()
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-void GfxApiOpenGLGeneric::Activate()
+void GfxApiOpenGLCompat::Activate()
 {
     assert(mWnd);
     SDL_ShowWindow(mWnd);
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-void GfxApiOpenGLGeneric::Deactivate()
+void GfxApiOpenGLCompat::Deactivate()
 {
     assert(mWnd);
     SDL_HideWindow(mWnd);
@@ -116,7 +120,7 @@ void GfxApiOpenGLGeneric::Deactivate()
 
 #if 0
 // --------------------------------------------------------------------------------------------------------------------
-TestCase* GfxApiOpenGLGeneric::create_test(TestId id)
+TestCase* GfxApiOpenGLCompat::create_test(TestId id)
 {
     switch (id)
     {
@@ -142,7 +146,7 @@ TestCase* GfxApiOpenGLGeneric::create_test(TestId id)
 #endif
 
 // --------------------------------------------------------------------------------------------------------------------
-void GfxApiOpenGLGeneric::Clear(Vec4 _clearColor, GLfloat _clearDepth)
+void GfxApiOpenGLCompat::Clear(Vec4 _clearColor, GLfloat _clearDepth)
 {
     // TODO: This should go elsewhere.
     glViewport(0, 0, GetWidth(), GetHeight());
@@ -155,14 +159,14 @@ void GfxApiOpenGLGeneric::Clear(Vec4 _clearColor, GLfloat _clearDepth)
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-void GfxApiOpenGLGeneric::SwapBuffers()
+void GfxApiOpenGLCompat::SwapBuffers()
 {
     assert(mWnd);
 
     SDL_GL_SwapWindow(mWnd);
 }
 
-// ------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 std::string FileContentsToString(std::string _filename)
 {
     std::string retBuffer;
@@ -187,17 +191,34 @@ std::string FileContentsToString(std::string _filename)
     return retBuffer;
 }
 
-// ------------------------------------------------------------------------------------------------
-GLuint CompileShaderFromFile(GLenum _shaderType, std::string _shaderFilename)
+// --------------------------------------------------------------------------------------------------------------------
+GLuint CompileShaderFromFile(GLenum _shaderType, std::string _shaderFilename, std::string _shaderPrefix)
 {
     std::string shaderFullPath = "Shaders/glsl/" + _shaderFilename;
 
+    const char* shaderPrefix = _shaderPrefix.c_str();
+
     GLuint retVal = glCreateShader(_shaderType);
     std::string fileContents = FileContentsToString(shaderFullPath);
-    const char* fileContentsCstr = fileContents.c_str();
     const char* includePath = ".";
 
-    glShaderSource(retVal, 1, &fileContentsCstr, NULL);
+    // GLSL has this annoying feature that the #version directive must appear first. But we 
+    // want to inject some #define shenanigans into the shader. 
+    // So to do that, we need to split for the part of the shader up to the end of the #version line,
+    // and everything after that. We can then inject our defines right there.
+    auto strTuple = versionSplit(fileContents);
+    std::string versionStr = std::get<0>(strTuple);
+    std::string shaderContents = std::get<1>(strTuple);
+
+    const char* shaderStrings[] = {
+        versionStr.c_str(),
+        "\n",
+        _shaderPrefix.c_str(),
+        "\n",
+        shaderContents.c_str()
+    };
+
+    glShaderSource(retVal, ArraySize(shaderStrings), shaderStrings, nullptr);
     glCompileShader(retVal);
 
     GLint compileStatus = 0;
@@ -219,9 +240,6 @@ GLuint CompileShaderFromFile(GLenum _shaderType, std::string _shaderFilename)
     }
 
     if (compileStatus != GL_TRUE) {
-        #ifndef POSIX
-       	     assert(!"Shader failed compilation, here's an assert to break you in the debugger.");
-        #endif
         glDeleteShader(retVal);
         retVal = 0;
     }
@@ -229,7 +247,7 @@ GLuint CompileShaderFromFile(GLenum _shaderType, std::string _shaderFilename)
     return retVal;
 }
 
-// ------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 GLuint LinkShaders(GLuint _vs, GLuint _fs)
 {
     GLuint retVal = glCreateProgram();
@@ -268,48 +286,17 @@ GLuint LinkShaders(GLuint _vs, GLuint _fs)
     return retVal;
 }
 
-// ------------------------------------------------------------------------------------------------
-GLuint LinkShaders(GLuint _vs, GLuint _tcs, GLuint _tes, GLuint _fs)
+// --------------------------------------------------------------------------------------------------------------------
+GLuint CreateProgram(const std::string& _vsFilename, const std::string& _psFilename)
 {
-    GLuint retVal = glCreateProgram();
-    glAttachShader(retVal, _vs);
-    glAttachShader(retVal, _tcs);
-    glAttachShader(retVal, _tes);
-    glAttachShader(retVal, _fs);
-    glLinkProgram(retVal);
-
-    GLint linkStatus = 0;
-    glGetProgramiv(retVal, GL_LINK_STATUS, &linkStatus);
-
-    GLint glinfoLogLength = 0;
-    glGetProgramiv(retVal, GL_INFO_LOG_LENGTH, &glinfoLogLength);
-    if (glinfoLogLength > 1) {
-        GLchar* buffer = new GLchar[glinfoLogLength];
-        glGetProgramInfoLog(retVal, glinfoLogLength, &glinfoLogLength, buffer);
-        if (linkStatus != GL_TRUE) {
-            console::warn("Shader Linking failed with the following errors:");
-        }
-        else {
-            console::log("Shader Linking succeeded, with following warnings/messages:");
-        }
-        delete[] buffer;
-    }
-
-    if (linkStatus != GL_TRUE) {
-        assert(!"Shader failed linking, here's an assert to break you in the debugger.");
-
-        glDeleteProgram(retVal);
-        retVal = 0;
-    }
-
-    return retVal;
+    return CreateProgram(_vsFilename, _psFilename, std::string(""));
 }
 
-// ------------------------------------------------------------------------------------------------
-GLuint CreateProgram(std::string _vsFilename, std::string _psFilename)
+// --------------------------------------------------------------------------------------------------------------------
+GLuint CreateProgram(const std::string& _vsFilename, const std::string& _psFilename, const std::string& _shaderPrefix)
 {
-    GLuint vs = CompileShaderFromFile(GL_VERTEX_SHADER, _vsFilename),
-           fs = CompileShaderFromFile(GL_FRAGMENT_SHADER, _psFilename);
+    GLuint vs = CompileShaderFromFile(GL_VERTEX_SHADER, _vsFilename, _shaderPrefix),
+           fs = CompileShaderFromFile(GL_FRAGMENT_SHADER, _psFilename, _shaderPrefix);
 
     // If any are 0, dump out early.
     if ((vs * fs) == 0) {
@@ -326,10 +313,16 @@ GLuint CreateProgram(std::string _vsFilename, std::string _psFilename)
     return retProgram;
 }
 
-// ------------------------------------------------------------------------------------------------
-GLuint CreateProgram(std::string _vsFilename, std::string _psFilename, const char** _uniformNames, GLuint* _outUniformLocations)
+// --------------------------------------------------------------------------------------------------------------------
+GLuint CreateProgram(const std::string& _vsFilename, const std::string& _psFilename, const char** _uniformNames, GLuint* _outUniformLocations)
 {
-    GLuint retProg = CreateProgram(_vsFilename, _psFilename);
+    return CreateProgram(_vsFilename, _psFilename, std::string(""), _uniformNames, _outUniformLocations);
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+GLuint CreateProgram(const std::string& _vsFilename, const std::string& _psFilename, const std::string& _shaderPrefix, const char** _uniformNames, GLuint* _outUniformLocations)
+{
+    GLuint retProg = CreateProgram(_vsFilename, _psFilename, _shaderPrefix);
     if (retProg != 0) {
         for (int i = 0; _uniformNames[i] != nullptr; ++i) {
             _outUniformLocations[i] = glGetUniformLocation(retProg, _uniformNames[i]);
@@ -339,7 +332,7 @@ GLuint CreateProgram(std::string _vsFilename, std::string _psFilename, const cha
     return retProg;
 }
 
-// ------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 GLuint NewTex2DFromDetails(const TextureDetails& _texDetails)
 {
     GLuint retVal = 0;
@@ -366,4 +359,151 @@ GLuint NewTex2DFromDetails(const TextureDetails& _texDetails)
     return retVal;
 }
 
+// --------------------------------------------------------------------------------------------------------------------
+bool matchVersionLine(const std::string& _srcString, size_t _startPos, size_t _endPos)
+{
+    size_t checkPos = _startPos;
+    assert(_endPos <= _srcString.size());
 
+    // GCC doesn't support regexps yet, so we're doing a hand-coded look for 
+    // ^\s*#\s*version\s+\d+\s*$
+    // Annoying!
+
+    // ^ was handled by the caller.
+
+    // \s*
+    while (checkPos < _endPos && (_srcString[checkPos] == ' ' || _srcString[checkPos] == '\t')) {
+        ++checkPos;
+    }
+
+    if (checkPos == _endPos) {
+        return false;
+    }
+
+    // #
+    if (_srcString[checkPos] == '#') {
+        ++checkPos;        
+    } else {
+        return false;
+    }
+
+    if (checkPos == _endPos) {
+        return false;
+    }
+
+    // \s*
+    while (checkPos < _endPos && (_srcString[checkPos] == ' ' || _srcString[checkPos] == '\t')) {
+        ++checkPos;
+    }
+
+    if (checkPos == _endPos) {
+        return false;
+    }
+
+    // version
+    const char* kSearchString = "version";
+    const size_t kSearchStringLen = strlen(kSearchString);
+
+    if (checkPos + kSearchStringLen >= _endPos) {
+        return false;
+    }
+
+    if (strncmp(kSearchString, &_srcString[checkPos], kSearchStringLen) == 0) {
+        checkPos += kSearchStringLen;
+    } else {
+        return false;
+    }
+
+    // \s+ (as \s\s*)
+    if (_srcString[checkPos] == ' ' || _srcString[checkPos] == '\t') {
+        ++checkPos;
+    } else {
+        return false;
+    }
+
+    while (checkPos < _endPos && (_srcString[checkPos] == ' ' || _srcString[checkPos] == '\t')) {
+        ++checkPos;
+    }
+
+    if (checkPos == _endPos) {
+        return false;
+    }
+
+    // \d+ (as \d\d*)
+    if (_srcString[checkPos] >= '0' && _srcString[checkPos] <= '9') {
+        ++checkPos;
+    } else {
+        return false;
+    }
+
+    // Check the version number
+    while (checkPos < _endPos && (_srcString[checkPos] >= '0' && _srcString[checkPos] <= '9')) {
+        ++checkPos;
+    }
+
+    while (checkPos < _endPos && (_srcString[checkPos] == ' ' || _srcString[checkPos] == '\t')) {
+        ++checkPos;
+    }
+
+    while (checkPos < _endPos && (_srcString[checkPos] == '\r' || _srcString[checkPos] == '\n')) {
+        ++checkPos;
+    }
+
+    // NOTE that if the string terminates here we're successful (unlike above)
+    if (checkPos == _endPos) {
+        return true;
+    }
+    
+    return false;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+std::tuple<std::string, std::string> strsplit(const std::string& _srcString, size_t _splitEndPos)
+{
+    return std::make_tuple(
+        _srcString.substr(0, _splitEndPos),
+        _srcString.substr(_splitEndPos, std::string::npos)
+    );
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+std::tuple<std::string, std::string> versionSplit(const std::string& _srcString)
+{
+    const size_t StringLen = _srcString.size();
+    size_t matchEndPos = 0;
+    size_t substrStartPos = 0;
+    size_t eolPos = 0;
+    for (eolPos = substrStartPos; eolPos < StringLen; ++eolPos) {
+        if (_srcString[eolPos] != '\n') {
+            continue;
+        }
+
+        if (matchVersionLine(_srcString, substrStartPos, eolPos + 1)) {
+            return strsplit(_srcString, eolPos + 1);
+        }
+
+        substrStartPos = eolPos + 1;
+    }
+
+    // Could be on the last line (not really--the shader will be invalid--but we'll do it anyways)
+    if (matchVersionLine(_srcString, substrStartPos, StringLen)) {
+        return strsplit(_srcString, eolPos + 1);
+    }
+
+    return std::make_tuple(std::string(""), _srcString);
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+bool IsOpenGL(EGfxApi _api)
+{
+    switch (_api)
+    {
+        case EGfxApi::Direct3D11:
+            return false;
+        case EGfxApi::OpenGLGeneric:
+            return true;
+        default:
+            assert(!"Need to update IsOpenGL with new API type.");
+            return false;
+    };
+}

@@ -11,12 +11,12 @@ public:
     DynamicStreamingGLBufferSubData();
     virtual ~DynamicStreamingGLBufferSubData();
 
-    virtual bool Init() override;
+    virtual bool Init(size_t _maxVertexCount) override;
     virtual void Render(const std::vector<Vec2>& _vertices) override;
     virtual void Shutdown() override;
 
-    // The name of this solution.
-    virtual std::string GetName() const override { return "DynamicStreamingGLBufferSubData"; }
+    virtual std::string GetName() const override { return "GLBufferSubData"; }
+    virtual bool SupportsApi(EGfxApi _api) const override { return IsOpenGL(_api); }
 
 private:
     struct Constants
@@ -29,6 +29,11 @@ private:
     GLuint mUniformBuffer;
     GLuint mVertexBuffer;
     GLuint mProgram;
+
+    size_t mStartDestOffset;
+    size_t mParticleBufferSize;
+
+    // TODO: Sync objects
 
     struct UniformLocations {
         GLuint CB0;

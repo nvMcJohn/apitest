@@ -7,10 +7,10 @@
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 UntexturedObjectsGLDynamicBuffer::UntexturedObjectsGLDynamicBuffer()
-    : m_ib()
-    , m_vb()
-    , m_ub()
-    , m_prog()
+: m_ib()
+, m_vb()
+, m_ub()
+, m_prog()
 {}
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -106,6 +106,9 @@ void UntexturedObjectsGLDynamicBuffer::Render(const std::vector<Matrix>& _transf
 // --------------------------------------------------------------------------------------------------------------------
 void UntexturedObjectsGLDynamicBuffer::Shutdown()
 {
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(0);
+
     glDeleteBuffers(1, &m_ib);
     glDeleteBuffers(1, &m_vb);
     glDeleteBuffers(1, &m_ub);

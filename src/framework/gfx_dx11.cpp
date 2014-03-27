@@ -1,11 +1,13 @@
 #include "pch.h"
 
 #include "gfx_dx11.h"
+#include <d3dcompiler.h>
 // #include "streaming_vb_dx11.h"
 
 // Libraries
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "d3d11.lib")
+#pragma comment(lib, "d3dcompiler.lib")
 
 // Globals
 IDXGIFactory* g_dxgi_factory;
@@ -21,8 +23,7 @@ HWND GetHwnd(SDL_Window* _wnd);
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 GfxApiDirect3D11::GfxApiDirect3D11()
-: mWnd()
-, mSwapChain()
+: mSwapChain()
 , mColorView()
 , mDepthStencilView()
 { }
@@ -84,6 +85,9 @@ bool GfxApiDirect3D11::Init(const std::string& _title, int _x, int _y, int _widt
         return false;
     }
 
+    // Set the render target and depth targets.
+    g_d3d_context->OMSetRenderTargets(1, &mColorView, mDepthStencilView);
+
     return true;
 }
 
@@ -125,6 +129,16 @@ void GfxApiDirect3D11::Deactivate()
 // --------------------------------------------------------------------------------------------------------------------
 void GfxApiDirect3D11::Clear(Vec4 _clearColor, GLfloat _clearDepth)
 {
+    // Should go somewhere else. 
+    D3D11_VIEWPORT vp;
+    vp.Width = static_cast<FLOAT>(GetWidth());
+    vp.Height = static_cast<FLOAT>(GetHeight());
+    vp.MinDepth = 0.0f;
+    vp.MaxDepth = 1.0f;
+    vp.TopLeftX = 0;
+    vp.TopLeftY = 0;
+    g_d3d_context->RSSetViewports(1, &vp);
+
     g_d3d_context->ClearRenderTargetView(mColorView, &_clearColor.x);
     g_d3d_context->ClearDepthStencilView(mDepthStencilView, D3D11_CLEAR_DEPTH, _clearDepth, 0);
 }
@@ -261,6 +275,66 @@ HRESULT CreateDepthBuffer(IDXGISwapChain* dxgi_swap_chain, ID3D11DepthStencilVie
     return S_OK;
 }
 
+// --------------------------------------------------------------------------------------------------------------------
+ID3D11Texture2D* NewTexture2DFromDetails(const TextureDetails& _texDetails)
+{
+    const DXGI_SAMPLE_DESC AliasedTexture = { 1, 0 };
+
+    D3D11_TEXTURE2D_DESC desc;
+    desc.Width = _texDetails.dwWidth;
+    desc.Height = _texDetails.dwHeight;
+    desc.MipLevels = _texDetails.szMipMapCount;
+    desc.ArraySize = 1;
+    desc.Format = (DXGI_FORMAT) _texDetails.d3dFormat;
+    desc.SampleDesc = AliasedTexture;
+    desc.Usage = D3D11_USAGE_DEFAULT;
+    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    desc.CPUAccessFlags = 0;
+    desc.MiscFlags = 0;
+
+    size_t accumulatedMipOffset = 0;
+    std::vector<D3D11_SUBRESOURCE_DATA> initialDatas;
+    for (UINT mip = 0; mip < desc.MipLevels; ++mip) {
+        D3D11_SUBRESOURCE_DATA mipData;
+        mipData.pSysMem = &((unsigned char*)_texDetails.pPixels)[accumulatedMipOffset];
+        mipData.SysMemPitch = _texDetails.pPitches[mip];
+        mipData.SysMemSlicePitch = 0;
+
+        initialDatas.push_back(mipData);
+        // Bump the mip offset for the next level.
+        accumulatedMipOffset += _texDetails.pSizes[mip];
+    }
+
+    ID3D11Texture2D* retTex2D = nullptr;
+    HRESULT hr = g_d3d_device->CreateTexture2D(&desc, initialDatas.data(), &retTex2D);
+    if (FAILED(hr)) {
+        SafeRelease(retTex2D);    
+    }
+
+    return retTex2D;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+ID3D11ShaderResourceView* NewTexture2DSRVFromDetails(const TextureDetails& _texDetails)
+{
+    ID3D11Texture2D* tex2D = NewTexture2DFromDetails(_texDetails);
+    if (tex2D) {
+        ID3D11ShaderResourceView* retSrv = nullptr;
+        HRESULT hr = g_d3d_device->CreateShaderResourceView(tex2D, nullptr, &retSrv);
+        SafeRelease(tex2D);
+
+        if (FAILED(hr)) {
+            console::warn("Succeeded at creating texture, but failed to create an SRV. What?");
+            return nullptr;
+        }
+
+        return retSrv;
+    }
+
+    return nullptr;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
 HRESULT CreateConstantBuffer(int size, const void* data, ID3D11Buffer** out_buffer)
 {
     D3D11_BUFFER_DESC desc = { 0 };
@@ -275,69 +349,106 @@ HRESULT CreateConstantBuffer(int size, const void* data, ID3D11Buffer** out_buff
     return g_d3d_device->CreateBuffer(&desc, data ? &initialData : nullptr, out_buffer);
 }
 
-HRESULT CreateDynamicVertexBuffer(int size, const void* data, ID3D11Buffer** out_buffer)
+// --------------------------------------------------------------------------------------------------------------------
+HRESULT CreateDynamicVertexBuffer(int size, const void* data, ID3D11Buffer** _outBuffer)
+{
+    return CreateDynamicVertexBuffer(size, data, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE, _outBuffer);
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+HRESULT CreateDynamicVertexBuffer(int _size, const void* _data, D3D11_USAGE _usage, UINT _cpuAccessFlags, ID3D11Buffer** _outBuffer)
 {
     D3D11_BUFFER_DESC desc = { 0 };
-    desc.Usage = D3D11_USAGE_DYNAMIC;
-    desc.ByteWidth = size;
+    desc.Usage = _usage;
+    desc.ByteWidth = _size;
     desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    desc.CPUAccessFlags = _cpuAccessFlags;
 
     D3D11_SUBRESOURCE_DATA initialData = { 0 };
-    initialData.pSysMem = data;
+    initialData.pSysMem = _data;
 
-    return g_d3d_device->CreateBuffer(&desc, data ? &initialData : nullptr, out_buffer);
+    return g_d3d_device->CreateBuffer(&desc, _data ? &initialData : nullptr, _outBuffer);
 }
 
-#if 0
-bool resize_swap_chain(, int width, int height)
+// --------------------------------------------------------------------------------------------------------------------
+ID3DBlob* CompileShader(const std::wstring& _shaderFilename, const char* _shaderEntryPoint, const char* _shaderTarget)
 {
-    IDXGISwapChain* dxgi_swap_chain = reinterpret_cast<IDXGISwapChain*>(swap_chain);
+    ID3DBlob* outCode = nullptr;
+    ID3DBlob* errorMessages = nullptr;
 
-    DXGI_SWAP_CHAIN_DESC sd;
-    HRESULT hr = dxgi_swap_chain->GetDesc(&sd);
-    if (FAILED(hr))
-        return false;
+    const UINT kFlags1 = D3DCOMPILE_OPTIMIZATION_LEVEL3;
+    const UINT kFlags2 = 0;
 
-    if (sd.BufferDesc.Width != width || sd.BufferDesc.Height != height)
-    {
-        // Resize occured, release current objects and resize buffers.
+    std::wstring shaderFullPath = L"Shaders/hlsl/" + _shaderFilename;
 
-        SAFE_RELEASE(frame_buffer->render_target_view);
-        SAFE_RELEASE(frame_buffer->depth_stencil_view);
 
-        BOOL bFullscreen;
-        dxgi_swap_chain->GetFullscreenState(&bFullscreen, nullptr);
+    HRESULT hr = D3DCompileFromFile(shaderFullPath.c_str(), nullptr, nullptr, _shaderEntryPoint, _shaderTarget, 
+                                    kFlags1, kFlags2, &outCode, &errorMessages);
 
-        g_d3d_context->OMSetRenderTargets(0, nullptr, nullptr);
+    if (FAILED(hr)) {
+        console::warn("Failed to compile shader '%ls', errors follow:\n%s", _shaderFilename.c_str(), errorMessages ? errorMessages->GetBufferPointer() : "Compile failed with no errors--possible file not found.");
+        SafeRelease(outCode);
+        SafeRelease(errorMessages);
 
-        UINT flags = 0;
-        if (bFullscreen)
-            flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-
-        hr = dxgi_swap_chain->ResizeBuffers(sd.BufferCount, 0, 0, sd.BufferDesc.Format, flags);
-        if (FAILED(hr))
-            return false;
+        return nullptr;
     }
 
-    // Recreate views
-    if (!frame_buffer->render_target_view)
-    {
-        hr = create_render_target(dxgi_swap_chain, &frame_buffer->render_target_view);
-        if (FAILED(hr))
-            return false;
+    if (errorMessages) {
+        console::log("Compilation of '%ls' succeeded, but with warnings:\n%s", _shaderFilename.c_str(), errorMessages->GetBufferPointer());
+        
     }
 
-    if (!frame_buffer->depth_stencil_view)
-    {
-        hr = create_depth_buffer(dxgi_swap_chain, &frame_buffer->depth_stencil_view);
-        if (FAILED(hr))
-            return false;
-    }
+    SafeRelease(errorMessages);
 
-    return true;
+    return outCode;
 }
-#endif
+
+// --------------------------------------------------------------------------------------------------------------------
+bool CompileProgram(const std::wstring& _vsFilename, ID3D11VertexShader** _outVertexShader,
+                    const std::wstring& _psFilename, ID3D11PixelShader** _outPixelShader,
+                    UINT _inputElementCount, const D3D11_INPUT_ELEMENT_DESC* _inputElementDescs, ID3D11InputLayout** _outInputLayout)
+{
+    bool completeSuccess = false;
+
+    assert(_outVertexShader && _outPixelShader);
+    assert(_inputElementCount > 0 && _inputElementDescs && _outInputLayout);
+    ID3DBlob* vsCode = CompileShader(_vsFilename, "vsMain", "vs_5_0");
+    ID3DBlob* psCode = CompileShader(_psFilename, "psMain", "ps_5_0");
+
+    if (!vsCode || !psCode) {
+        goto CompileFailed;
+    }
+
+    g_d3d_device->CreateVertexShader(vsCode->GetBufferPointer(), vsCode->GetBufferSize(), nullptr, _outVertexShader);
+    g_d3d_device->CreatePixelShader(psCode->GetBufferPointer(), psCode->GetBufferSize(), nullptr, _outPixelShader);
+
+    if (!*_outVertexShader || !*_outPixelShader) {
+        console::warn("Either the VS or the PS succeeded compilation but failed Creation, which shouldn't happen.");
+        goto CreateShaderFailed;
+    }
+    
+    if (FAILED(g_d3d_device->CreateInputLayout(_inputElementDescs, _inputElementCount, vsCode->GetBufferPointer(), vsCode->GetBufferSize(), _outInputLayout))) {
+        console::warn("We failed to create an input layout to match the provided vertex shader. This will require debugging.");
+        goto CreateInputLayoutFailed;
+    }
+
+    completeSuccess = true;
+    goto Succeeded;
+
+CreateInputLayoutFailed:
+    SafeRelease(*_outInputLayout);
+
+CreateShaderFailed:
+    SafeRelease(*_outVertexShader);
+    SafeRelease(*_outPixelShader);
+
+    // CompileFailed and Succeeded are actually the same thing, just separated above for clarity.
+CompileFailed:
+Succeeded:
+    SafeRelease(vsCode);
+    SafeRelease(psCode);
+    return completeSuccess;
+}
 
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------

@@ -17,13 +17,20 @@ struct TexAddress
     GLint reserved;
 };
 
+struct DenseTexAddress
+{
+    GLuint m_container_index;
+    GLfloat m_layer;
+    GLint reserved[2];
+};
+
 // ------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------
 class Texture2DContainer
 {
 public:
-    Texture2DContainer(GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei slices);
+    Texture2DContainer(bool sparse, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei slices);
     ~Texture2DContainer();
     GLsizei hasRoom() const;
     GLsizei virtualAlloc();
@@ -36,6 +43,7 @@ public:
 
     // Returns the handle to this container.
     GLuint64 GetHandle() const { return mHandle; }
+    GLuint GetTexId() const { return mTexId; }
 
 private:
     GLuint64 mHandle;
@@ -74,6 +82,8 @@ public:
         return ta;
     }
 
+    GLuint GetTexId() const { return mContainer->GetTexId(); }
+
 private:
     Texture2DContainer* mContainer;
 
@@ -97,13 +107,15 @@ public:
 
     void free(Texture2D* _tex);
 
-    bool Init();
+    // maxNumTextures <= 0 will cause allocation of maximum number of layers
+    bool Init(bool sparse=true, GLsizei maxNumTextures=-1);
     void Shutdown();
 private:
 
     std::map<std::tuple<GLsizei, GLenum, GLsizei, GLsizei>, std::vector<Texture2DContainer*>> mTexArrays2D;
     GLsizei mMaxTextureArrayLevels;
     bool mInited;
+    bool mSparse;
 
     Texture2D* allocTexture2D(GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
 };
