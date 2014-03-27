@@ -9,6 +9,7 @@
 # Build results
 _out/
 /bin/SDL2.dll
+/bin/apitest
 /bin/apitest*.exe
 /bin/*.idb
 
