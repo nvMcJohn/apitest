@@ -85,8 +85,7 @@ bool UntexturedObjectsGLBufferStorage::Init(const std::vector<UntexturedObjectsP
 
     mCommands.Create(BufferStorage::PersistentlyMappedBuffer, GL_DRAW_INDIRECT_BUFFER, kTripleBuffer * _objectCount, createFlags, mapFlags);
     mTransformBuffer.Create(BufferStorage::PersistentlyMappedBuffer, GL_SHADER_STORAGE_BUFFER, kTripleBuffer * _objectCount, createFlags, mapFlags);
-    mTransformBuffer.BindBufferBase(0);
-
+    
     return glGetError() == GL_NO_ERROR;
 }
 
@@ -135,10 +134,12 @@ void UntexturedObjectsGLBufferStorage::Render(const std::vector<Matrix>& _transf
     Matrix* dstTransforms = mTransformBuffer.Reserve(xformCount);
     memcpy(dstTransforms, &*_transforms.begin(), sizeof(Matrix) * xformCount);
 
+    mTransformBuffer.BindBufferRange(0, xformCount);
+
     // We didn't use MAP_COHERENT here.
     glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
 
-    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_SHORT, nullptr, xformCount, 0);
+    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_SHORT, mCommands.GetHeadOffset(), xformCount, 0);
 
     mCommands.OnUsageComplete(xformCount);
     mTransformBuffer.OnUsageComplete(xformCount);

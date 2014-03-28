@@ -102,6 +102,7 @@ public:
 
     void BindBuffer() { glBindBuffer(mTarget, mName); }
     void BindBufferBase(GLuint _index) { glBindBufferBase(mTarget, _index, mName); }
+    void BindBufferRange(GLuint _index, GLsizeiptr _head, GLsizeiptr _atomCount) { glBindBufferRange(mTarget, _index, mName, _head * sizeof(Atom), _atomCount * sizeof(Atom)); }
 
 private:
     BufferLockManager mLockManager;
@@ -162,7 +163,10 @@ public:
 
     void BindBuffer() { mBuffer.BindBuffer(); }
     void BindBufferBase(GLuint _index) { mBuffer.BindBufferBase(_index); }
+    void BindBufferRange(GLuint _index, GLsizeiptr _atomCount) { mBuffer.BindBufferRange(_index, mHead, _atomCount); }
 
+    GLsizeiptr GetHead() const { return mHead; }
+    void* GetHeadOffset() const { return (void*)(mHead * sizeof(Atom)); }
     GLsizeiptr GetSize() const { return mSizeAtoms; }
 
 private:
