@@ -9,10 +9,8 @@
 TexturedQuadsGLNaive::TexturedQuadsGLNaive()
 : mIndexBuffer()
 , mVertexBuffer()
-, mDrawIDBuffer()
 , mVertexArray()
 , mProgram()
-, mTransformBuffer()
 { }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -26,7 +24,7 @@ bool TexturedQuadsGLNaive::Init(const std::vector<TexturedQuadsProblem::Vertex>&
     }
 
     // Program
-    const char* kUniformNames[] = { "ViewProjection", "gTex", nullptr };
+    const char* kUniformNames[] = { "ViewProjection", "World", "gTex", nullptr };
 
     mProgram = CreateProgramT("textures_gl_naive_vs.glsl",
                               "textures_gl_naive_fs.glsl",
@@ -59,20 +57,7 @@ bool TexturedQuadsGLNaive::Init(const std::vector<TexturedQuadsProblem::Vertex>&
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
 
-    std::vector<uint32_t> drawids(_objectCount);
-    for (uint32_t i = 0; i < _objectCount; ++i) {
-        drawids[i] = i;
-    }
-
-    mDrawIDBuffer = NewBufferFromVector(GL_ARRAY_BUFFER, drawids, GL_STATIC_DRAW);
-    glVertexAttribIPointer(2, 1, GL_UNSIGNED_INT, sizeof(uint32_t), 0);
-    glVertexAttribDivisor(2, 1);
-    glEnableVertexAttribArray(2);
-
     mIndexBuffer = NewBufferFromVector(GL_ELEMENT_ARRAY_BUFFER, _indices, GL_STATIC_DRAW);
-
-    glGenBuffers(1, &mTransformBuffer);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, mTransformBuffer);
 
     return glGetError() == GL_NO_ERROR;
 }
@@ -109,8 +94,6 @@ void TexturedQuadsGLNaive::Render(const std::vector<Matrix>& _transforms)
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, mTransformBuffer);
-    BufferData(GL_SHADER_STORAGE_BUFFER, _transforms, GL_DYNAMIC_DRAW);
     size_t xformCount = _transforms.size();
     assert(xformCount <= mObjectCount);
 
@@ -128,15 +111,16 @@ void TexturedQuadsGLNaive::Render(const std::vector<Matrix>& _transforms)
 
         glActiveTexture(GL_TEXTURE0 + 0);
         glBindTexture(GL_TEXTURE_2D, activeTex);
+        Matrix world = transpose(_transforms[u]);
+        glUniformMatrix4fv(mUniformLocation.World, 1, GL_TRUE, &world.x.x);
 
-        glDrawElementsInstancedBaseInstance(GL_TRIANGLES, mIndexCount, GL_UNSIGNED_SHORT, 0, 1, u);
+        glDrawElements(GL_TRIANGLES, mIndexCount, GL_UNSIGNED_SHORT, nullptr);
     }
 }
 
 // --------------------------------------------------------------------------------------------------------------------
 void TexturedQuadsGLNaive::Shutdown()
 {
-    glDisableVertexAttribArray(2);
     glDisableVertexAttribArray(1);
     glDisableVertexAttribArray(0);
 
@@ -146,9 +130,7 @@ void TexturedQuadsGLNaive::Shutdown()
 
     glDeleteBuffers(1, &mIndexBuffer);
     glDeleteBuffers(1, &mVertexBuffer);
-    glDeleteBuffers(1, &mDrawIDBuffer);
     glDeleteVertexArrays(1, &mVertexArray);
-    glDeleteBuffers(1, &mTransformBuffer);
     glDeleteProgram(mProgram);
 
     mTextures.clear();

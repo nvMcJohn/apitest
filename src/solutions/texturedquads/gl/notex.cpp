@@ -12,7 +12,8 @@ TexturedQuadsGLNoTex::TexturedQuadsGLNoTex()
 , mDrawIDBuffer()
 , mVertexArray()
 , mProgram()
-, mTransformBuffer()
+, mTransformStorageBuffer()
+, mMaxDrawsPerKickoff()
 {}
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -25,12 +26,32 @@ bool TexturedQuadsGLNoTex::Init(const std::vector<TexturedQuadsProblem::Vertex>&
         return false;
     }
 
+    if (!HasExtension(ARB_base_instance)) {
+        // Currently required.
+        return false;
+    }
+
+    if (!HasExtension(ARB_shader_storage_buffer_object)) {
+        GLint maxUboSize = 0;
+        glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &maxUboSize);
+        mMaxDrawsPerKickoff = maxUboSize / sizeof(Matrix);
+    }
+
     // Program
     const char* kUniformNames[] = { "ViewProjection", nullptr };
 
-    mProgram = CreateProgramT("textures_gl_notex_vs.glsl",
-                              "textures_gl_notex_fs.glsl",
-                              kUniformNames, &mUniformLocation);
+    if (HasExtension(ARB_shader_storage_buffer_object)) {
+        mProgram = CreateProgramT("textures_gl_notex_vs.glsl",
+                                  "textures_gl_notex_fs.glsl",
+                                  kUniformNames, &mUniformLocation);
+    } else {
+        char shaderDefines[80];
+        snprintf(shaderDefines, ArraySize(shaderDefines), "#define MAX_DRAWS_PER_KICKOFF %d", mMaxDrawsPerKickoff);
+        mProgram = CreateProgramT("textures_gl_notex_vs.glsl",
+                                  "textures_gl_notex_fs.glsl",
+                                  shaderDefines, 
+                                  kUniformNames, &mUniformLocation);        
+    }
 
     if (mProgram == 0) {
         console::warn("Unable to initialize solution '%s', shader compilation/linking failed.", GetName().c_str());
@@ -59,8 +80,18 @@ bool TexturedQuadsGLNoTex::Init(const std::vector<TexturedQuadsProblem::Vertex>&
 
     mIndexBuffer = NewBufferFromVector(GL_ELEMENT_ARRAY_BUFFER, _indices, GL_STATIC_DRAW);
 
-    glGenBuffers(1, &mTransformBuffer);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, mTransformBuffer);
+    if (HasExtension(ARB_shader_storage_buffer_object)) {
+        glGenBuffers(1, &mTransformStorageBuffer);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, mTransformStorageBuffer);
+    } else {
+        mTransformUniformBuffers.resize(mMaxDrawsPerKickoff);
+        glGenBuffers(mMaxDrawsPerKickoff, mTransformUniformBuffers.data());
+
+        for (int i = 0; i < mMaxDrawsPerKickoff; ++i) {
+            glBindBufferBase(GL_UNIFORM_BUFFER, 0, mTransformUniformBuffers[i]);
+        }
+    }
+
 
     return glGetError() == GL_NO_ERROR;
 }
@@ -68,6 +99,9 @@ bool TexturedQuadsGLNoTex::Init(const std::vector<TexturedQuadsProblem::Vertex>&
 // --------------------------------------------------------------------------------------------------------------------
 void TexturedQuadsGLNoTex::Render(const std::vector<Matrix>& _transforms)
 {
+    size_t xformCount = _transforms.size();
+    assert(xformCount <= mObjectCount);
+
     // Program
     Vec3 dir = { 0, 0, 1 };
     Vec3 at = { 0, 0, 0 };
@@ -95,13 +129,36 @@ void TexturedQuadsGLNoTex::Render(const std::vector<Matrix>& _transforms)
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, mTransformBuffer);
-    BufferData(GL_SHADER_STORAGE_BUFFER, _transforms, GL_DYNAMIC_DRAW);
-    size_t xformCount = _transforms.size();
-    assert(xformCount <= mObjectCount);
+    if (HasExtension(ARB_shader_storage_buffer_object)) {
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, mTransformStorageBuffer);
+        BufferData(GL_SHADER_STORAGE_BUFFER, _transforms, GL_DYNAMIC_DRAW);
+    } else {
+        assert(_transforms.size() <= mTransformUniformBuffers.size() * mMaxDrawsPerKickoff);
+
+        GLint startXform = 0;
+        GLint remainingXforms = signed(xformCount);
+        for (auto it = mTransformUniformBuffers.begin(); it != mTransformUniformBuffers.end(); ++it) {
+            GLint copyXformCount = std::min(mMaxDrawsPerKickoff, remainingXforms);
+
+            glBindBuffer(GL_UNIFORM_BUFFER, *it);
+            BufferDataArray(GL_UNIFORM_BUFFER, &_transforms[startXform], copyXformCount, GL_DYNAMIC_DRAW);
+
+            remainingXforms -= copyXformCount;
+            startXform += copyXformCount;
+        }
+
+        glBindBufferBase(GL_UNIFORM_BUFFER, 0, mTransformUniformBuffers[0]);
+    }
 
     for (size_t u = 0; u < xformCount; ++u) {
+        // This isn't supported on OSX. :(
         glDrawElementsInstancedBaseInstance(GL_TRIANGLES, mIndexCount, GL_UNSIGNED_SHORT, 0, 1, u);
+
+        if (!HasExtension(ARB_shader_storage_buffer_object)) {
+            if (((u + 1) % mMaxDrawsPerKickoff == 0) && (u + 1 < xformCount)) {
+                glBindBufferBase(GL_UNIFORM_BUFFER, 0, mTransformUniformBuffers[(u + 1) / mMaxDrawsPerKickoff]);
+            }
+        }
     }
 }
 
@@ -116,6 +173,12 @@ void TexturedQuadsGLNoTex::Shutdown()
     glDeleteBuffers(1, &mVertexBuffer);
     glDeleteBuffers(1, &mDrawIDBuffer);
     glDeleteVertexArrays(1, &mVertexArray);
-    glDeleteBuffers(1, &mTransformBuffer);
+    if (HasExtension(ARB_shader_storage_buffer_object)) {
+        glDeleteBuffers(1, &mTransformStorageBuffer);
+    } else {
+        glDeleteBuffers(mTransformUniformBuffers.size(), mTransformUniformBuffers.data());
+        mTransformUniformBuffers.clear();
+    }
+
     glDeleteProgram(mProgram);
 }

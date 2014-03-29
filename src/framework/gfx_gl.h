@@ -6,11 +6,11 @@
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
-class GfxApiOpenGLCompat : public GfxBaseApi
+class GfxApiOpenGLBase : public GfxBaseApi
 {
 public:
-    GfxApiOpenGLCompat();
-    virtual ~GfxApiOpenGLCompat(); 
+    GfxApiOpenGLBase();
+    virtual ~GfxApiOpenGLBase(); 
 
     virtual bool Init(const std::string& _title, int _x, int _y, int _width, int _height) override;
     virtual void Shutdown() override;
@@ -20,17 +20,60 @@ public:
     virtual void Clear(Vec4 _clearColor, GLfloat _clearDepth) override;
     virtual void SwapBuffers() override;
 
-    virtual EGfxApi GetApiType() const { return EGfxApi::OpenGLGeneric; }
+    virtual EGfxApi GetApiType() const = 0;
 
-    inline virtual const char* GetShortName() const override { return SGetShortName(); }
-    inline virtual const char* GetLongName() const override { return SGetLongName(); }
-
-    static const char* SGetShortName() { return "oglcompat"; }
-    static const char* SGetLongName() { return "OpenGL (Compatability)"; }
+    inline virtual const char* GetShortName() const = 0;
+    inline virtual const char* GetLongName() const = 0;
 
 protected:
     SDL_GLContext mGLrc;
 };
+
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
+// This implementation is just whatever we get from the platform by default, without asking for anything specific
+// ie, we're not asking for Core or Compatibility. See the log output to determine what type was actually created.
+class GfxApiOpenGLGeneric : public GfxApiOpenGLBase
+{
+public:
+    GfxApiOpenGLGeneric() { }
+    virtual ~GfxApiOpenGLGeneric() override { }
+
+    virtual EGfxApi GetApiType() const override { return EGfxApi::OpenGLGeneric; }
+
+    inline virtual const char* GetShortName() const override { return SGetShortName(); }
+    inline virtual const char* GetLongName() const override { return SGetLongName(); }
+
+    static const char* SGetShortName() { return "oglgeneric"; }
+    static const char* SGetLongName() { return "OpenGL (Generic)"; }
+};
+
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
+class GfxApiOpenGLCore : public GfxApiOpenGLBase
+// For this implementation, we ask explicitly for a Core Context. 
+{
+public:
+    GfxApiOpenGLCore() : mVertexArrayObject(0) { }
+    virtual ~GfxApiOpenGLCore() override { }
+
+    virtual bool Init(const std::string& _title, int _x, int _y, int _width, int _height) override;
+    virtual void Shutdown() override;
+
+    virtual EGfxApi GetApiType() const override { return EGfxApi::OpenGLCore; }
+
+    inline virtual const char* GetShortName() const override { return SGetShortName(); }
+    inline virtual const char* GetLongName() const override { return SGetLongName(); }
+
+    static const char* SGetShortName() { return "oglcore"; }
+    static const char* SGetLongName() { return "OpenGL (Core)"; }
+
+protected:
+    GLuint mVertexArrayObject;
+};
+
 
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
@@ -71,6 +114,18 @@ inline void BufferData(GLenum _target, const std::vector<T>& _data, GLenum _usag
 {
     if (_data.size() > 0) {
         glBufferData(_target, sizeof(T) * _data.size(), &*_data.cbegin(), _usage);
+    }
+    else {
+        glBufferData(_target, 0, nullptr, _usage);
+    }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+template <typename T>
+inline void BufferDataArray(GLenum _target, const T* _data, GLint _count, GLenum _usage)
+{
+    if (_count > 0) {
+        glBufferData(_target, sizeof(T) * _count, _data, _usage);
     }
     else {
         glBufferData(_target, 0, nullptr, _usage);

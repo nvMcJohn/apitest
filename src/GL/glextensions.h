@@ -17,10 +17,9 @@ void ResetExtensions();
 
 // Pre-declare externed globals that specify whether an extension exists and also the function pointers for extension functions.
 #define GL_EXTENSION(_ext) extern bool gHasExtension_##_ext;
+#define GL_CORE_EXTENSION(_ext, _major, _minor) extern bool gHasExtension_##_ext;
 #define GL_EXTENSION_FUNC(_ext, _procType, _procName) extern _procType _procName;
 #include "glextensions.inl"
-#undef GL_EXTENSION
-#undef GL_EXTENSION_FUNC
 
 // These functions are available on all platforms as direct exports from the libraries. 
 extern "C" {

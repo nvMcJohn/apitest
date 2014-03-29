@@ -9,10 +9,9 @@
 
 // Define the extension variables and function pointer guts.
 #define GL_EXTENSION(_ext) bool gHasExtension_##_ext = false;
+#define GL_CORE_EXTENSION(_ext, _major, _minor) bool gHasExtension_##_ext = false;
 #define GL_EXTENSION_FUNC(_ext, _procType, _procName) _procType _procName = nullptr;
 #include "glextensions.inl"
-#undef GL_EXTENSION
-#undef GL_EXTENSION_FUNC
 
 void checkExtensions(GLsizei _n, const char** _extensions, GLboolean *_available);
 
@@ -29,20 +28,31 @@ void CheckExtensions(const std::list<std::string>& _strippedExtensions)
     const char* myExtensions[] = 
     {
         #define GL_EXTENSION(_ext) "GL_" #_ext,
+        #define GL_CORE_EXTENSION(_ext, _major, _minor) "GL_" #_ext,
         #include "glextensions.inl"
-        #undef GL_EXTENSION
     };
 
     GLboolean available[ArraySize(myExtensions)] = { 0 };
-
     checkExtensions(ArraySize(myExtensions), myExtensions, available);
+
+    int glMajorVersion = 0;
+    int glMinorVersion = 0;
+
+    glGetIntegerv(GL_MAJOR_VERSION, &glMajorVersion);
+    glGetIntegerv(GL_MINOR_VERSION, &glMinorVersion);
 
     // Update the global variables. They are kept in sync by virtue of the fact that we are 
     // including the same definitions over and over again.
     int i = 0;
-    #define GL_EXTENSION(_ext) gHasExtension_##_ext = (available[i++] != GL_FALSE) && !ShouldStripExtension(_strippedExtensions, STR(_ext));
+    #define GL_EXTENSION(_ext) \
+        gHasExtension_##_ext = (available[i++] != GL_FALSE) \
+                            && !ShouldStripExtension(_strippedExtensions, STR(_ext));
+
+    #define GL_CORE_EXTENSION(_ext, _major, _minor) \
+        gHasExtension_##_ext = ((available[i++] != GL_FALSE) \
+                                || (glMajorVersion > _major || (glMajorVersion == _major && glMinorVersion >= _minor))) \
+                            && !ShouldStripExtension(_strippedExtensions, STR(_ext));
     #include "glextensions.inl"
-    #undef GL_EXTENSION
 
     // Hard code this one.
     gHasExtension_OpenGL = true;
@@ -54,7 +64,6 @@ void ResolveExtensions()
     // Walk the function list, getting the address for functions that we have the extension available for.
     #define GL_EXTENSION_FUNC(_ext, _procType, _procName) if (HasExtension(_ext)) { _procName = (_procType)SDL_GL_GetProcAddress(#_procName); }
     #include "glextensions.inl"
-    #undef GL_EXTENSION_FUNC
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -62,10 +71,9 @@ void ResetExtensions()
 {
     // Walk the function list, getting the address for functions that we have the extension available for.
     #define GL_EXTENSION(_ext) gHasExtension_##_ext = false;
+    #define GL_CORE_EXTENSION(_ext, _major, _minor) gHasExtension_##_ext = false;
     #define GL_EXTENSION_FUNC(_ext, _procType, _procName) _procName = nullptr;
     #include "glextensions.inl"
-    #undef GL_EXTENSION_FUNC
-    #undef GL_EXTENSION
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -83,6 +91,15 @@ void checkExtensions(GLsizei _n, const char** _extensions, GLboolean *_available
 
     GLint availableExtensions = 0;
     glGetIntegervLocal(GL_NUM_EXTENSIONS, &availableExtensions);
+    printf("Num Extensions: %d\nExtensions:\n", availableExtensions);
+    for (int i = 0; i < availableExtensions; ++i) {
+        if (i > 0) {
+            printf(", ");
+        }
+        printf("%s", glGetStringiLocal(GL_EXTENSIONS, i));
+    }
+
+    printf("\n");
 
     for (GLsizei j = 0; j < _n; ++j) {
         // Once something is available, skip it

@@ -16,7 +16,8 @@ const size_t kTripleBuffer = 3;
 enum class EGfxApi
 {
     Direct3D11,
-    OpenGLGeneric
+    OpenGLGeneric,
+    OpenGLCore
 };
 
 bool IsOpenGL(EGfxApi _api);
@@ -88,6 +89,7 @@ private:
 };
 
 GfxBaseApi *CreateGfxOpenGLGeneric();
+GfxBaseApi *CreateGfxOpenGLCore();
 
 #if WITH_D3D11
     GfxBaseApi *CreateGfxDirect3D11();

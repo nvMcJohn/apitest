@@ -1,12 +1,14 @@
 
+#ifndef GL_CORE_EXTENSION
+#   define GL_CORE_EXTENSION(_ext, _major, _minor) 
+#endif
+
 #ifndef GL_EXTENSION
 #   define GL_EXTENSION(_ext) 
-#   define UNDEF_GL_EXTENSION 1
 #endif
 
 #ifndef GL_EXTENSION_FUNC
 #   define GL_EXTENSION_FUNC(_ext, _procType, _procName)
-#   define UNDEF_GL_EXTENSION_FUNC 1
 #endif
 
 // Do not prevent multiple inclusion or this file won't work.
@@ -19,6 +21,7 @@ GL_EXTENSION(OpenGL)
     GL_EXTENSION_FUNC(OpenGL, PFNGLBUFFERDATAPROC, glBufferData)
     GL_EXTENSION_FUNC(OpenGL, PFNGLBUFFERSUBDATAPROC, glBufferSubData)
     GL_EXTENSION_FUNC(OpenGL, PFNGLCLEARBUFFERFVPROC, glClearBufferfv)
+    GL_EXTENSION_FUNC(OpenGL, PFNGLCLEARDEPTHFPROC, glClearDepthf)
     GL_EXTENSION_FUNC(OpenGL, PFNGLCOMPILESHADERPROC, glCompileShader)
     GL_EXTENSION_FUNC(OpenGL, PFNGLCOMPRESSEDTEXIMAGE2DPROC, glCompressedTexImage2D)
     GL_EXTENSION_FUNC(OpenGL, PFNGLCOMPRESSEDTEXSUBIMAGE2DPROC, glCompressedTexSubImage2D)
@@ -94,7 +97,7 @@ GL_EXTENSION(ARB_debug_output)
 GL_EXTENSION(ARB_internalformat_query)
     GL_EXTENSION_FUNC(ARB_internalformat_query, PFNGLGETINTERNALFORMATIVPROC, glGetInternalformativ)
 
-GL_EXTENSION(ARB_map_buffer_range)
+GL_CORE_EXTENSION(ARB_map_buffer_range, 3, 0)
     GL_EXTENSION_FUNC(ARB_map_buffer_range, PFNGLFLUSHMAPPEDBUFFERRANGEPROC, glFlushMappedBufferRange)
     GL_EXTENSION_FUNC(ARB_map_buffer_range, PFNGLMAPBUFFERRANGEPROC, glMapBufferRange)
 
@@ -104,7 +107,10 @@ GL_EXTENSION(ARB_multi_draw_indirect)
 
 GL_EXTENSION(ARB_shader_draw_parameters)
 
-GL_EXTENSION(ARB_sync)
+GL_EXTENSION(ARB_shader_storage_buffer_object)
+    GL_EXTENSION_FUNC(ARB_shader_storage_buffer_object, PFNGLSHADERSTORAGEBLOCKBINDINGPROC, glShaderStorageBlockBinding)
+    
+GL_CORE_EXTENSION(ARB_sync, 3, 2)
     GL_EXTENSION_FUNC(ARB_sync, PFNGLFENCESYNCPROC, glFenceSync)
     GL_EXTENSION_FUNC(ARB_sync, PFNGLISSYNCPROC, glIsSync)
     GL_EXTENSION_FUNC(ARB_sync, PFNGLDELETESYNCPROC, glDeleteSync)
@@ -117,7 +123,7 @@ GL_EXTENSION(ARB_sparse_texture)
     GL_EXTENSION_FUNC(ARB_sparse_texture, PFNGLTEXPAGECOMMITMENTARBPROC, glTexPageCommitmentARB)
     GL_EXTENSION_FUNC(ARB_sparse_texture, PFNGLTEXTUREPAGECOMMITMENTEXTPROC, glTexturePageCommitmentEXT)
 
-GL_EXTENSION(ARB_vertex_array_object)
+GL_CORE_EXTENSION(ARB_vertex_array_object, 3, 0)
     GL_EXTENSION_FUNC(ARB_vertex_array_object, PFNGLBINDVERTEXARRAYPROC, glBindVertexArray)
     GL_EXTENSION_FUNC(ARB_vertex_array_object, PFNGLDELETEVERTEXARRAYSPROC, glDeleteVertexArrays)
     GL_EXTENSION_FUNC(ARB_vertex_array_object, PFNGLGENVERTEXARRAYSPROC, glGenVertexArrays)
@@ -131,7 +137,7 @@ GL_EXTENSION(ARB_texture_storage)
 GL_EXTENSION(ARB_timer_query)
     GL_EXTENSION_FUNC(ARB_timer_query, PFNGLGETQUERYOBJECTI64VPROC, glGetQueryObjecti64v)
 
-GL_EXTENSION(ARB_uniform_buffer_object)
+GL_CORE_EXTENSION(ARB_uniform_buffer_object, 3, 1)
     GL_EXTENSION_FUNC(ARB_uniform_buffer_object, PFNGLGETUNIFORMINDICESPROC, glGetUniformIndices)
     GL_EXTENSION_FUNC(ARB_uniform_buffer_object, PFNGLGETACTIVEUNIFORMSIVPROC, glGetActiveUniformsiv)
     GL_EXTENSION_FUNC(ARB_uniform_buffer_object, PFNGLGETACTIVEUNIFORMNAMEPROC, glGetActiveUniformName)
@@ -192,9 +198,6 @@ GL_EXTENSION(NV_bindless_multi_draw_indirect)
         GL_EXTENSION_FUNC(ARB_program_interface_query, PFNGLGETPROGRAMRESOURCELOCATIONPROC, glGetProgramResourceLocation)
         GL_EXTENSION_FUNC(ARB_program_interface_query, PFNGLGETPROGRAMRESOURCEIVPROC, glGetProgramResourceiv)
 
-    GL_EXTENSION(ARB_shader_storage_buffer_object)
-        GL_EXTENSION_FUNC(ARB_shader_storage_buffer_object, PFNGLSHADERSTORAGEBLOCKBINDINGPROC, glShaderStorageBlockBinding)
-
     GL_EXTENSION(ARB_tessellation_shader)
         GL_EXTENSION_FUNC(ARB_tessellation_shader, PFNGLPATCHPARAMETERIPROC, glPatchParameteri)
         GL_EXTENSION_FUNC(ARB_tessellation_shader, PFNGLPATCHPARAMETERFVPROC, glPatchParameterfv)
@@ -241,12 +244,7 @@ GL_EXTENSION(NV_bindless_multi_draw_indirect)
 #endif
     
 
-#if (UNDEF_GL_EXTENSION)
-#   undef GL_EXTENSION
-#   undef UNDEF_GL_EXTENSION
-#endif
+#undef GL_CORE_EXTENSION
+#undef GL_EXTENSION
+#undef GL_EXTENSION_FUNC
 
-#if (UNDEF_GL_EXTENSION_FUNC)
-#   undef GL_EXTENSION_FUNC
-#   undef UNDEF_GL_EXTENSION_FUNC
-#endif

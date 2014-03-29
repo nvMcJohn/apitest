@@ -1,6 +1,6 @@
 // NOTE: Unlike every other set of Solutions, all of the StreamingVBs currently use this shader.
 // If you need to make modifications for a particular test, create a new shader. 
-#version 420
+#version 410
 
 // Uniforms / SSBO ----------------------------------------------------------------------------------------------------
 

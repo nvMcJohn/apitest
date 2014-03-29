@@ -1,11 +1,18 @@
-#version 420
-#extension GL_ARB_shader_storage_buffer_object : require
+#version 410
+#extension GL_ARB_shader_storage_buffer_object : enable
 
 // Uniforms / SSBO ----------------------------------------------------------------------------------------------------
-layout (std140, binding = 0) buffer CB0
-{
-    mat4 Transforms[];
-};
+#ifdef GL_ARB_shader_storage_buffer_object
+    layout (std140, binding = 0) buffer CB0
+    {
+        mat4 Transforms[];
+    };
+#else
+    layout (std140) uniform UB0
+    {
+        mat4 Transforms[MAX_DRAWS_PER_KICKOFF];
+    };
+#endif
 
 uniform mat4 ViewProjection;
 

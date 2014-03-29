@@ -449,6 +449,16 @@ void ApplicationState::createGfxApis()
         }
     }
 
+    tmpApi = CreateGfxOpenGLCore();
+    if (tmpApi) { 
+        if (tmpApi->Init("apitest - OpenGL (core)", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, mResWidth, mResHeight)) {
+            mGfxApis[tmpApi->GetShortName()] = tmpApi;
+        } else {
+            SafeDelete(tmpApi);
+        }
+    }
+
+
     tmpApi = CreateGfxDirect3D11();
     if (tmpApi) { 
         if (tmpApi->Init("apitest - Direct3D11", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, mResWidth, mResHeight)) {
