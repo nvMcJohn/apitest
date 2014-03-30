@@ -2,6 +2,7 @@
 
 #include "notex.h"
 #include "framework/gfx_gl.h"
+#include <stdio.h>
 
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
@@ -40,18 +41,9 @@ bool TexturedQuadsGLNoTex::Init(const std::vector<TexturedQuadsProblem::Vertex>&
     // Program
     const char* kUniformNames[] = { "ViewProjection", nullptr };
 
-    if (HasExtension(ARB_shader_storage_buffer_object)) {
-        mProgram = CreateProgramT("textures_gl_notex_vs.glsl",
-                                  "textures_gl_notex_fs.glsl",
-                                  kUniformNames, &mUniformLocation);
-    } else {
-        char shaderDefines[80];
-        snprintf(shaderDefines, ArraySize(shaderDefines), "#define MAX_DRAWS_PER_KICKOFF %d", mMaxDrawsPerKickoff);
-        mProgram = CreateProgramT("textures_gl_notex_vs.glsl",
-                                  "textures_gl_notex_fs.glsl",
-                                  shaderDefines, 
-                                  kUniformNames, &mUniformLocation);        
-    }
+    mProgram = CreateProgramT("textures_gl_notex_vs.glsl",
+                                "textures_gl_notex_fs.glsl",
+                                kUniformNames, &mUniformLocation);
 
     if (mProgram == 0) {
         console::warn("Unable to initialize solution '%s', shader compilation/linking failed.", GetName().c_str());

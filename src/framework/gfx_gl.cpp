@@ -118,12 +118,14 @@ void GfxApiOpenGLBase::Activate()
 {
     assert(mWnd);
     SDL_ShowWindow(mWnd);
+    SDL_GL_MakeCurrent(mWnd, mGLrc);
 }
 
 // --------------------------------------------------------------------------------------------------------------------
 void GfxApiOpenGLBase::Deactivate()
 {
     assert(mWnd);
+    SDL_GL_MakeCurrent(mWnd, nullptr);
     SDL_HideWindow(mWnd);
 }
 
