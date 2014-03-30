@@ -199,7 +199,7 @@ int main(int argc, char* argv[])
     bool shouldQuit = false;
     for (;;) {
         SDL_Event sdl_event;
-        shouldQuit = shouldQuit || app->IsBenchmarkMode() && app->IsBenchmarkModeComplete();
+        shouldQuit = shouldQuit || (app->IsBenchmarkMode() && app->IsBenchmarkModeComplete());
         if (shouldQuit) {
             break;
         }

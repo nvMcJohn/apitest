@@ -8,10 +8,13 @@
 
 # Build results
 _out/
+/bin/apitest*
 /bin/*.dll
 /bin/*.exe
 /bin/*.idb
 /bin/*.pdb
+/bin/*.so*
+/bin/*.dylib
 
 # Enable "build/" folder in the NuGet Packages folder since NuGet packages use it for MSBuild targets
 !packages/*/build/

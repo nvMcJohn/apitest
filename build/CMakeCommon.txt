@@ -25,7 +25,7 @@ elseif( APPLE )
 
     set( SDL_LIBRARY_DIR "${CMAKE_BINARY_DIR}/thirdparty/SDL2-2.0.1/" )
     
-    set( CMAKE_CXX_FLAGS "-std=c++0x -stdlib=libc++ -g -O0 -DPOSIX=1 -DNDEBUG=1 -DWITH_D3D11=${apitest_WITH_D3D11}" )
+    set( CMAKE_CXX_FLAGS "-std=c++0x -stdlib=libc++ -g -O0 -DPOSIX=1 -D_OSX=1 -DNDEBUG=1 -DWITH_D3D11=${apitest_WITH_D3D11}" )
     # set( CMAKE_CXX_FLAGS_DEBUG "-O0" )
     # set( CMAKE_CXX_FLAGS_RELEASE "-O3" )
 

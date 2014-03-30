@@ -1,4 +1,4 @@
-#version 420
+#version 410
 #extension GL_ARB_shader_storage_buffer_object : require
 #extension GL_ARB_bindless_texture : require
 #extension GL_NV_gpu_shader5 : enable

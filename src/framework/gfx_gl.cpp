@@ -3,7 +3,10 @@
 #include "gfx_gl.h"
 #include "console.h"
 
-GfxBaseApi *CreateGfxOpenGLGeneric() { return new GfxApiOpenGLCompat; }
+// --------------------------------------------------------------------------------------------------------------------
+GfxBaseApi *CreateGfxOpenGLGeneric() { return new GfxApiOpenGLGeneric; }
+GfxBaseApi *CreateGfxOpenGLCore() { return new GfxApiOpenGLCore; }
+
 std::tuple<std::string, std::string> versionSplit(const std::string& _srcString);
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -28,16 +31,16 @@ static void APIENTRY ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-GfxApiOpenGLCompat::GfxApiOpenGLCompat()
+GfxApiOpenGLBase::GfxApiOpenGLBase()
 : mGLrc()
 { }
 
 // --------------------------------------------------------------------------------------------------------------------
-GfxApiOpenGLCompat::~GfxApiOpenGLCompat()
+GfxApiOpenGLBase::~GfxApiOpenGLBase()
 { }
 
 // --------------------------------------------------------------------------------------------------------------------
-bool GfxApiOpenGLCompat::Init(const std::string& _title, int _x, int _y, int _width, int _height)
+bool GfxApiOpenGLBase::Init(const std::string& _title, int _x, int _y, int _width, int _height)
 {
     if (!GfxBaseApi::Init(_title, _x, _y, _width, _height)) {
         return false;
@@ -59,6 +62,12 @@ bool GfxApiOpenGLCompat::Init(const std::string& _title, int _x, int _y, int _wi
         console::warn("Unable to MakeCurrent on GL context.");
         return false;
     }
+
+    console::log("GL created successfully! Info follows.");
+    console::log("Vendor: %s", glGetString(GL_VENDOR));
+    console::log("Renderer: %s", glGetString(GL_RENDERER));
+    console::log("Version: %s", glGetString(GL_VERSION));
+    console::log("Shading Language Version: %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
 
     std::list<std::string> stripExts;
     CheckExtensions(stripExts);
@@ -87,7 +96,7 @@ bool GfxApiOpenGLCompat::Init(const std::string& _title, int _x, int _y, int _wi
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-void GfxApiOpenGLCompat::Shutdown()
+void GfxApiOpenGLBase::Shutdown()
 {
     SDL_GL_MakeCurrent(nullptr, nullptr);
 
@@ -105,65 +114,75 @@ void GfxApiOpenGLCompat::Shutdown()
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-void GfxApiOpenGLCompat::Activate()
+void GfxApiOpenGLBase::Activate()
 {
     assert(mWnd);
     SDL_ShowWindow(mWnd);
+    SDL_GL_MakeCurrent(mWnd, mGLrc);
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-void GfxApiOpenGLCompat::Deactivate()
+void GfxApiOpenGLBase::Deactivate()
 {
     assert(mWnd);
+    SDL_GL_MakeCurrent(mWnd, nullptr);
     SDL_HideWindow(mWnd);
 }
 
-#if 0
 // --------------------------------------------------------------------------------------------------------------------
-TestCase* GfxApiOpenGLCompat::create_test(TestId id)
-{
-    switch (id)
-    {
-    case TestId::StreamingVB:                                   return new StreamingVB_GL;
-    case TestId::CubesUniform:                                  return new Cubes_GL_Uniform;
-    case TestId::CubesDynamicBuffer:                            return new Cubes_GL_DynamicBuffer;
-    case TestId::CubesBufferRange:                              return new Cubes_GL_BufferRange;
-    case TestId::CubesTexCoord:                                 return new Cubes_GL_TexCoord;
-    case TestId::CubesMultiDraw:                                return new Cubes_GL_MultiDraw;
-    case TestId::CubesBufferStorage:                            return new Cubes_GL_BufferStorage;
-    case TestId::CubesBindless:                                 return new Cubes_GL_Bindless;
-    case TestId::CubesBindlessIndirect:                         return new Cubes_GL_BindlessIndirect;
-    case TestId::TexturesNoTex:                                 return new Textures_GL_NoTex;
-    case TestId::TexturesForward:                               return new Textures_GL_Forward;
-    case TestId::TexturesBindless:                              return new Textures_GL_Bindless;
-    case TestId::TexturesBindlessMultiDraw:                     return new Textures_GL_Bindless_MultiDraw;
-    case TestId::TexturesSparseBindlessTextureArray:            return new Textures_GL_Sparse_Bindless_Texture_Array;
-    case TestId::TexturesSparseBindlessTextureArrayMultiDraw:   return new Textures_GL_Sparse_Bindless_Texture_Array_MultiDraw;
-    }
-
-    return nullptr;
-}
-#endif
-
-// --------------------------------------------------------------------------------------------------------------------
-void GfxApiOpenGLCompat::Clear(Vec4 _clearColor, GLfloat _clearDepth)
+void GfxApiOpenGLBase::Clear(Vec4 _clearColor, GLfloat _clearDepth)
 {
     // TODO: This should go elsewhere.
     glViewport(0, 0, GetWidth(), GetHeight());
 
-    static_assert(sizeof(Vec4) == 4 * sizeof(GLfloat), "Unexpected size difference. Waaaat");
-    glClearBufferfv(GL_COLOR, 0, &_clearColor.x);
-    glClearBufferfv(GL_DEPTH, 0, &_clearDepth);
+    glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.w);
+    glClearDepthf(_clearDepth);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    GLenum err = glGetError();
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-void GfxApiOpenGLCompat::SwapBuffers()
+void GfxApiOpenGLBase::SwapBuffers()
 {
     assert(mWnd);
 
     SDL_GL_SwapWindow(mWnd);
 }
 
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
+bool GfxApiOpenGLCore::Init(const std::string& _title, int _x, int _y, int _width, int _height)
+{
+    // These must be set before we call the base class.
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);    
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+
+    if (!GfxApiOpenGLBase::Init(_title, _x, _y, _width, _height)) {
+        return false;
+    }
+
+    // Now that we have something valid, create our VAO and bind it. Ugh! So lame that this is required.
+    glGenVertexArrays(1, &mVertexArrayObject);
+    glBindVertexArray(mVertexArrayObject);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+void GfxApiOpenGLCore::Shutdown()
+{
+    // Must cleanup before we call base class.
+    glBindVertexArray(0);
+    glDeleteVertexArrays(1, &mVertexArrayObject);
+
+    GfxApiOpenGLBase::Shutdown();
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 std::string FileContentsToString(std::string _filename)
 {
@@ -499,6 +518,8 @@ bool IsOpenGL(EGfxApi _api)
         case EGfxApi::Direct3D11:
             return false;
         case EGfxApi::OpenGLGeneric:
+            return true;
+        case EGfxApi::OpenGLCore:
             return true;
         default:
             assert(!"Need to update IsOpenGL with new API type.");

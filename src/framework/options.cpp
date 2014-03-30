@@ -52,7 +52,11 @@ Options::Options()
 , Resolution(std::make_pair(1024, 768))
 , InitialProblem(Options::DefaultInitialProblem)
 , InitialSolution(Options::DefaultInitialSolution)
-, InitialApi(GfxApiOpenGLCompat::SGetShortName())
+#if _OSX
+    , InitialApi(GfxApiOpenGLCore::SGetShortName())
+#else
+    , InitialApi(GfxApiOpenGLGeneric::SGetShortName())
+#endif
 {
 
 }
@@ -205,7 +209,8 @@ void PrintHelp()
         console::log(kTableEntry, "Short Name", "Long Name");
 
         // This isn't ideal. But it'll work for now.
-        console::log(kTableEntry, GfxApiOpenGLCompat::SGetShortName(), GfxApiOpenGLCompat::SGetLongName());
+        console::log(kTableEntry, GfxApiOpenGLGeneric::SGetShortName(), GfxApiOpenGLGeneric::SGetLongName());
+        console::log(kTableEntry, GfxApiOpenGLCore::SGetShortName(),    GfxApiOpenGLCore::SGetLongName());
         #if WITH_D3D11
             console::log(kTableEntry, GfxApiDirect3D11::SGetShortName(), GfxApiDirect3D11::SGetLongName());
         #endif

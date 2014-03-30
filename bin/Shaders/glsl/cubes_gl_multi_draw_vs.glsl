@@ -1,4 +1,4 @@
-#version 420
+#version 410
 
 #ifdef USE_SHADER_DRAW_PARAMETERS
 #	extension GL_ARB_shader_draw_parameters : require

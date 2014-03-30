@@ -1,4 +1,4 @@
-#version 420
+#version 410
 #extension GL_ARB_bindless_texture : require
 
 // Uniforms / SSBO ----------------------------------------------------------------------------------------------------

@@ -28,7 +28,13 @@ private:
     GLuint mDrawIDBuffer;
     GLuint mVertexArray;
     GLuint mProgram;
-    GLuint mTransformBuffer;
+
+    // If SSBO is supported, this is used.
+    GLuint mTransformStorageBuffer;
+
+    // Otherwise on OSX, we use this.
+    std::vector<GLuint> mTransformUniformBuffers;
+    GLint mMaxDrawsPerKickoff;
 
     struct UniformLocations {
         GLuint ViewProjection;
