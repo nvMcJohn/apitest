@@ -35,6 +35,7 @@
 #include "solutions/texturedquads/gl/texturearray.h"
 #include "solutions/texturedquads/gl/texturearrayuniform.h"
 #include "solutions/texturedquads/gl/texturearraymultidraw.h"
+#include "solutions/texturedquads/gl/texturearraymultidrawbuffer.h"
 
 // All D3D11 includes should go here.
 #if WITH_D3D11
@@ -134,6 +135,8 @@ ProblemFactory::ProblemFactory(bool _skipInit)
         mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLTextureArrayUniform());
         mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLTextureArrayMultiDraw(true));
         mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLTextureArrayMultiDraw(false));
+        mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLTextureArrayMultiDrawBuffer(true));
+        mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsGLTextureArrayMultiDrawBuffer(false));
         #if WITH_D3D11
             mSolutions[mProblems.back()->GetName()].push_back(new TexturedQuadsD3D11Naive());
         #endif
