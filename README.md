@@ -30,7 +30,8 @@ Unix / OSX (from a cmd prompt in the directory README.md is located in)
     cmake -G "Unix Makefiles" ..
     make
 
-Default config is debug, for release::
+Default configuration builds debug, for release
+
     mkdir _release
     cd _release
     cmake -DCMAKE_BUILD_TYPE=Release -G "Unix Makefiles" ..
