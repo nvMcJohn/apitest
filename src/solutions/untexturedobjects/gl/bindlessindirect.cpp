@@ -94,7 +94,7 @@ bool UntexturedObjectsGLBindlessIndirect::Init(const std::vector<UntexturedObjec
     m_queries.resize(4);
     glGenQueries(kQueryCount, &*m_queries.begin());
 
-    return glGetError() == GL_NO_ERROR;
+    return GLRenderer::GetApiError() == GL_NO_ERROR;
 }
 
 // --------------------------------------------------------------------------------------------------------------------

@@ -80,7 +80,7 @@ bool TexturedQuadsGLBindlessMultiDraw::Init(const std::vector<TexturedQuadsProbl
 
     mCommands.resize(_objectCount);
 
-    return glGetError() == GL_NO_ERROR;
+    return GLRenderer::GetApiError() == GL_NO_ERROR;
 }
 
 // --------------------------------------------------------------------------------------------------------------------

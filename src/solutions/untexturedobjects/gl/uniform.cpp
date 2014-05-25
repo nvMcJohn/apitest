@@ -41,7 +41,7 @@ bool UntexturedObjectsGLUniform::Init(const std::vector<UntexturedObjectsProblem
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ib);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(UntexturedObjectsProblem::Index) * _indices.size(), &*_indices.begin(), GL_STATIC_DRAW);
 
-    return glGetError() == GL_NO_ERROR;
+    return GLRenderer::GetApiError() == GL_NO_ERROR;
 }
 
 // --------------------------------------------------------------------------------------------------------------------

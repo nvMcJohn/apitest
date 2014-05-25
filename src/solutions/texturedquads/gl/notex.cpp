@@ -85,7 +85,7 @@ bool TexturedQuadsGLNoTex::Init(const std::vector<TexturedQuadsProblem::Vertex>&
     }
 
 
-    return glGetError() == GL_NO_ERROR;
+    return GLRenderer::GetApiError() == GL_NO_ERROR;
 }
 
 // --------------------------------------------------------------------------------------------------------------------

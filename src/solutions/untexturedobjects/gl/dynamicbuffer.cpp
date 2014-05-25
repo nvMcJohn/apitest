@@ -47,7 +47,7 @@ bool UntexturedObjectsGLDynamicBuffer::Init(const std::vector<UntexturedObjectsP
 
     glGenBuffers(1, &m_ub);
 
-    return glGetError() == GL_NO_ERROR;
+    return GLRenderer::GetApiError() == GL_NO_ERROR;
 }
 
 // --------------------------------------------------------------------------------------------------------------------

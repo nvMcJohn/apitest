@@ -52,7 +52,7 @@ bool DynamicStreamingGLMapPersistent::Init(size_t _maxVertexCount)
     glBufferStorage(GL_ARRAY_BUFFER, mParticleBufferSize, NULL, flags);
     mVertexDataPtr = glMapBufferRange(GL_ARRAY_BUFFER, 0, mParticleBufferSize, flags);
 
-    return glGetError() == GL_NO_ERROR;
+    return GLRenderer::GetApiError() == GL_NO_ERROR;
 }
 
 // --------------------------------------------------------------------------------------------------------------------

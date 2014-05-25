@@ -75,7 +75,7 @@ bool UntexturedObjectsGLMapPersistent::Init(const std::vector<UntexturedObjectsP
     glBufferStorage(GL_SHADER_STORAGE_BUFFER, mTransformBufferSize, nullptr, flags);
     mTransformDataPtr = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, mTransformBufferSize, flags);
 
-    return glGetError() == GL_NO_ERROR;
+    return GLRenderer::GetApiError() == GL_NO_ERROR;
 }
 
 // --------------------------------------------------------------------------------------------------------------------

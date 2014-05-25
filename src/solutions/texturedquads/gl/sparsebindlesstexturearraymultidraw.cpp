@@ -98,7 +98,7 @@ bool TexturedQuadsGLSparseBindlessTextureArrayMultiDraw::Init(const std::vector<
 
     mCommands.resize(_objectCount);
 
-    return glGetError() == GL_NO_ERROR;
+    return GLRenderer::GetApiError() == GL_NO_ERROR;
 }
 
 // --------------------------------------------------------------------------------------------------------------------

@@ -1,5 +1,6 @@
 
 #include "pch.h"
+#include "framework/gfx_gl.h"
 #include "problems/problem.h"
 #include "solutions/solution.h"
 
@@ -13,7 +14,7 @@ bool Problem::SetSolution(Solution* _solution)
     if (mActiveSolution) {
         console::log("Solution %s - shutdown beginning.", mActiveSolution->GetName().c_str());
         mActiveSolution->Shutdown();
-        auto err = glGetError();
+        auto err = GLRenderer::GetApiError();
         console::log("Solution %s shutdown complete.", mActiveSolution->GetName().c_str());
     }
 

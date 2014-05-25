@@ -59,7 +59,7 @@ bool TexturedQuadsGLNaive::Init(const std::vector<TexturedQuadsProblem::Vertex>&
 
     mIndexBuffer = NewBufferFromVector(GL_ELEMENT_ARRAY_BUFFER, _indices, GL_STATIC_DRAW);
 
-    return glGetError() == GL_NO_ERROR;
+    return GLRenderer::GetApiError() == GL_NO_ERROR;
 }
 
 // --------------------------------------------------------------------------------------------------------------------

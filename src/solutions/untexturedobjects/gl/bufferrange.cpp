@@ -59,7 +59,7 @@ bool UntexturedObjectsGLBufferRange::Init(const std::vector<UntexturedObjectsPro
     glGenBuffers(1, &mUniformBuffer);
     mStorage.resize(mMatrixStride * mMaxBatchSize);
 
-    return glGetError() == GL_NO_ERROR;
+    return GLRenderer::GetApiError() == GL_NO_ERROR;
 }
 
 // --------------------------------------------------------------------------------------------------------------------

@@ -4,6 +4,19 @@
 #include "console.h"
 
 // --------------------------------------------------------------------------------------------------------------------
+namespace GLRenderer
+{
+    uint32_t GetApiError()
+    {
+        #if defined(_DEBUG)
+            return glGetError();
+        #else
+            return GL_NO_ERROR;
+        #endif
+    }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
 GfxBaseApi *CreateGfxOpenGLGeneric() { return new GfxApiOpenGLGeneric; }
 GfxBaseApi *CreateGfxOpenGLCore() { return new GfxApiOpenGLCore; }
 
@@ -143,7 +156,7 @@ void GfxApiOpenGLBase::Clear(Vec4 _clearColor, GLfloat _clearDepth)
     glClearDepthf(_clearDepth);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    GLenum err = glGetError();
+    GLenum err = GLRenderer::GetApiError();
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -375,7 +388,7 @@ GLuint NewTex2DFromDetails(const TextureDetails& _texDetails)
         offset += _texDetails.pSizes[mip];
     }
 
-    assert(glGetError() == GL_NO_ERROR);
+    assert(GLRenderer::GetApiError() == GL_NO_ERROR);
 
     return retVal;
 }
