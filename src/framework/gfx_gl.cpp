@@ -103,10 +103,12 @@ bool GfxApiOpenGLBase::Init(const std::string& _title, int _x, int _y, int _widt
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
 #if defined(_DEBUG)
-    glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
-    // glDebugMessageControl(GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_OTHER, GL_DEBUG_SEVERITY_LOW, 0, nullptr, GL_FALSE);
-    glDebugMessageCallback(ErrorCallback, nullptr);
-    glEnable(GL_DEBUG_OUTPUT);
+    if (glDebugMessageControl != NULL && glDebugMessageCallback != NULL) {
+        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
+        // glDebugMessageControl(GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_OTHER, GL_DEBUG_SEVERITY_LOW, 0, nullptr, GL_FALSE);
+        glDebugMessageCallback(ErrorCallback, nullptr);
+        glEnable(GL_DEBUG_OUTPUT);
+    }
 #endif
 
     return true;
