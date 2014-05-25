@@ -42,6 +42,10 @@ GfxApiOpenGLBase::~GfxApiOpenGLBase()
 // --------------------------------------------------------------------------------------------------------------------
 bool GfxApiOpenGLBase::Init(const std::string& _title, int _x, int _y, int _width, int _height)
 {
+#if defined(_DEBUG)
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
+#endif
+
     if (!GfxBaseApi::Init(_title, _x, _y, _width, _height)) {
         return false;
     }
