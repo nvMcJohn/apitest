@@ -11,6 +11,7 @@ UntexturedObjectsGLBufferRange::UntexturedObjectsGLBufferRange()
 : mIndexBuffer()
 , mVertexBuffer()
 , mUniformBuffer()
+, mVertexArrayObject()
 , mProgram()
 , mMatrixStride()
 , mMaxUniformBlockSize()
@@ -37,6 +38,9 @@ bool UntexturedObjectsGLBufferRange::Init(const std::vector<UntexturedObjectsPro
         console::warn("Unable to initialize solution '%s', shader compilation/linking failed.", GetName().c_str());
         return false;
     }
+
+    glGenVertexArrays(1, &mVertexArrayObject);
+    glBindVertexArray(mVertexArrayObject);
 
     GLuint UB0 = glGetUniformBlockIndex(mProgram, "UB0");
     glUniformBlockBinding(mProgram, UB0, 0);
@@ -134,5 +138,6 @@ void UntexturedObjectsGLBufferRange::Shutdown()
     glDeleteBuffers(1, &mIndexBuffer);
     glDeleteBuffers(1, &mVertexBuffer);
     glDeleteBuffers(1, &mUniformBuffer);
+    glDeleteVertexArrays(1, &mVertexArrayObject);
     glDeleteProgram(mProgram);
 }

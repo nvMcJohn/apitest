@@ -10,6 +10,7 @@ UntexturedObjectsGLDynamicBuffer::UntexturedObjectsGLDynamicBuffer()
 : m_ib()
 , m_vb()
 , m_ub()
+, m_va()
 , m_prog()
 {}
 
@@ -33,6 +34,9 @@ bool UntexturedObjectsGLDynamicBuffer::Init(const std::vector<UntexturedObjectsP
         console::warn("Unable to initialize solution '%s', shader compilation/linking failed.", GetName().c_str());
         return false;
     }
+
+    glGenVertexArrays(1, &m_va);
+    glBindVertexArray(m_va);
 
     GLuint UB0 = glGetUniformBlockIndex(m_prog, "UB0");
     glUniformBlockBinding(m_prog, UB0, 0);
@@ -112,5 +116,6 @@ void UntexturedObjectsGLDynamicBuffer::Shutdown()
     glDeleteBuffers(1, &m_ib);
     glDeleteBuffers(1, &m_vb);
     glDeleteBuffers(1, &m_ub);
+    glDeleteVertexArrays(1, &m_va);
     glDeleteProgram(m_prog);
 }

@@ -9,6 +9,7 @@
 TexturedQuadsGLBindless::TexturedQuadsGLBindless()
 : mIndexBuffer()
 , mVertexBuffer()
+, mVertexArray()
 , mProgram()
 , mTransformBuffer()
 {}
@@ -60,6 +61,9 @@ bool TexturedQuadsGLBindless::Init(const std::vector<TexturedQuadsProblem::Verte
     }
 
     // Buffers
+    glGenVertexArrays(1, &mVertexArray);
+    glBindVertexArray(mVertexArray);
+
     mVertexBuffer = NewBufferFromVector(GL_ARRAY_BUFFER, _vertices, GL_STATIC_DRAW);
     mIndexBuffer = NewBufferFromVector(GL_ELEMENT_ARRAY_BUFFER, _indices, GL_STATIC_DRAW);
 
@@ -155,6 +159,7 @@ void TexturedQuadsGLBindless::Shutdown()
     glDeleteBuffers(1, &mTransformBuffer);
     glDeleteBuffers(1, &mVertexBuffer);
     glDeleteBuffers(1, &mIndexBuffer);
+    glDeleteVertexArrays(1, &mVertexArray);
     glDeleteProgram(mProgram);
 
     mTexHandles.clear();

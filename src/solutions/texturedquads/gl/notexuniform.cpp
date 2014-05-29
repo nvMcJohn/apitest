@@ -9,6 +9,7 @@
 TexturedQuadsGLNoTexUniform::TexturedQuadsGLNoTexUniform()
 : mIndexBuffer()
 , mVertexBuffer()
+, mVertexArrayObject()
 , mProgram()
 , mTransformBuffer()
 {}
@@ -34,6 +35,9 @@ bool TexturedQuadsGLNoTexUniform::Init(const std::vector<TexturedQuadsProblem::V
         console::warn("Unable to initialize solution '%s', shader compilation/linking failed.", GetName().c_str());
         return false;
     }
+
+    glGenVertexArrays(1, &mVertexArrayObject);
+    glBindVertexArray(mVertexArrayObject);
 
     // Buffers
     mVertexBuffer = NewBufferFromVector(GL_ARRAY_BUFFER, _vertices, GL_STATIC_DRAW);
@@ -109,5 +113,6 @@ void TexturedQuadsGLNoTexUniform::Shutdown()
     glDeleteBuffers(1, &mIndexBuffer);
     glDeleteBuffers(1, &mVertexBuffer);
     glDeleteBuffers(1, &mTransformBuffer);
+    glDeleteVertexArrays(1, &mVertexArrayObject);
     glDeleteProgram(mProgram);
 }

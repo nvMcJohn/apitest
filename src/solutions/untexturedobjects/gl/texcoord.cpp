@@ -9,6 +9,7 @@
 UntexturedObjectsGLTexCoord::UntexturedObjectsGLTexCoord()
 : m_ib()
 , m_vb()
+, m_va()
 , m_prog()
 {}
 
@@ -35,6 +36,9 @@ bool UntexturedObjectsGLTexCoord::Init(const std::vector<UntexturedObjectsProble
     }
 
     // Buffers
+    glGenVertexArrays(1, &m_va);
+    glBindVertexArray(m_va);
+
     glGenBuffers(1, &m_vb);
     glBindBuffer(GL_ARRAY_BUFFER, m_vb);
     glBufferData(GL_ARRAY_BUFFER, sizeof(UntexturedObjectsProblem::Vertex) * _vertices.size(), &*_vertices.begin(), GL_STATIC_DRAW);
@@ -103,5 +107,6 @@ void UntexturedObjectsGLTexCoord::Shutdown()
 
     glDeleteBuffers(1, &m_ib);
     glDeleteBuffers(1, &m_vb);
+    glDeleteVertexArrays(1, &m_va);
     glDeleteProgram(m_prog);
 }

@@ -9,6 +9,7 @@
 TexturedQuadsGLNaiveUniform::TexturedQuadsGLNaiveUniform()
 : mIndexBuffer()
 , mVertexBuffer()
+, mVertexArrayObject()
 , mProgram()
 , mTransformBuffer()
 { }
@@ -34,6 +35,9 @@ bool TexturedQuadsGLNaiveUniform::Init(const std::vector<TexturedQuadsProblem::V
         console::warn("Unable to initialize solution '%s', shader compilation/linking failed.", GetName().c_str());
         return false;
     }
+
+    glGenVertexArrays(1, &mVertexArrayObject);
+    glBindVertexArray(mVertexArrayObject);
 
     // Textures
     for (auto it = _textures.begin(); it != _textures.end(); ++it) {
@@ -139,6 +143,7 @@ void TexturedQuadsGLNaiveUniform::Shutdown()
     glDeleteBuffers(1, &mIndexBuffer);
     glDeleteBuffers(1, &mVertexBuffer);
     glDeleteBuffers(1, &mTransformBuffer);
+    glDeleteVertexArrays(1, &mVertexArrayObject);
     glDeleteProgram(mProgram);
 
     mTextures.clear();
