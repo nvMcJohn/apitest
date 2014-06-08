@@ -10,6 +10,7 @@ TexturedQuadsGLSparseBindlessTextureArrayMultiDraw::TexturedQuadsGLSparseBindles
 : mIndexBuffer()
 , mVertexBuffer()
 , mDrawIDBuffer()
+, mVertexArray()
 , mProgram()
 , mTransformBuffer()
 , mTexAddressBuffer()
@@ -58,6 +59,9 @@ bool TexturedQuadsGLSparseBindlessTextureArrayMultiDraw::Init(const std::vector<
     }
 
     // Buffers
+    glGenVertexArrays(1, &mVertexArray);
+    glBindVertexArray(mVertexArray);
+
     mVertexBuffer = NewBufferFromVector(GL_ARRAY_BUFFER, _vertices, GL_STATIC_DRAW);
     mIndexBuffer = NewBufferFromVector(GL_ELEMENT_ARRAY_BUFFER, _indices, GL_STATIC_DRAW);
 
@@ -167,6 +171,7 @@ void TexturedQuadsGLSparseBindlessTextureArrayMultiDraw::Shutdown()
     glDeleteBuffers(1, &mVertexBuffer);
     glDeleteBuffers(1, &mTransformBuffer);
     glDeleteBuffers(1, &mTexAddressBuffer);
+    glDeleteVertexArrays(1, &mVertexArray);
     glDeleteProgram(mProgram);
 
     mTextures.clear();
