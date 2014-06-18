@@ -140,6 +140,9 @@ void UntexturedObjectsGLBindless::Shutdown()
     glDeleteProgram(m_prog);
     m_prog = 0;
 
-    glDisableClientState(GL_ELEMENT_ARRAY_UNIFIED_NV);
-    glDisableClientState(GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV);
+    if (glGetBufferParameterui64vNV != nullptr &&
+        glMakeBufferResidentNV != nullptr) {
+        glDisableClientState(GL_ELEMENT_ARRAY_UNIFIED_NV);
+        glDisableClientState(GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV);
+    }
 }

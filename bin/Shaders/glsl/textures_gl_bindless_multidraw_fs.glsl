@@ -3,7 +3,7 @@
 #extension GL_ARB_bindless_texture : require
 
 // Uniforms / SSBO ----------------------------------------------------------------------------------------------------
-layout (std430, binding = 1) readonly buffer CB1
+layout (std430, binding = 1) buffer CB1
 {
     sampler2D texAddress[];
 };
@@ -20,6 +20,6 @@ layout(location = 0) out vec4 Out_v4Color;
 // Functions ----------------------------------------------------------------------------------------------------------
 void main()
 {
-    sampler2D smplr = sampler2D(texAddress[In.iDrawID]);
+    sampler2D smplr = texAddress[In.iDrawID];
     Out_v4Color = vec4(texture(smplr, In.v2TexCoord).xyz,  1);
 }
