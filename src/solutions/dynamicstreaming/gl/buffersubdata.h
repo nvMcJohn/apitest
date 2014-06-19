@@ -29,6 +29,7 @@ private:
     GLuint mUniformBuffer;
     GLuint mVertexBuffer;
     GLuint mProgram;
+    GLuint mVAO;
 
     size_t mStartDestOffset;
     size_t mParticleBufferSize;

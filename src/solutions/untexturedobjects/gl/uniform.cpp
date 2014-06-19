@@ -41,6 +41,9 @@ bool UntexturedObjectsGLUniform::Init(const std::vector<UntexturedObjectsProblem
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ib);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(UntexturedObjectsProblem::Index) * _indices.size(), &*_indices.begin(), GL_STATIC_DRAW);
 
+    glGenVertexArrays(1, &mVAO);
+    glBindVertexArray(mVAO);
+
     return glGetError() == GL_NO_ERROR;
 }
 
@@ -94,6 +97,8 @@ void UntexturedObjectsGLUniform::Shutdown()
 {
     glDisableVertexAttribArray(1);
     glDisableVertexAttribArray(0);
+
+    glDeleteVertexArrays(1, &mVAO);
 
     glDeleteBuffers(1, &m_ib);
     glDeleteBuffers(1, &m_vb);

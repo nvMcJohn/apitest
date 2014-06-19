@@ -32,6 +32,7 @@ private:
     GLuint m_vb;
     GLuint m_ub;
     GLuint m_prog;
+    GLuint m_vao;
 
     struct UniformLocations {
         GLuint ViewProjection;

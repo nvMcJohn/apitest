@@ -52,6 +52,9 @@ bool DynamicStreamingGLMapPersistent::Init(size_t _maxVertexCount)
     glBufferStorage(GL_ARRAY_BUFFER, mParticleBufferSize, NULL, flags);
     mVertexDataPtr = glMapBufferRange(GL_ARRAY_BUFFER, 0, mParticleBufferSize, flags);
 
+    glGenVertexArrays(1, &mVAO);
+    glBindVertexArray(mVAO);
+
     return glGetError() == GL_NO_ERROR;
 }
 
@@ -119,6 +122,7 @@ void DynamicStreamingGLMapPersistent::Render(const std::vector<Vec2>& _vertices)
 void DynamicStreamingGLMapPersistent::Shutdown()
 {
     glDisableVertexAttribArray(0);
+    glDeleteVertexArrays(1, &mVAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
     glUnmapBuffer(GL_ARRAY_BUFFER);

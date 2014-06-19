@@ -59,6 +59,9 @@ bool UntexturedObjectsGLBufferRange::Init(const std::vector<UntexturedObjectsPro
     glGenBuffers(1, &mUniformBuffer);
     mStorage.resize(mMatrixStride * mMaxBatchSize);
 
+    glGenVertexArrays(1, &mVAO);
+    glBindVertexArray(mVAO);
+
     return glGetError() == GL_NO_ERROR;
 }
 
@@ -131,6 +134,7 @@ void UntexturedObjectsGLBufferRange::Shutdown()
     glDisableVertexAttribArray(1);
     glDisableVertexAttribArray(0);
 
+    glDeleteVertexArrays(1, &mVAO);
     glDeleteBuffers(1, &mIndexBuffer);
     glDeleteBuffers(1, &mVertexBuffer);
     glDeleteBuffers(1, &mUniformBuffer);

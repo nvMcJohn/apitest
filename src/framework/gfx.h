@@ -20,7 +20,10 @@ enum class EGfxApi
     OpenGLCore
 };
 
-bool IsOpenGL(EGfxApi _api);
+// Returns true if:
+//   _compat is false and _api is any variant of OpenGL (including compatibility)
+//   _compat is true and _api is OpenGL compatibility profile, false otherwise
+bool IsOpenGL(EGfxApi _api, bool _compat = false);
 
 // --------------------------------------------------------------------------------------------------------------------
 class GfxBaseApi
