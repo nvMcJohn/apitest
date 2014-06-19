@@ -56,6 +56,10 @@ bool UntexturedObjectsGLBufferRange::Init(const std::vector<UntexturedObjectsPro
     mMatrixStride = iceil(sizeof(Matrix), uniformBufferOffsetAlignment);
     mMaxBatchSize = mMaxUniformBlockSize / mMatrixStride;
 
+    const int kMaxSupportedBatchSize = std::min(size_t(64 * 64 * 64), _objectCount);
+
+    mMaxBatchSize = std::min(mMaxBatchSize, kMaxSupportedBatchSize);
+
     glGenBuffers(1, &mUniformBuffer);
     mStorage.resize(mMatrixStride * mMaxBatchSize);
 
