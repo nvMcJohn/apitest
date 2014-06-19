@@ -2,7 +2,7 @@
 #extension GL_ARB_bindless_texture : require
 
 // Uniforms / SSBO ----------------------------------------------------------------------------------------------------
-uniform sampler2D gTex;
+layout (bindless_sampler) uniform sampler2D gTex;
 
 // Input --------------------------------------------------------------------------------------------------------------
 in block {
