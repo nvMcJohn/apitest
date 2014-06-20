@@ -167,7 +167,7 @@ void Texture2DContainer::changeCommitment(GLsizei slice, GLboolean commit)
 {
     if (glTexturePageCommitmentEXT == nullptr) return;
 
-    GLenum err = glGetError();
+    GLenum err = GLRenderer::GetApiError();
 
     GLsizei levelWidth = mWidth,
         levelHeight = mHeight;
@@ -178,7 +178,7 @@ void Texture2DContainer::changeCommitment(GLsizei slice, GLboolean commit)
         levelHeight = std::max(levelHeight / 2, 1);
     }
 
-    err = glGetError();
+    err = GLRenderer::GetApiError();
 }
 
 // ------------------------------------------------------------------------------------------------

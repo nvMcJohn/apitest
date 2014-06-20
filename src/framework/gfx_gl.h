@@ -3,6 +3,11 @@
 #include "gfx.h"
 #include "GL/glextensions.h"
 
+namespace GLRenderer
+{
+    uint32_t GetApiError();
+}
+
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
@@ -145,7 +150,7 @@ inline GLuint NewBufferFromVector(GLenum _target, const std::vector<T>& _data, G
     glBindBuffer(_target, retVal);
     BufferData(_target, _data, _usage);
 
-    assert(glGetError() == GL_NO_ERROR);
+    assert(GLRenderer::GetApiError() == GL_NO_ERROR);
 
     return retVal;
 }

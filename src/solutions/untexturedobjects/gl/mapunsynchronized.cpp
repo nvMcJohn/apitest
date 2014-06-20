@@ -67,7 +67,7 @@ bool UntexturedObjectsGLMapUnsynchronized::Init(const std::vector<UntexturedObje
     mTransformBufferSize = kTripleBuffer * sizeof(Matrix) * _objectCount;
     glBufferData(GL_SHADER_STORAGE_BUFFER, mTransformBufferSize, nullptr, GL_DYNAMIC_DRAW);
 
-    return glGetError() == GL_NO_ERROR;
+    return GLRenderer::GetApiError() == GL_NO_ERROR;
 }
 
 // --------------------------------------------------------------------------------------------------------------------

@@ -4,6 +4,19 @@
 #include "console.h"
 
 // --------------------------------------------------------------------------------------------------------------------
+namespace GLRenderer
+{
+    uint32_t GetApiError()
+    {
+        #if defined(_DEBUG)
+            return glGetError();
+        #else
+            return GL_NO_ERROR;
+        #endif
+    }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
 GfxBaseApi *CreateGfxOpenGLGeneric() { return new GfxApiOpenGLGeneric; }
 GfxBaseApi *CreateGfxOpenGLCore() { return new GfxApiOpenGLCore; }
 
@@ -42,6 +55,10 @@ GfxApiOpenGLBase::~GfxApiOpenGLBase()
 // --------------------------------------------------------------------------------------------------------------------
 bool GfxApiOpenGLBase::Init(const std::string& _title, int _x, int _y, int _width, int _height)
 {
+#if defined(_DEBUG)
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
+#endif
+
     if (!GfxBaseApi::Init(_title, _x, _y, _width, _height)) {
         return false;
     }
@@ -86,10 +103,12 @@ bool GfxApiOpenGLBase::Init(const std::string& _title, int _x, int _y, int _widt
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
 #if defined(_DEBUG)
-    glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
-    // glDebugMessageControl(GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_OTHER, GL_DEBUG_SEVERITY_LOW, 0, nullptr, GL_FALSE);
-    glDebugMessageCallback(ErrorCallback, nullptr);
-    glEnable(GL_DEBUG_OUTPUT);
+    if (glDebugMessageControl != NULL && glDebugMessageCallback != NULL) {
+        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
+        // glDebugMessageControl(GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_OTHER, GL_DEBUG_SEVERITY_LOW, 0, nullptr, GL_FALSE);
+        glDebugMessageCallback(ErrorCallback, nullptr);
+        glEnable(GL_DEBUG_OUTPUT);
+    }
 #endif
 
     return true;
@@ -139,7 +158,7 @@ void GfxApiOpenGLBase::Clear(Vec4 _clearColor, GLfloat _clearDepth)
     glClearDepthf(_clearDepth);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    GLenum err = glGetError();
+    GLenum err = GLRenderer::GetApiError();
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -371,7 +390,7 @@ GLuint NewTex2DFromDetails(const TextureDetails& _texDetails)
         offset += _texDetails.pSizes[mip];
     }
 
-    assert(glGetError() == GL_NO_ERROR);
+    assert(GLRenderer::GetApiError() == GL_NO_ERROR);
 
     return retVal;
 }

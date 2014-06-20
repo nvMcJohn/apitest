@@ -1,15 +1,16 @@
 #include "pch.h"
 
-#include "texturearraymultidraw.h"
+#include "texturearraymultidrawbuffer.h"
 #include "framework/gfx_gl.h"
 
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
-TexturedQuadsGLTextureArrayMultiDraw::TexturedQuadsGLTextureArrayMultiDraw(bool _useShaderDrawParameters)
+TexturedQuadsGLTextureArrayMultiDrawBuffer::TexturedQuadsGLTextureArrayMultiDrawBuffer(bool _useShaderDrawParameters)
 : mIndexBuffer()
 , mVertexBuffer()
 , mDrawIDBuffer()
+, mCommandBuffer()
 , mVertexArray()
 , mProgram()
 , mTransformBuffer()
@@ -18,7 +19,7 @@ TexturedQuadsGLTextureArrayMultiDraw::TexturedQuadsGLTextureArrayMultiDraw(bool 
 { }
 
 // --------------------------------------------------------------------------------------------------------------------
-bool TexturedQuadsGLTextureArrayMultiDraw::Init(const std::vector<TexturedQuadsProblem::Vertex>& _vertices,
+bool TexturedQuadsGLTextureArrayMultiDrawBuffer::Init(const std::vector<TexturedQuadsProblem::Vertex>& _vertices,
                                        const std::vector<TexturedQuadsProblem::Index>& _indices,
                                        const std::vector<TextureDetails*>& _textures,
                                        size_t _objectCount)
@@ -111,6 +112,9 @@ bool TexturedQuadsGLTextureArrayMultiDraw::Init(const std::vector<TexturedQuadsP
     glGenBuffers(1, &mTransformBuffer);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, mTransformBuffer);
 
+    glGenBuffers(1, &mCommandBuffer);
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, mCommandBuffer);
+
     // Set the command buffer size.
     m_commands.resize(_objectCount);
 
@@ -118,7 +122,7 @@ bool TexturedQuadsGLTextureArrayMultiDraw::Init(const std::vector<TexturedQuadsP
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-void TexturedQuadsGLTextureArrayMultiDraw::Render(const std::vector<Matrix>& _transforms)
+void TexturedQuadsGLTextureArrayMultiDrawBuffer::Render(const std::vector<Matrix>& _transforms)
 {
     // Program
     Vec3 dir = { 0, 0, 1 };
@@ -162,11 +166,14 @@ void TexturedQuadsGLTextureArrayMultiDraw::Render(const std::vector<Matrix>& _tr
         cmd->baseInstance = u;
     }
 
-    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_SHORT, &*m_commands.begin(), xformCount, 0);
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, mCommandBuffer);
+    glBufferData(GL_DRAW_INDIRECT_BUFFER, xformCount * sizeof(DrawElementsIndirectCommand), m_commands.data(), GL_DYNAMIC_DRAW);
+
+    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_SHORT, nullptr, xformCount, 0);
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-void TexturedQuadsGLTextureArrayMultiDraw::Shutdown()
+void TexturedQuadsGLTextureArrayMultiDrawBuffer::Shutdown()
 {
     if (!mUseShaderDrawParameters) {
         glDisableVertexAttribArray(2);
@@ -181,6 +188,7 @@ void TexturedQuadsGLTextureArrayMultiDraw::Shutdown()
     glDeleteBuffers(1, &mIndexBuffer);
     glDeleteBuffers(1, &mVertexBuffer);
     glDeleteBuffers(1, &mDrawIDBuffer);
+    glDeleteBuffers(1, &mCommandBuffer);
     glDeleteVertexArrays(1, &mVertexArray);
     glDeleteBuffers(1, &mTransformBuffer);
     glDeleteBuffers(1, &mTexAddressBuffer);
@@ -193,11 +201,11 @@ void TexturedQuadsGLTextureArrayMultiDraw::Shutdown()
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-std::string TexturedQuadsGLTextureArrayMultiDraw::GetName() const
+std::string TexturedQuadsGLTextureArrayMultiDrawBuffer::GetName() const
 {
     if (mUseShaderDrawParameters) {
-        return "GLTextureArrayMultiDraw-SDP";
+        return "GLTextureArrayMultiDrawBuffer-SDP";
     }
 
-    return "GLTextureArrayMultiDraw-NoSDP";
+    return "GLTextureArrayMultiDrawBuffer-NoSDP";
 }

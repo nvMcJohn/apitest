@@ -11,7 +11,7 @@
 #   define vsprintf_s(_buf, _sizeofbuf, _fmt, _args) vsprintf(_buf, _fmt, _args) 
 #endif
 
-const int kBufferSize = 8192;
+const int kBufferSize = 16384;
 
 namespace console
 {

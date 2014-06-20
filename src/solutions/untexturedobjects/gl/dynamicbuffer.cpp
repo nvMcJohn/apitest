@@ -10,6 +10,7 @@ UntexturedObjectsGLDynamicBuffer::UntexturedObjectsGLDynamicBuffer()
 : m_ib()
 , m_vb()
 , m_ub()
+, m_va()
 , m_prog()
 {}
 
@@ -34,6 +35,9 @@ bool UntexturedObjectsGLDynamicBuffer::Init(const std::vector<UntexturedObjectsP
         return false;
     }
 
+    glGenVertexArrays(1, &m_va);
+    glBindVertexArray(m_va);
+
     GLuint UB0 = glGetUniformBlockIndex(m_prog, "UB0");
     glUniformBlockBinding(m_prog, UB0, 0);
 
@@ -47,7 +51,7 @@ bool UntexturedObjectsGLDynamicBuffer::Init(const std::vector<UntexturedObjectsP
 
     glGenBuffers(1, &m_ub);
 
-    return glGetError() == GL_NO_ERROR;
+    return GLRenderer::GetApiError() == GL_NO_ERROR;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -112,5 +116,6 @@ void UntexturedObjectsGLDynamicBuffer::Shutdown()
     glDeleteBuffers(1, &m_ib);
     glDeleteBuffers(1, &m_vb);
     glDeleteBuffers(1, &m_ub);
+    glDeleteVertexArrays(1, &m_va);
     glDeleteProgram(m_prog);
 }

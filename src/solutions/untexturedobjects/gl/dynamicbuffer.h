@@ -31,6 +31,7 @@ private:
     GLuint m_ib;
     GLuint m_vb;
     GLuint m_ub;
+    GLuint m_va;
     GLuint m_prog;
 
     struct UniformLocations {

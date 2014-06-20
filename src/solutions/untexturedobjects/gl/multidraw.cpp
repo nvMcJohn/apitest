@@ -80,7 +80,7 @@ bool UntexturedObjectsGLMultiDraw::Init(const std::vector<UntexturedObjectsProbl
     // Set the command buffer size.
     m_commands.resize(_objectCount);
 
-    return glGetError() == GL_NO_ERROR;
+    return GLRenderer::GetApiError() == GL_NO_ERROR;
 }
 
 // --------------------------------------------------------------------------------------------------------------------

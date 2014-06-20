@@ -27,6 +27,7 @@ private:
     GLuint mIndexBuffer;
     GLuint mVertexBuffer;
     GLuint mDrawIDBuffer;
+    GLuint mVertexArray;
     GLuint mProgram;
     GLuint mTransformBuffer;
     GLuint mTexAddressBuffer;

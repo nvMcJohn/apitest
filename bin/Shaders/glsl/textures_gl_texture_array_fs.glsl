@@ -1,5 +1,6 @@
 #version 410
 #extension GL_ARB_shader_storage_buffer_object : require
+#extension GL_ARB_shader_image_load_store : require
 
 // Uniforms / SSBO ----------------------------------------------------------------------------------------------------
 struct Tex2DAddress

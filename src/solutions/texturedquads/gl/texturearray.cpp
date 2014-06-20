@@ -101,7 +101,7 @@ bool TexturedQuadsGLTextureArray::Init(const std::vector<TexturedQuadsProblem::V
     glGenBuffers(1, &mTransformBuffer);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, mTransformBuffer);
 
-    return glGetError() == GL_NO_ERROR;
+    return GLRenderer::GetApiError() == GL_NO_ERROR;
 }
 
 // --------------------------------------------------------------------------------------------------------------------

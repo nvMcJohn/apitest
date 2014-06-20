@@ -8,6 +8,8 @@
 
 # Build results
 _out/
+_debug/
+_release/
 /bin/apitest*
 /bin/*.dll
 /bin/*.exe

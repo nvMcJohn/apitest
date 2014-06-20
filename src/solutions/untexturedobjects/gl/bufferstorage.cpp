@@ -86,7 +86,7 @@ bool UntexturedObjectsGLBufferStorage::Init(const std::vector<UntexturedObjectsP
     mCommands.Create(BufferStorage::PersistentlyMappedBuffer, GL_DRAW_INDIRECT_BUFFER, kTripleBuffer * _objectCount, createFlags, mapFlags);
     mTransformBuffer.Create(BufferStorage::PersistentlyMappedBuffer, GL_SHADER_STORAGE_BUFFER, kTripleBuffer * _objectCount, createFlags, mapFlags);
     
-    return glGetError() == GL_NO_ERROR;
+    return GLRenderer::GetApiError() == GL_NO_ERROR;
 }
 
 // --------------------------------------------------------------------------------------------------------------------

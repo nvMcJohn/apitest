@@ -9,6 +9,7 @@
 TexturedQuadsGLSparseBindlessTextureArray::TexturedQuadsGLSparseBindlessTextureArray()
 : mIndexBuffer()
 , mVertexBuffer()
+, mVertexArray()
 , mProgram()
 , mTransformBuffer()
 , mTexAddressBuffer()
@@ -52,6 +53,9 @@ bool TexturedQuadsGLSparseBindlessTextureArray::Init(const std::vector<TexturedQ
     }
 
     // Buffers
+    glGenVertexArrays(1, &mVertexArray);
+    glBindVertexArray(mVertexArray);
+
     mVertexBuffer = NewBufferFromVector(GL_ARRAY_BUFFER, _vertices, GL_STATIC_DRAW);
     mIndexBuffer = NewBufferFromVector(GL_ELEMENT_ARRAY_BUFFER, _indices, GL_STATIC_DRAW);
 
@@ -72,7 +76,7 @@ bool TexturedQuadsGLSparseBindlessTextureArray::Init(const std::vector<TexturedQ
     mTexAddressBuffer = NewBufferFromVector(GL_SHADER_STORAGE_BUFFER, texAddressContents, GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mTexAddressBuffer);
 
-    return glGetError() == GL_NO_ERROR;
+    return GLRenderer::GetApiError() == GL_NO_ERROR;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -142,6 +146,7 @@ void TexturedQuadsGLSparseBindlessTextureArray::Shutdown()
     glDeleteBuffers(1, &mVertexBuffer);
     glDeleteBuffers(1, &mTransformBuffer);
     glDeleteBuffers(1, &mTexAddressBuffer);
+    glDeleteVertexArrays(1, &mVertexArray);
     glDeleteProgram(mProgram);
 
     mTextures.clear();

@@ -276,6 +276,17 @@ Cocoa_GL_CreateContext(_THIS, SDL_Window * window)
         return NULL;
     }
 
+    CGLContextObj ctx = [context CGLContextObj];
+    if (ctx == nil) {
+        SDL_SetError ("Failed obtaining CGLContext from NSOpenGLContext context");
+        return NULL;
+    }
+    CGLError err =  CGLEnable( ctx, kCGLCEMPEngine);
+    if (err != kCGLNoError) {
+        SDL_SetError ("Failed enabling MTGL engine on CGLContext");
+        return NULL;
+    }
+
     [pool release];
 
     if ( Cocoa_GL_MakeCurrent(_this, window, context) < 0 ) {

@@ -25,6 +25,7 @@ public:
 private:
     GLuint mIndexBuffer;
     GLuint mVertexBuffer;
+    GLuint mVertexArrayObject;
     GLuint mProgram;
     GLuint mTransformBuffer;
 

@@ -69,7 +69,7 @@ bool UntexturedObjectsGLBindless::Init(const std::vector<UntexturedObjectsProble
         m_vbo_sizes[u] = _vertices.size() * sizeof(UntexturedObjectsProblem::Vertex);
     }
 
-    return glGetError() == GL_NO_ERROR;
+    return GLRenderer::GetApiError() == GL_NO_ERROR;
 }
 
 // --------------------------------------------------------------------------------------------------------------------

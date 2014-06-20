@@ -9,6 +9,7 @@
 TexturedQuadsGLTextureArrayUniform::TexturedQuadsGLTextureArrayUniform()
 : mIndexBuffer()
 , mVertexBuffer()
+, mVertexArray()
 , mProgram()
 , mTransformBuffer()
 , mTexAddressBuffer()
@@ -75,13 +76,16 @@ bool TexturedQuadsGLTextureArrayUniform::Init(const std::vector<TexturedQuadsPro
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mTexAddressBuffer);
 
     // Buffers
+    glGenVertexArrays(1, &mVertexArray);
+    glBindVertexArray(mVertexArray);
+
     mVertexBuffer = NewBufferFromVector(GL_ARRAY_BUFFER, _vertices, GL_STATIC_DRAW);
     mIndexBuffer = NewBufferFromVector(GL_ELEMENT_ARRAY_BUFFER, _indices, GL_STATIC_DRAW);
 
     glGenBuffers(1, &mTransformBuffer);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, mTransformBuffer);
 
-    return glGetError() == GL_NO_ERROR;
+    return GLRenderer::GetApiError() == GL_NO_ERROR;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -151,6 +155,7 @@ void TexturedQuadsGLTextureArrayUniform::Shutdown()
     glDeleteBuffers(1, &mVertexBuffer);
     glDeleteBuffers(1, &mTransformBuffer);
     glDeleteBuffers(1, &mTexAddressBuffer);
+    glDeleteVertexArrays(1, &mVertexArray);
     glDeleteProgram(mProgram);
 
     mTextures.clear();
