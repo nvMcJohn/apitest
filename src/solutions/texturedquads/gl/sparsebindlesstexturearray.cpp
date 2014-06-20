@@ -76,7 +76,10 @@ bool TexturedQuadsGLSparseBindlessTextureArray::Init(const std::vector<TexturedQ
     mTexAddressBuffer = NewBufferFromVector(GL_SHADER_STORAGE_BUFFER, texAddressContents, GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mTexAddressBuffer);
 
-    return GLRenderer::GetApiError() == GL_NO_ERROR;
+    glGenVertexArrays(1, &mVAO);
+    glBindVertexArray(mVAO);
+
+    return glGetError() == GL_NO_ERROR;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -142,6 +145,7 @@ void TexturedQuadsGLSparseBindlessTextureArray::Shutdown()
         SafeDelete(*it);
     }
 
+    glDeleteVertexArrays(1, &mVAO);
     glDeleteBuffers(1, &mIndexBuffer);
     glDeleteBuffers(1, &mVertexBuffer);
     glDeleteBuffers(1, &mTransformBuffer);

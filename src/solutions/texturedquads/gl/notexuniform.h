@@ -28,6 +28,7 @@ private:
     GLuint mVertexArrayObject;
     GLuint mProgram;
     GLuint mTransformBuffer;
+    GLuint mVAO;
 
     struct UniformLocations {
         GLuint ViewProjection;

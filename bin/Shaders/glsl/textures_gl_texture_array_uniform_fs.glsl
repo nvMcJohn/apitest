@@ -9,7 +9,7 @@ struct Tex2DAddress
     float Page;
 };
 
-layout (std140, binding = 1) readonly buffer CB1
+layout (std140, binding = 1) buffer CB1
 {
     Tex2DAddress texAddress[];
 };

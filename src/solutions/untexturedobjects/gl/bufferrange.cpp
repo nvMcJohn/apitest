@@ -60,10 +60,17 @@ bool UntexturedObjectsGLBufferRange::Init(const std::vector<UntexturedObjectsPro
     mMatrixStride = iceil(sizeof(Matrix), uniformBufferOffsetAlignment);
     mMaxBatchSize = mMaxUniformBlockSize / mMatrixStride;
 
+    const int kMaxSupportedBatchSize = std::min(size_t(64 * 64 * 64), _objectCount);
+
+    mMaxBatchSize = std::min(mMaxBatchSize, kMaxSupportedBatchSize);
+
     glGenBuffers(1, &mUniformBuffer);
     mStorage.resize(mMatrixStride * mMaxBatchSize);
 
-    return GLRenderer::GetApiError() == GL_NO_ERROR;
+    glGenVertexArrays(1, &mVAO);
+    glBindVertexArray(mVAO);
+
+    return glGetError() == GL_NO_ERROR;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -135,6 +142,7 @@ void UntexturedObjectsGLBufferRange::Shutdown()
     glDisableVertexAttribArray(1);
     glDisableVertexAttribArray(0);
 
+    glDeleteVertexArrays(1, &mVAO);
     glDeleteBuffers(1, &mIndexBuffer);
     glDeleteBuffers(1, &mVertexBuffer);
     glDeleteBuffers(1, &mUniformBuffer);

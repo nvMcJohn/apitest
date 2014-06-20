@@ -51,7 +51,10 @@ bool UntexturedObjectsGLDynamicBuffer::Init(const std::vector<UntexturedObjectsP
 
     glGenBuffers(1, &m_ub);
 
-    return GLRenderer::GetApiError() == GL_NO_ERROR;
+    glGenVertexArrays(1, &m_vao);
+    glBindVertexArray(m_vao);
+
+    return glGetError() == GL_NO_ERROR;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -112,6 +115,8 @@ void UntexturedObjectsGLDynamicBuffer::Shutdown()
 {
     glDisableVertexAttribArray(1);
     glDisableVertexAttribArray(0);
+
+    glDeleteVertexArrays(1, &m_vao);
 
     glDeleteBuffers(1, &m_ib);
     glDeleteBuffers(1, &m_vb);

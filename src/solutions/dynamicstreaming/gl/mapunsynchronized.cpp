@@ -45,7 +45,10 @@ bool DynamicStreamingGLMapUnsynchronized::Init(size_t _maxVertexCount)
     glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, mParticleBufferSize, nullptr, GL_DYNAMIC_DRAW);
 
-    return GLRenderer::GetApiError() == GL_NO_ERROR;
+    glGenVertexArrays(1, &mVAO);
+    glBindVertexArray(mVAO);
+
+    return glGetError() == GL_NO_ERROR;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -113,6 +116,7 @@ void DynamicStreamingGLMapUnsynchronized::Render(const std::vector<Vec2>& _verti
 void DynamicStreamingGLMapUnsynchronized::Shutdown()
 {
     glDisableVertexAttribArray(0);
+    glDeleteVertexArrays(1, &mVAO);
 
     glDeleteBuffers(1, &mVertexBuffer);
 

@@ -30,6 +30,8 @@ private:
     std::vector<GLsizeiptr> m_vbo_sizes;
 
     GLuint m_prog;
+    GLuint m_vao;
+
 
     struct UniformLocations {
         GLuint ViewProjection;

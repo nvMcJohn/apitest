@@ -30,6 +30,7 @@ private:
     GLuint mProgram;
     GLuint mTransformBuffer;
     GLuint mTexAddressBuffer;
+    GLuint mVAO;
 
     struct UniformLocations {
         GLuint ViewProjection;

@@ -45,7 +45,10 @@ bool DynamicStreamingGLBufferSubData::Init(size_t _maxVertexCount)
     glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, mParticleBufferSize, nullptr, GL_DYNAMIC_DRAW);
 
-    return GLRenderer::GetApiError() == GL_NO_ERROR;
+    glGenVertexArrays(1, &mVAO);
+    glBindVertexArray(mVAO);
+
+    return glGetError() == GL_NO_ERROR;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -108,6 +111,7 @@ void DynamicStreamingGLBufferSubData::Render(const std::vector<Vec2>& _vertices)
 void DynamicStreamingGLBufferSubData::Shutdown()
 {
     glDisableVertexAttribArray(0);
+    glDeleteVertexArrays(1, &mVAO);
 
     glDeleteBuffers(1, &mVertexBuffer);
 

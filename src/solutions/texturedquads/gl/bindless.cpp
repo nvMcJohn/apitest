@@ -70,7 +70,10 @@ bool TexturedQuadsGLBindless::Init(const std::vector<TexturedQuadsProblem::Verte
     glGenBuffers(1, &mTransformBuffer);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, mTransformBuffer);
 
-    return GLRenderer::GetApiError() == GL_NO_ERROR;
+    glGenVertexArrays(1, &mVAO);
+    glBindVertexArray(mVAO);
+
+    return glGetError() == GL_NO_ERROR;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -156,6 +159,7 @@ void TexturedQuadsGLBindless::Shutdown()
         glDeleteTextures(1, &*it);
     }
 
+    glDeleteVertexArrays(1, &mVAO);
     glDeleteBuffers(1, &mTransformBuffer);
     glDeleteBuffers(1, &mVertexBuffer);
     glDeleteBuffers(1, &mIndexBuffer);

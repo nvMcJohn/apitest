@@ -530,7 +530,7 @@ std::tuple<std::string, std::string> versionSplit(const std::string& _srcString)
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-bool IsOpenGL(EGfxApi _api)
+bool IsOpenGL(EGfxApi _api, bool _compat)
 {
     switch (_api)
     {
@@ -539,7 +539,7 @@ bool IsOpenGL(EGfxApi _api)
         case EGfxApi::OpenGLGeneric:
             return true;
         case EGfxApi::OpenGLCore:
-            return true;
+            return (_compat == false);
         default:
             assert(!"Need to update IsOpenGL with new API type.");
             return false;

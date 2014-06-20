@@ -69,6 +69,9 @@ bool UntexturedObjectsGLBindless::Init(const std::vector<UntexturedObjectsProble
         m_vbo_sizes[u] = _vertices.size() * sizeof(UntexturedObjectsProblem::Vertex);
     }
 
+    glGenVertexArrays(1, &m_vao);
+    glBindVertexArray(m_vao);
+
     return GLRenderer::GetApiError() == GL_NO_ERROR;
 }
 
@@ -137,9 +140,14 @@ void UntexturedObjectsGLBindless::Shutdown()
         m_vbs.clear();
     }
 
+    glDeleteVertexArrays(1, &m_vao);
+
     glDeleteProgram(m_prog);
     m_prog = 0;
 
-    glDisableClientState(GL_ELEMENT_ARRAY_UNIFIED_NV);
-    glDisableClientState(GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV);
+    if (glGetBufferParameterui64vNV != nullptr &&
+        glMakeBufferResidentNV != nullptr) {
+        glDisableClientState(GL_ELEMENT_ARRAY_UNIFIED_NV);
+        glDisableClientState(GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV);
+    }
 }
