@@ -29,6 +29,7 @@ private:
 
     GLuint mUniformBuffer;
     GLuint mProgram;
+    GLuint mVAO;
 
     GLint mMatrixStride;
     GLint mMaxUniformBlockSize;

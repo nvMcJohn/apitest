@@ -21,7 +21,7 @@ public:
     virtual void Shutdown() override;
 
     virtual std::string GetName() const override;
-    virtual bool SupportsApi(EGfxApi _api) const override { return IsOpenGL(_api); }
+    virtual bool SupportsApi(EGfxApi _api) const override { return IsOpenGL(_api, true); }
 
 private:
     GLuint mIndexBuffer;

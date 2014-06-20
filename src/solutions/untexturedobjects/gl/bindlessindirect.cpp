@@ -94,6 +94,9 @@ bool UntexturedObjectsGLBindlessIndirect::Init(const std::vector<UntexturedObjec
     m_queries.resize(4);
     glGenQueries(kQueryCount, &*m_queries.begin());
 
+    glGenVertexArrays(1, &m_vao);
+    glBindVertexArray(m_vao);
+
     return GLRenderer::GetApiError() == GL_NO_ERROR;
 }
 
@@ -211,9 +214,14 @@ void UntexturedObjectsGLBindlessIndirect::Shutdown()
     }
     glDeleteProgram(m_prog);
 
+    glDeleteVertexArrays(1, &m_vao);
+
     // TODO: These could also go in ::End. 
-    glDisableClientState(GL_ELEMENT_ARRAY_UNIFIED_NV);
-    glDisableClientState(GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV);
+    if (glGetBufferParameterui64vNV != nullptr &&
+        glMakeBufferResidentNV != nullptr) {
+        glDisableClientState(GL_ELEMENT_ARRAY_UNIFIED_NV);
+        glDisableClientState(GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV);
+    }
 }
 
 // --------------------------------------------------------------------------------------------------------------------

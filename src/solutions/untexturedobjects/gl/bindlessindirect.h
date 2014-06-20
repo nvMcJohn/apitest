@@ -39,6 +39,7 @@ private:
     std::vector<GLuint64> m_vbo_addrs;
     std::vector<GLsizeiptr> m_vbo_sizes;
     GLuint m_prog;
+    GLuint m_vao;
 
     std::vector<GLuint> m_queries;
     GLint m_currentQueryIssue;

@@ -26,4 +26,5 @@ public:
 protected:
     size_t mObjectCount;
     size_t mIndexCount;
+    GLuint mVAO;
 };
