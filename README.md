@@ -52,7 +52,7 @@ Changing Problems / Solutions
 Notes on benchmarking
 =======
 If you are benchmarking from withing visual studio, you need to disable the 
-debug heap. This applies to bother Release and Debug configurations. This is 
+debug heap. This applies to both Release and Debug configurations. This is 
 accomplished by specifying _NO_DEBUG_HEAP=1 in the environment field of the 
 Debug Properties page of apitest (in Visual Studio).
 
